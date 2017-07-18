@@ -1,0 +1,5 @@
+spring:
+ jackson:
+   date-format: "yyyy-MM-dd"
+   serialization:
+     WRITE_DATES_AS_TIMESTAMPS : false
