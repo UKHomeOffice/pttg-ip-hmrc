@@ -1,0 +1,6 @@
+{
+  "_links": {
+    "self": {"href": "http://localhost:${port}/individuals"},
+    "match": {"href": "http://localhost:${port}/individuals/match", "name": "POST", "title": "Match individual"}
+  }
+}
