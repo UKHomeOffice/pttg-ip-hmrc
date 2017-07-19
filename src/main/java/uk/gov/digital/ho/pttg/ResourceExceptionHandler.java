@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -21,6 +22,14 @@ public class ResourceExceptionHandler {
     public ResponseEntity handleApplicationUrnNotFoundException(HmrcException e) {
         log.info("HmrcException: {}", e);
         return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = HttpClientErrorException.class)
+    @ResponseBody
+    public ResponseEntity handleHttpClientErrorException(HttpClientErrorException e) {
+        log.info("HttpClientErrorException: {}", e.getMessage());
+        log.info("Error response body: {}", e.getResponseBodyAsString());
+        return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }
 
     @ExceptionHandler(value = HmrcNotFoundException.class)

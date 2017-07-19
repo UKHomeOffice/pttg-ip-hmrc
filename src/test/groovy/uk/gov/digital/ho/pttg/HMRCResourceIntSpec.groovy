@@ -92,18 +92,37 @@ class HMRCResourceIntSpec extends Specification {
     }
 
 
-    //TODO
-    def 'HMRC error should be handled'() {
+
+    def 'HMRC bad request should be handled'() {
         given:
         stubFor(post(urlEqualTo("/oauth/token"))
                 .willReturn(aResponse().withStatus(HttpStatus.BAD_REQUEST.value())
-                //.withBody(asJson(buildErrorBody()))
+                .withBody(asJson(buildErrorBody("INVALID_REQUEST", "Missing parameter")))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
 
         when:
         def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
         then:
-        response.statusCode == HttpStatus.INTERNAL_SERVER_ERROR
+        response.statusCode == HttpStatus.BAD_REQUEST
+    }
+
+    def 'Any HMRC error should be perculated through'() {
+        given:
+        stubFor(post(urlEqualTo("/oauth/token"))
+                .willReturn(aResponse().withStatus(HttpStatus.I_AM_A_TEAPOT.value())
+                .withBody(asJson(buildErrorBody("TEAPOT", "Missing parameter")))
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+
+        when:
+        def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
+        then:
+        response.statusCode == HttpStatus.I_AM_A_TEAPOT
+    }
+
+    String buildErrorBody(String code, String message) {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/errorBody.json"))
+                .replace("\${code}", code)
+                .replace("\${message}", message)
     }
 
     String asJson(Object input){
