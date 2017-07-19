@@ -79,7 +79,8 @@ public class HmrcClient {
 
     private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
 
-        final Resource<EmbeddedIncome> incomeResource = followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, linksResource.getLink("income").getHref()), accessToken)
+        final Resource<EmbeddedIncome> incomeResource =
+                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("income").getHref())), accessToken)
                 .toObject(incomesResourceTypeRef);
         return incomeResource.getContent().get_embedded().getIncome();
     }
@@ -93,25 +94,33 @@ public class HmrcClient {
         }else{
             withFromDate.build().toUriString();
         }
-        log.info("hmrc link with date range - {}", uri);
         return uri;
     }
 
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
-        final Resource<EmbeddedEmployments> employmentsResource = followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, linksResource.getLink("employments").getHref()), accessToken)
+        final Resource<EmbeddedEmployments> employmentsResource =
+                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("employments").getHref())), accessToken)
                 .toObject(employmentsResourceTypeRef);
         return employmentsResource.getContent().get_embedded().getEmployments();
     }
 
     private Resource<String> getIndividual(Individual individual, String accessToken, String matchUrl) {
+        log.info("POST to {}", matchUrl);
         ResponseEntity<String> entity = restTemplate.postForEntity(matchUrl, createEntity(individual, accessToken), String.class);
         String location = entity.getHeaders().get("Location").get(0);
-        return followTraverson(location, accessToken).toObject(linksResourceTypeRef);
+        return followTraverson(asAbsolute(location), accessToken).toObject(linksResourceTypeRef);
     }
 
     private String getMatchUrl(String accessToken) {
         final Resource<String> linksResource = followTraverson(url + "/individuals/", accessToken).toObject(linksResourceTypeRef);
-        return linksResource.getLink("match").getHref();
+        return asAbsolute(linksResource.getLink("match").getHref());
+    }
+
+    private String asAbsolute(String uri){
+        if(uri.startsWith("http")) {
+            return uri;
+        }
+        return url + uri;
     }
 
     private void handleError(String balanceUrl, HttpStatusCodeException e) {
@@ -150,6 +159,7 @@ public class HmrcClient {
     }
 
     private static Traverson.TraversalBuilder followTraverson(String link, String accessToken) {
+        log.info("following traverson for {}", link);
         return traversonFor(link).follow().withHeaders(generateHeaders(accessToken));
     }
 

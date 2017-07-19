@@ -14,7 +14,6 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-//@RequestMapping("/something")
 public class HmrcResource {
 
     private final HmrcClient client;
@@ -35,7 +34,7 @@ public class HmrcResource {
     {
 
 
-        final Individual individual = new Individual(firstName, lastName, nino, fromDate);
+        final Individual individual = new Individual(firstName, lastName, nino, dob);
         log.info(String.format("Hmrc service invoked for Individual %s with date range %s to %s", individual, fromDate, toDate));
         return client.getIncome(individual, fromDate, toDate);
     }
