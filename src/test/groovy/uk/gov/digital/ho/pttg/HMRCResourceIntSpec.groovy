@@ -38,11 +38,6 @@ class HMRCResourceIntSpec extends Specification {
     @Autowired
     private ObjectMapper objectMapper
 
-   /* @Before
-    public void setup() {
-
-    }*/
-
     def jsonSlurper = new JsonSlurper()
 
 
@@ -58,7 +53,8 @@ class HMRCResourceIntSpec extends Specification {
               .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(post(urlEqualTo("/individuals/match"))
                 .willReturn(aResponse().withStatus(HttpStatus.SEE_OTHER.value())
-                .withHeader("Location", String.format("http://localhost:%d/individuals/",WIREMOCK_PORT) + MATCH_ID)))
+                .withHeader("Location", String.format("/individuals/",WIREMOCK_PORT) + MATCH_ID)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/individuals/"+MATCH_ID))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -74,6 +70,43 @@ class HMRCResourceIntSpec extends Specification {
 
         when:
         def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
+        then:
+        response.statusCode == HttpStatus.OK
+        def hmrcSummary = jsonSlurper.parseText(response.body)
+        hmrcSummary.employments[0].employer.name == 'Acme Inc'
+        hmrcSummary.income[0].weekPayNumber == 49
+    }
+
+    def 'Allow optional toDate'() {
+        given:
+        stubFor(post(urlEqualTo("/oauth/token"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildOauthResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(get(urlEqualTo("/individuals/"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildEntryPointResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(post(urlEqualTo("/individuals/match"))
+                .willReturn(aResponse().withStatus(HttpStatus.SEE_OTHER.value())
+                .withHeader("Location", String.format("/individuals/",WIREMOCK_PORT) + MATCH_ID)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(get(urlEqualTo("/individuals/"+MATCH_ID))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildMatchedIndividualResponse())))
+        stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/employments/paye"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildEmploymentsResponse())))
+        stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/income/paye"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildIncomeResponse())))
+
+        when:
+        sleep(2000)
+        def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&dateOfBirth=2000-03-01", String.class)
         then:
         response.statusCode == HttpStatus.OK
         def hmrcSummary = jsonSlurper.parseText(response.body)
