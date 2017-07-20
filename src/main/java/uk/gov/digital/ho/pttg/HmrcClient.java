@@ -79,7 +79,7 @@ public class HmrcClient {
         return incomeResource.getContent().get_embedded().getIncome();
     }
 
-    public String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
+    String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
         final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(href).replaceQuery(null);
         final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
