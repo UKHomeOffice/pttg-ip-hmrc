@@ -30,7 +30,7 @@ public class HmrcResource {
             @RequestParam(value = "nino")  String nino,
             @RequestParam(value = "dateOfBirth")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
             @RequestParam(value = "fromDate")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(value = "toDate")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate)
+            @RequestParam(value = "toDate", required = false)  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate)
     {
 
 

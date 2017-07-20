@@ -16,7 +16,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -30,7 +29,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
@@ -53,8 +51,6 @@ public class HmrcClient {
     private String clientId;
     private final String totpKey;
 
-    static final String CONSUMER_ID_HEADER = "clientId";
-
     @Autowired
     public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, @Value("${client.id}") String clientId, @Value("${totp.key}") String totpKey) {
         this.restTemplate = restTemplate;
@@ -63,16 +59,14 @@ public class HmrcClient {
         this.totpKey = totpKey;
     }
 
-    public IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
+    IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
         String accessToken = getAccessCode();
         //entrypoint to retrieve match url
         final String matchUrl = getMatchUrl(accessToken);
-        //post individual details and follow redirect
         final Resource<String> individualResource = getIndividual(individual, accessToken, matchUrl);
         final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
         final List<Income> incomeList = getIncome(fromDate, toDate, accessToken, individualResource);
-
 
         return new IncomeSummary(incomeList, employments);
     }
@@ -85,14 +79,14 @@ public class HmrcClient {
         return incomeResource.getContent().get_embedded().getIncome();
     }
 
-    private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
-        String uri = null;
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(href);
+    public String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
+        String uri;
+        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(href).replaceQuery(null);
         final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
         if(toDate!=null) {
             uri =  withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
         }else{
-            withFromDate.build().toUriString();
+            uri = withFromDate.build().toUriString();
         }
         return uri;
     }
@@ -106,9 +100,10 @@ public class HmrcClient {
 
     private Resource<String> getIndividual(Individual individual, String accessToken, String matchUrl) {
         log.info("POST to {}", matchUrl);
-        ResponseEntity<String> entity = restTemplate.postForEntity(matchUrl, createEntity(individual, accessToken), String.class);
-        String location = entity.getHeaders().get("Location").get(0);
-        return followTraverson(asAbsolute(location), accessToken).toObject(linksResourceTypeRef);
+        //post includes following 303 redirect
+        Resource<String> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
+        log.info("Response is {}", resource);
+        return resource;
     }
 
     private String getMatchUrl(String accessToken) {
@@ -123,23 +118,12 @@ public class HmrcClient {
         return url + uri;
     }
 
-    private void handleError(String balanceUrl, HttpStatusCodeException e) {
-        if (isNotFound(e)) {
-            throw new HmrcNotFoundException(String.format("Not Found returned for url %s", balanceUrl));
-        }
-        Optional.of(e.getResponseBodyAsString()).ifPresent(log::error);
-        throw new HmrcException(String.format("Error returned from %s", balanceUrl), e);
-    }
-
-    private static boolean isNotFound(HttpStatusCodeException e) {
-        return e.getStatusCode() != null && e.getStatusCode() == HttpStatus.NOT_FOUND;
-    }
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
-        return new HttpEntity<Individual>(individual, headers);
+        return new HttpEntity<>(individual, headers);
     }
 
     private static HttpHeaders generateHeaders(String accessToken) {
@@ -176,11 +160,12 @@ public class HmrcClient {
         return converter;
     }
 
+    //TODO rewrite when TOTP service available
     private String getAccessCode() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", clientId);
         final String totpCode = getTotpCode();
