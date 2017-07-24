@@ -10,15 +10,14 @@ class HmrcClientSpec extends Specification {
     static final LocalDate FROM_DATE = LocalDate.of(2016, 6, 21)
     static final LocalDate TO_DATE = LocalDate.of(2016, 8, 1)
     public static final String HMRC_BASE_URL = "http://hmrc.com"
+    public static final String HMRC_ACCESS_CODE_BASE_URL = "http://internal-access-code-service"
     public static final String ABSOLUTE_URI_WITH_QUERY_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123"
     public static final String ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS = HMRC_BASE_URL +  "/individuals"
-    public static final String CLIENT_ID = "clientId"
-    public static final String TOTPKEY = "totpkey"
     public RestTemplate restTemplate= Mock(RestTemplate.class)
     public HmrcClient client
 
     def setup() {
-        client = new HmrcClient(restTemplate, HMRC_BASE_URL, CLIENT_ID, TOTPKEY)
+        client = new HmrcClient(restTemplate, HMRC_BASE_URL, HMRC_ACCESS_CODE_BASE_URL)
     }
 
     def 'should replace any returned query params from absolute url'() {
