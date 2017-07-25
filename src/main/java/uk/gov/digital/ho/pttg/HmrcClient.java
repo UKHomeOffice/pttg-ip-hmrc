@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -31,6 +32,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static uk.gov.digital.ho.pttg.CorrelationHeaderFilter.CORRELATION_ID_HEADER;
+import static uk.gov.digital.ho.pttg.UserHeaderFilter.USER_ID_HEADER;
 
 @Service
 @Slf4j
@@ -123,10 +126,17 @@ public class HmrcClient {
     }
 
     private static HttpHeaders generateHeaders(String accessToken) {
+        final HttpHeaders headers = generateHeaders();
+        headers.add("Authorization", format("Bearer %s", accessToken));
+        return headers;
+    }
+
+    private static HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Authorization", format("Bearer %s", accessToken));
+        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
+        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
         return headers;
     }
 
@@ -158,9 +168,17 @@ public class HmrcClient {
 
     private String getAccessCode() {
 
-        final AuthToken oauth = restTemplate.getForEntity(accessCodeurl + "/access", AuthToken.class).getBody();
+        final AuthToken oauth = restTemplate.exchange(accessCodeurl + "/access", HttpMethod.GET, createHeadersEntityWithMDC(), AuthToken.class).getBody();
         log.info("Received AuthToken response {}", oauth);
         return oauth.getCode();
+    }
+
+    private HttpEntity createHeadersEntityWithMDC() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
+        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>("headers", headers);
     }
 
 }

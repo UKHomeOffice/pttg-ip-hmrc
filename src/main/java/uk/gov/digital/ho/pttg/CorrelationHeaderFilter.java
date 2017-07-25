@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.sponsorship.casework;
+package uk.gov.digital.ho.pttg;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 public class CorrelationHeaderFilter implements Filter {
 
-    private static final String CORRELATION_ID_HEADER = "correlationId";
+    public static final String CORRELATION_ID_HEADER = "correlationId";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
