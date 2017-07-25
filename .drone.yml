@@ -86,9 +86,10 @@ pipeline:
       - ./deploy.sh
     when:
       event: deployment
+      environment: [dev, test, preprod]
 
   deploy-to-prod:
-    image: quay.io/ukhomeofficedigital/kd:v0.2.3
+    image: quay.io/ukhomeofficedigital/kd:v0.2.2
     environment:
       - DOCKER_HOST=tcp://127.0.0.1:2375
       - KUBE_NAMESPACE=pt-i-prod
