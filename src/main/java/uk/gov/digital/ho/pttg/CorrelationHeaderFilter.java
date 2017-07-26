@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 public class CorrelationHeaderFilter implements Filter {
 
-    public static final String CORRELATION_ID_HEADER = "correlationId";
+    public static final String CORRELATION_ID_HEADER = "x-correlation-id";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

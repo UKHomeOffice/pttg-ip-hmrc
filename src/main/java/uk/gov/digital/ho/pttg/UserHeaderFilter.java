@@ -11,7 +11,7 @@ import java.io.IOException;
 @Component
 public class UserHeaderFilter implements Filter {
 
-    public static final String USER_ID_HEADER = "userId";
+    public static final String USER_ID_HEADER = "x-auth-userid";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
