@@ -80,7 +80,7 @@ public class HmrcClient {
 
     String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(href).replaceQuery(null);
+        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripBraces(href)).replaceQuery(null);
         final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
         if(toDate!=null) {
             uri =  withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
@@ -88,6 +88,10 @@ public class HmrcClient {
             uri = withFromDate.build().toUriString();
         }
         return uri;
+    }
+
+    private String stripBraces(String href) {
+        return href.replaceAll("[{}]", "");
     }
 
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
@@ -169,7 +173,7 @@ public class HmrcClient {
     private String getAccessCode() {
 
         final AuthToken oauth = restTemplate.exchange(accessCodeurl + "/access", HttpMethod.GET, createHeadersEntityWithMDC(), AuthToken.class).getBody();
-        log.info("Received AuthToken response {}", oauth);
+        log.info("Received AuthToken response");
         return oauth.getCode();
     }
 

@@ -12,6 +12,7 @@ class HmrcClientSpec extends Specification {
     public static final String HMRC_BASE_URL = "http://hmrc.com"
     public static final String HMRC_ACCESS_CODE_BASE_URL = "http://internal-access-code-service"
     public static final String ABSOLUTE_URI_WITH_QUERY_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123"
+    public static final String ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_CURLY_BRACES = HMRC_BASE_URL + "/individuals{?existingParam=123}"
     public static final String ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS = HMRC_BASE_URL +  "/individuals"
     public RestTemplate restTemplate= Mock(RestTemplate.class)
     public HmrcClient client
@@ -23,6 +24,13 @@ class HmrcClientSpec extends Specification {
     def 'should replace any returned query params from absolute url'() {
         when:
         def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS)
+        then:
+        link == HMRC_BASE_URL + '/individuals?fromDate=2016-06-21&toDate=2016-08-01'
+    }
+
+    def 'should strip curly braces from url'() {
+        when:
+        def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_CURLY_BRACES)
         then:
         link == HMRC_BASE_URL + '/individuals?fromDate=2016-06-21&toDate=2016-08-01'
     }
