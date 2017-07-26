@@ -8,23 +8,5 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class AuthToken {
-    private final String access_token;
-
-
-    /*public String getAccess_token() {
-        return UUID.randomUUID().toString();
-    }
-
-    public String getToken_type() {
-        return "bearer";
-    }
-
-    public String getScope() {
-        return "scope1, scope2";
-    }
-
-    public int getExpires_in() {
-        return 14400;
-    }*/
-
+    private final String code;
 }

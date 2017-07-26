@@ -43,7 +43,7 @@ class HMRCResourceIntSpec extends Specification {
 
     def 'Happy path - HMRC data returned'() {
         given:
-        stubFor(post(urlEqualTo("/oauth/token"))
+        stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
@@ -79,7 +79,7 @@ class HMRCResourceIntSpec extends Specification {
 
     def 'Allow optional toDate'() {
         given:
-        stubFor(post(urlEqualTo("/oauth/token"))
+        stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
@@ -116,7 +116,11 @@ class HMRCResourceIntSpec extends Specification {
 
     def 'Any HMRC error should be perculated through'() {
         given:
-        stubFor(post(urlEqualTo("/oauth/token"))
+        stubFor(get(urlEqualTo("/access"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildOauthResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(get(urlEqualTo("/individuals/"))
                 .willReturn(aResponse().withStatus(HttpStatus.I_AM_A_TEAPOT.value())
                 .withBody(asJson(buildErrorBody("TEAPOT", "Missing parameter")))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
@@ -130,7 +134,11 @@ class HMRCResourceIntSpec extends Specification {
 
     def 'HMRC bad request should be handled'() {
         given:
-        stubFor(post(urlEqualTo("/oauth/token"))
+        stubFor(get(urlEqualTo("/access"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildOauthResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(get(urlEqualTo("/individuals/"))
                 .willReturn(aResponse().withStatus(HttpStatus.BAD_REQUEST.value())
                 .withBody(asJson(buildErrorBody("INVALID_REQUEST", "Missing parameter")))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
@@ -140,6 +148,30 @@ class HMRCResourceIntSpec extends Specification {
         def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
         then:
         response.statusCode == HttpStatus.BAD_REQUEST
+    }
+
+    def 'Access code service throws error'() {
+        given:
+        stubFor(get(urlEqualTo("/access"))
+                .willReturn(aResponse().withStatus(HttpStatus.BAD_REQUEST.value())
+                .withBody(asJson(buildErrorBody("INVALID_REQUEST", "Missing parameter")))
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        sleep(2000)
+
+        when:
+        def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
+        then:
+        response.statusCode == HttpStatus.BAD_REQUEST
+    }
+
+    def 'Access code service not available'() {
+        given:
+        wireMockRule.stop()
+
+        when:
+        def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
+        then:
+        response.statusCode == HttpStatus.INTERNAL_SERVER_ERROR
     }
 
     String buildErrorBody(String code, String message) {

@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -10,20 +11,19 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.hateoas.hal.Jackson2HalModule;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -31,8 +31,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.lang.String.format;
-import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static uk.gov.digital.ho.pttg.CorrelationHeaderFilter.CORRELATION_ID_HEADER;
+import static uk.gov.digital.ho.pttg.UserHeaderFilter.USER_ID_HEADER;
 
 @Service
 @Slf4j
@@ -48,15 +49,13 @@ public class HmrcClient {
 
     private RestTemplate restTemplate;
     private String url;
-    private String clientId;
-    private final String totpKey;
+    private final String accessCodeurl;
 
     @Autowired
-    public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, @Value("${client.id}") String clientId, @Value("${totp.key}") String totpKey) {
+    public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, @Value("${base.hmrc.access.code.url}") String accessCodeurl) {
         this.restTemplate = restTemplate;
         this.url = url;
-        this.clientId = clientId;
-        this.totpKey = totpKey;
+        this.accessCodeurl = accessCodeurl;
     }
 
     IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
@@ -127,10 +126,17 @@ public class HmrcClient {
     }
 
     private static HttpHeaders generateHeaders(String accessToken) {
+        final HttpHeaders headers = generateHeaders();
+        headers.add("Authorization", format("Bearer %s", accessToken));
+        return headers;
+    }
+
+    private static HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        headers.add("Authorization", format("Bearer %s", accessToken));
+        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
+        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
         return headers;
     }
 
@@ -160,32 +166,19 @@ public class HmrcClient {
         return converter;
     }
 
-    //TODO rewrite when TOTP service available
     private String getAccessCode() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("grant_type", "client_credentials");
-        map.add("client_id", clientId);
-        final String totpCode = getTotpCode();
-        map.add("client_secret", totpCode);
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        log.info("Calling oauth/token with totp: {}", totpCode);
-        final AuthToken oauth = restTemplate.postForEntity(url + "/oauth/token", request, AuthToken.class).getBody();
+        final AuthToken oauth = restTemplate.exchange(accessCodeurl + "/access", HttpMethod.GET, createHeadersEntityWithMDC(), AuthToken.class).getBody();
         log.info("Received AuthToken response {}", oauth);
-        return oauth.getAccess_token();
+        return oauth.getCode();
     }
 
-    private String getTotpCode() {
-        try {
-            return TotpGenerator.getTotpCode(totpKey);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Problem generating TOTP code", e);
-            throw new HmrcException("Problem generating TOTP code", e);
-        }
+    private HttpEntity createHeadersEntityWithMDC() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
+        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>("headers", headers);
     }
 
 }
