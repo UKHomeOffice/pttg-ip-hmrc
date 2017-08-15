@@ -150,6 +150,39 @@ class HMRCResourceIntSpec extends Specification {
         response.statusCode == HttpStatus.BAD_REQUEST
     }
 
+    def 'HMRC returns error during link traversal'() {
+        given:
+        stubFor(get(urlEqualTo("/access"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildOauthResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(get(urlEqualTo("/individuals/"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildEntryPointResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(post(urlEqualTo("/individuals/match"))
+                .willReturn(aResponse().withStatus(HttpStatus.SEE_OTHER.value())
+                .withHeader("Location", String.format("/individuals/",WIREMOCK_PORT) + MATCH_ID)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(get(urlEqualTo("/individuals/"+MATCH_ID))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildMatchedIndividualResponse())))
+        stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/employments/paye"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildEmploymentsResponse())))
+        stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/income/paye"))
+                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildInvalidIncomeResponse())))
+
+        when:
+        def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
+        then:
+        response.statusCode == HttpStatus.INTERNAL_SERVER_ERROR
+    }
+
     def 'Access code service throws error'() {
         given:
         stubFor(get(urlEqualTo("/access"))
@@ -196,6 +229,12 @@ class HMRCResourceIntSpec extends Specification {
 
     String buildMatchedIndividualResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/matchResponse.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildInvalidIncomeResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/invalidIncomeResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
