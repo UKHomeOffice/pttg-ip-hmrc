@@ -41,6 +41,14 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }
 
+    @ExceptionHandler(value = Exception.class)
+    @ResponseBody
+    public ResponseEntity handleException(Exception e) {
+        log.error("Error: {}", e.getMessage());
+        log.error("Exception: ", e);
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(value = HmrcNotFoundException.class)
     @ResponseStatus(value = NOT_FOUND)
     @ResponseBody
