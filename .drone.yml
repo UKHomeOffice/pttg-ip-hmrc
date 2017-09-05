@@ -54,7 +54,6 @@ pipeline:
        - git clone https://github.com/UKHomeOffice/kube-pttg-ip-hmrc.git
      when:
        event: [push, deployment, tag]
-       branch: master
 
   deploy-to-dev-from-build-number:
     image: quay.io/ukhomeofficedigital/kd:v0.2.2
