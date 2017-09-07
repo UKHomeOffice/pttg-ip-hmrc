@@ -93,7 +93,6 @@ pipeline:
       - ENVIRONMENT=${DRONE_DEPLOY_TO}
       - VERSION=${IMAGE_VERSION}
       - KUBE_SERVER=https://kube-dev.dsp.notprod.homeoffice.gov.uk
-      - KUBE_SERVER_DEV=https://kube-dev.dsp.notprod.homeoffice.gov.uk
     commands:
       - cd kube-pttg-ip-hmrc
       - ./deploy.sh
@@ -111,7 +110,7 @@ pipeline:
       - KUBE_SERVER=https://kube.dsp.digital.homeoffice.gov.uk
     commands:
       - cd kube-pttg-ip-hmrc
-      - ./deploy-prod.sh
+      - ./deploy.sh
     when:
       event: deployment
       environment: prod
