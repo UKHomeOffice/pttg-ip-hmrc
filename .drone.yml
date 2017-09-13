@@ -41,8 +41,8 @@ pipeline:
       - DOCKER_HOST=tcp://127.0.0.1:2375
     commands:
       - docker login -u="ukhomeofficedigital+pttg" -p=${DOCKER_PASSWORD} quay.io
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_TAG}-${DRONE_BUILD_NUMBER}
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_TAG}-${DRONE_BUILD_NUMBER}
+      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_TAG}
+      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_TAG}
     when:
       event: tag
 
@@ -53,8 +53,7 @@ pipeline:
      commands:
        - git clone https://github.com/UKHomeOffice/kube-pttg-ip-hmrc.git
      when:
-       event: [push, deployment]
-       branch: master
+       event: [push, deployment, tag]
 
   deploy-to-dev-from-build-number:
     image: quay.io/ukhomeofficedigital/kd:v0.2.2
@@ -72,6 +71,20 @@ pipeline:
       branch: [master]
       event: [push, tag]
 
+  deploy-to-preprod-from-build-tag:
+    image: quay.io/ukhomeofficedigital/kd:v0.2.2
+    environment:
+      - DOCKER_HOST=tcp://127.0.0.1:2375
+      - KUBE_NAMESPACE=pt-i-preprod
+      - ENVIRONMENT=preprod
+      - VERSION=${DRONE_TAG}
+      - KUBE_SERVER=https://kube-dev.dsp.notprod.homeoffice.gov.uk
+    commands:
+      - cd kube-pttg-ip-hmrc
+      - ./deploy.sh
+    when:
+      event: [tag]
+
   deploy:
     image: quay.io/ukhomeofficedigital/kd:v0.2.2
     environment:
@@ -80,7 +93,6 @@ pipeline:
       - ENVIRONMENT=${DRONE_DEPLOY_TO}
       - VERSION=${IMAGE_VERSION}
       - KUBE_SERVER=https://kube-dev.dsp.notprod.homeoffice.gov.uk
-      - KUBE_SERVER_DEV=https://kube-dev.dsp.notprod.homeoffice.gov.uk
     commands:
       - cd kube-pttg-ip-hmrc
       - ./deploy.sh
@@ -98,7 +110,7 @@ pipeline:
       - KUBE_SERVER=https://kube.dsp.digital.homeoffice.gov.uk
     commands:
       - cd kube-pttg-ip-hmrc
-      - ./deploy-prod.sh
+      - ./deploy.sh
     when:
       event: deployment
       environment: prod
