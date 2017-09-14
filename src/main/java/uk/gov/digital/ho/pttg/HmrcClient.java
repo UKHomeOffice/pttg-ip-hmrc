@@ -65,7 +65,7 @@ public class HmrcClient {
         final String matchUrl = getMatchUrl(accessToken);
         final Resource<String> individualResource = getIndividual(individual, accessToken, matchUrl);
         final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
-        final List<Income> incomeList = getIncome(fromDate, toDate, accessToken, individualResource);
+        final List<Income> incomeList = DataCleanser.clean(individual, getIncome(fromDate, toDate, accessToken, individualResource));
 
         return new IncomeSummary(incomeList, employments);
     }
@@ -119,8 +119,8 @@ public class HmrcClient {
             return uri;
         }
         return url + uri;
-    }
 
+    }
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
         HttpHeaders headers = new HttpHeaders();

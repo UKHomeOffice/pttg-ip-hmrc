@@ -48,4 +48,5 @@ class HmrcClientSpec extends Specification {
         then:
         link == HMRC_BASE_URL + '/individuals?fromDate=2016-06-21'
     }
+
 }
