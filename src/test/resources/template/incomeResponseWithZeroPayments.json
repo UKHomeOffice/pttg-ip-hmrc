@@ -9,8 +9,8 @@
       {"employerPayeReference": "123/AI45678", "taxablePayment": 1000.50, "nonTaxablePayment": 200.50, "paymentDate": "2016-02-28", "monthPayNumber": 11},
       {"employerPayeReference": "123/AI45678", "taxablePayment": 1000.50, "nonTaxablePayment": 200.50, "paymentDate": "2016-03-28", "monthPayNumber": 12},
       {"employerPayeReference": "123/DI45678", "taxablePayment": 1000.50, "nonTaxablePayment": 200.50, "paymentDate": "2016-04-28", "monthPayNumber": 1},
-      {"employerPayeReference": "123/DI45678", "taxablePayment": 1000.50, "nonTaxablePayment": 200.50, "paymentDate": "2016-04-28", "monthPayNumber": 1},
-      {"employerPayeReference": "123/DI45678", "taxablePayment": 1000.50, "nonTaxablePayment": 200.50, "paymentDate": "2016-04-28", "monthPayNumber": 1}
+      {"employerPayeReference": "123/DI45678", "taxablePayment": 0, "nonTaxablePayment": 0, "paymentDate": "2016-04-28", "monthPayNumber": 1},
+      {"employerPayeReference": "123/DI45678", "taxablePayment": 0, "nonTaxablePayment": 0, "paymentDate": "2016-04-28", "monthPayNumber": 1}
     ]
   }
 }

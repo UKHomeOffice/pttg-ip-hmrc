@@ -78,7 +78,7 @@ class HMRCResourceIntSpec extends Specification {
         hmrcSummary.income[0].weekPayNumber == 49
     }
 
-    def 'Happy path - HMRC data returned with duplicates removed'() {
+    def 'Happy path - HMRC data returned with zeros removed'() {
         given:
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
@@ -103,7 +103,7 @@ class HMRCResourceIntSpec extends Specification {
         stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/income/paye"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(buildIncomeResponseWithDuplicates())))
+                .withBody(buildIncomeResponseWithZeroPayments())))
 
         when:
         def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=2000-03-01", String.class)
@@ -284,8 +284,8 @@ class HMRCResourceIntSpec extends Specification {
                 .replace("\${matchId}", MATCH_ID)
     }
 
-    String buildIncomeResponseWithDuplicates() {
-        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeResponseWithDuplicates.json"))
+    String buildIncomeResponseWithZeroPayments() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeResponseWithZeroPayments.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
