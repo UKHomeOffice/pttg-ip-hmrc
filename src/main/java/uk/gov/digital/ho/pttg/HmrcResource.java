@@ -35,7 +35,7 @@ public class HmrcResource {
 
 
         final Individual individual = new Individual(firstName, lastName, nino, dob);
-        log.info(String.format("Hmrc service invoked for Individual %s with date range %s to %s", individual, fromDate, toDate));
+        log.info(String.format("Hmrc service invoked for Individual %s with date range %s to %s", individual.getNino(), fromDate, toDate));
         return client.getIncome(individual, fromDate, toDate);
     }
 }
