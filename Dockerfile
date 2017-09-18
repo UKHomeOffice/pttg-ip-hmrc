@@ -1,8 +1,8 @@
 FROM quay.io/ukhomeofficedigital/openjdk8:v1.8.0.131
 
 
-ENV USER pttg
-ENV GROUP pttg
+ENV USER user-pttg-ip-hmrc
+ENV GROUP group-pttg-ip-hmrc
 ENV NAME pttg-ip-hmrc
 ENV JAR_PATH build/libs
 
@@ -24,6 +24,6 @@ RUN chmod a+x /app/run.sh
 
 EXPOSE 8081
 
-USER pttg
+USER ${USER}
 
 ENTRYPOINT /app/run.sh
