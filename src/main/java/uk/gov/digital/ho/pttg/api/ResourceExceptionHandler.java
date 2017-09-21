@@ -6,11 +6,12 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.AuditDataException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 
 @ControllerAdvice
 @Slf4j
@@ -18,13 +19,13 @@ public class ResourceExceptionHandler {
 
 
     @ExceptionHandler(AuditDataException.class)
-    public Object auditDataMarshalFailureHandler(AuditDataException e) {
+    public ResponseEntity auditDataMarshalFailureHandler(AuditDataException e) {
         log.error("AuditDataException: {}", e.getMessage());
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(value = ApplicationExceptions.HmrcException.class)
-    public ResponseEntity handleHmrcException(ApplicationExceptions.HmrcException e) {
+    @ExceptionHandler(value = HmrcException.class)
+    public ResponseEntity handleHmrcException(HmrcException e) {
         log.error("HmrcException: {}", e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
@@ -50,8 +51,8 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(value = ApplicationExceptions.HmrcNotFoundException.class)
-    public ResponseEntity handleApplicationUrnNotFoundException(ApplicationExceptions.HmrcNotFoundException e) {
+    @ExceptionHandler(value = HmrcNotFoundException.class)
+    public ResponseEntity handleHmrcNotFoundException(HmrcNotFoundException e) {
         log.info("HmrcNotFoundException: {}", e);
         return new ResponseEntity<>(e.getMessage(), NOT_FOUND);
     }
