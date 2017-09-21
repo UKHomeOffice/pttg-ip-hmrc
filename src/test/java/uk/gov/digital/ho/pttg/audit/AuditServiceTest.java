@@ -43,7 +43,7 @@ public class AuditServiceTest {
 
     @Before
     public void setup() {
-        someAuditEventType = AuditEventType.INCOME_PROVING_HMRC_INCOME_REQUEST;
+        someAuditEventType = AuditEventType.HMRC_INCOME_REQUEST;
         someUUID = UUID.randomUUID();
         someAuditData = new HashMap<>();
         when(mockRequestData.sessionId()).thenReturn("some session id");

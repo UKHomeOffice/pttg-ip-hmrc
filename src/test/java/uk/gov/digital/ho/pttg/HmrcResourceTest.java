@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.INCOME_PROVING_HMRC_INCOME_REQUEST;
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.INCOME_PROVING_HMRC_INCOME_RESPONSE;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_RESPONSE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcResourceTest {
@@ -52,8 +52,8 @@ public class HmrcResourceTest {
         resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
         verify(mockClient).getIncome(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, TO_DATE);
-        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_REQUEST), Matchers.any(UUID.class), Matchers.any(Map.class));
-        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_RESPONSE), Matchers.any(UUID.class), Matchers.any(Map.class));
+        verify(mockAuditService).add(eq(HMRC_INCOME_REQUEST), Matchers.any(UUID.class), Matchers.any(Map.class));
+        verify(mockAuditService).add(eq(HMRC_INCOME_RESPONSE), Matchers.any(UUID.class), Matchers.any(Map.class));
     }
 
     @Test
@@ -73,8 +73,8 @@ public class HmrcResourceTest {
 
         resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);
 
-        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_REQUEST), captorRequestEventId.capture(), captorRequestAuditData.capture());
-        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_RESPONSE), captorResponseEventId.capture(), captorResponseAuditData.capture());
+        verify(mockAuditService).add(eq(HMRC_INCOME_REQUEST), captorRequestEventId.capture(), captorRequestAuditData.capture());
+        verify(mockAuditService).add(eq(HMRC_INCOME_RESPONSE), captorResponseEventId.capture(), captorResponseAuditData.capture());
 
         assertThat(captorRequestEventId.getValue()).isEqualTo(captorResponseEventId.getValue());
 

@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.INCOME_PROVING_HMRC_INCOME_REQUEST;
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.INCOME_PROVING_HMRC_INCOME_RESPONSE;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_RESPONSE;
 
 @Slf4j
 @RestController
@@ -46,11 +46,11 @@ public class HmrcResource {
 
         UUID eventId = UUID.randomUUID();
 
-        auditService.add(INCOME_PROVING_HMRC_INCOME_REQUEST, eventId, auditData(individual));
+        auditService.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
 
         final IncomeSummary incomeSummary = client.getIncome(individual, fromDate, toDate);
 
-        auditService.add(INCOME_PROVING_HMRC_INCOME_RESPONSE, eventId, auditData(incomeSummary));
+        auditService.add(HMRC_INCOME_RESPONSE, eventId, auditData(incomeSummary));
 
         return incomeSummary;
     }
