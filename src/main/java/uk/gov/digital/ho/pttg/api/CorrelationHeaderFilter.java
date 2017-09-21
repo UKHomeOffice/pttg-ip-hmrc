@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg;
+package uk.gov.digital.ho.pttg.api;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;

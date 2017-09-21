@@ -1,11 +1,14 @@
 package uk.gov.digital.ho.pttg;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import uk.gov.digital.ho.pttg.api.HmrcResource;
+import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.audit.AuditService;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -24,15 +27,12 @@ public class HmrcResourceTest {
     public static final LocalDate DATE_OF_BIRTH = LocalDate.of(1975, 6, 21);
     public static final LocalDate FROM_DATE = LocalDate.of(2016, 6, 21);
     public static final LocalDate TO_DATE = LocalDate.of(2016, 6, 21);
-    @Mock
-    private HmrcClient mockClient;
+
+    @Mock private HmrcClient mockClient;
+    @Mock private AuditService mockAuditService;
+
+    @InjectMocks
     private HmrcResource resource;
-
-    @Before
-    public void setUp() {
-        resource = new HmrcResource(mockClient);
-    }
-
 
     @Test
     public void testCollaboratorsWhenCreatingCase() {

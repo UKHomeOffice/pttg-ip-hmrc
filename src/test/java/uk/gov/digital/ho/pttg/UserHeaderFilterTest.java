@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.MDC;
+import uk.gov.digital.ho.pttg.api.UserHeaderFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -16,7 +17,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static uk.gov.digital.ho.pttg.UserHeaderFilter.USER_ID_HEADER;
+import static uk.gov.digital.ho.pttg.api.UserHeaderFilter.USER_ID_HEADER;
 
 
 @RunWith(MockitoJUnitRunner.class)

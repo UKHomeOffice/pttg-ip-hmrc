@@ -21,7 +21,18 @@
             </encoder>
         </appender>
     </springProfile>
-    
+
+    <logger name="org.eclipse.jetty" additivity="false" level="WARN">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+    <logger name="org.springframework" additivity="false" level="WARN">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <logger name="org.hibernate" additivity="false" level="WARN">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
     <logger name="uk.gov" additivity="false" level="INFO">
         <appender-ref ref="consoleAppender"/>
     </logger>

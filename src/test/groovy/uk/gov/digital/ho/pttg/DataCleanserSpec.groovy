@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg
 
 import spock.lang.Specification
+import uk.gov.digital.ho.pttg.application.DataCleanser
 import uk.gov.digital.ho.pttg.dto.Income
 import uk.gov.digital.ho.pttg.dto.Individual
 

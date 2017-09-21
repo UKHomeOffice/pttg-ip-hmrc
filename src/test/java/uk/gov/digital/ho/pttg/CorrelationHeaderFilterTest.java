@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg;
 
 import org.junit.Test;
+import uk.gov.digital.ho.pttg.api.CorrelationHeaderFilter;
 
 import java.util.UUID;
 
