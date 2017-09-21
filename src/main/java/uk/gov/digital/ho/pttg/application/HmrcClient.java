@@ -32,8 +32,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static uk.gov.digital.ho.pttg.api.CorrelationHeaderFilter.CORRELATION_ID_HEADER;
-import static uk.gov.digital.ho.pttg.api.UserHeaderFilter.USER_ID_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 
 @Service
 @Slf4j

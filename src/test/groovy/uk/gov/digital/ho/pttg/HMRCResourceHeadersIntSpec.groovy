@@ -14,8 +14,8 @@ import spock.lang.Specification
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import static uk.gov.digital.ho.pttg.api.CorrelationHeaderFilter.CORRELATION_ID_HEADER
-import static uk.gov.digital.ho.pttg.api.UserHeaderFilter.USER_ID_HEADER
+import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER
+import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @TestPropertySource(locations = "classpath:test-application-override.properties")
