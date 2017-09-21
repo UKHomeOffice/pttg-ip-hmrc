@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg;
+package uk.gov.digital.ho.pttg.application;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,8 +32,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static uk.gov.digital.ho.pttg.CorrelationHeaderFilter.CORRELATION_ID_HEADER;
-import static uk.gov.digital.ho.pttg.UserHeaderFilter.USER_ID_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 
 @Service
 @Slf4j
@@ -58,7 +58,7 @@ public class HmrcClient {
         this.accessCodeurl = accessCodeurl;
     }
 
-    IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
+    public IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
         String accessToken = getAccessCode();
         //entrypoint to retrieve match url
@@ -148,7 +148,7 @@ public class HmrcClient {
         try {
             return new Traverson(new URI(link), APPLICATION_JSON).setRestOperations(new RestTemplate(Collections.singletonList(getHalConverter())));
         } catch (URISyntaxException e) {
-            throw new HmrcException("Problem building hmrc API url", e);
+            throw new ApplicationExceptions.HmrcException("Problem building hmrc API url", e);
         }
     }
 

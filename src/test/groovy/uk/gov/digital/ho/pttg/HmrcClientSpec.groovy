@@ -2,6 +2,7 @@ package uk.gov.digital.ho.pttg
 
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
+import uk.gov.digital.ho.pttg.application.HmrcClient
 
 import java.time.LocalDate
 

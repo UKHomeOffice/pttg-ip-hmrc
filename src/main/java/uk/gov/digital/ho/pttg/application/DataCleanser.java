@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg;
+package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.digital.ho.pttg.dto.Income;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 * 1. any payments with a taxable amnount of zero
 *  Any adjusted income lists will be identified in the log by NINO for information */
 @Slf4j
-class DataCleanser {
+public class DataCleanser {
 
     public static List<Income> clean(Individual individual, List<Income> incomes) {
         return removeIncomesWithZeroPayment(individual, incomes);
