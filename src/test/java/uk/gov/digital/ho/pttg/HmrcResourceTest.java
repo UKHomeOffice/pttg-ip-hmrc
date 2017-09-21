@@ -3,8 +3,7 @@ package uk.gov.digital.ho.pttg;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.api.HmrcResource;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
@@ -13,9 +12,15 @@ import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.INCOME_PROVING_HMRC_INCOME_REQUEST;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.INCOME_PROVING_HMRC_INCOME_RESPONSE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcResourceTest {
@@ -31,6 +36,11 @@ public class HmrcResourceTest {
     @Mock private HmrcClient mockClient;
     @Mock private AuditService mockAuditService;
 
+    @Captor private ArgumentCaptor<UUID> captorRequestEventId;
+    @Captor private ArgumentCaptor<UUID> captorResponseEventId;
+    @Captor private ArgumentCaptor<Map<String, Object>> captorRequestAuditData;
+    @Captor private ArgumentCaptor<Map<String, Object>> captorResponseAuditData;
+
     @InjectMocks
     private HmrcResource resource;
 
@@ -42,6 +52,8 @@ public class HmrcResourceTest {
         resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
         verify(mockClient).getIncome(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, TO_DATE);
+        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_REQUEST), Matchers.any(UUID.class), Matchers.any(Map.class));
+        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_RESPONSE), Matchers.any(UUID.class), Matchers.any(Map.class));
     }
 
     @Test
@@ -52,6 +64,54 @@ public class HmrcResourceTest {
         resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);
 
         verify(mockClient).getIncome(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, null);
+    }
+
+    @Test
+    public void shouldAuditHmrcRequestAndHmrcResponse() {
+
+        when(mockClient.getIncome(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, null)).thenReturn(buildIncomeSummary());
+
+        resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);
+
+        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_REQUEST), captorRequestEventId.capture(), captorRequestAuditData.capture());
+        verify(mockAuditService).add(eq(INCOME_PROVING_HMRC_INCOME_RESPONSE), captorResponseEventId.capture(), captorResponseAuditData.capture());
+
+        assertThat(captorRequestEventId.getValue()).isEqualTo(captorResponseEventId.getValue());
+
+        Map<String, Object> requestAuditData = captorRequestAuditData.getValue();
+
+        assertThat(requestAuditData.get("method")).isEqualTo("get-hmrc-data");
+        assertThat(requestAuditData.get("nino")).isEqualTo(NINO);
+        assertThat(requestAuditData.get("forename")).isEqualTo(FIRST_NAME);
+        assertThat(requestAuditData.get("surname")).isEqualTo(LAST_NAME);
+        assertThat(requestAuditData.get("dateOfBirth")).isEqualTo(DATE_OF_BIRTH);
+
+        Map<String, Object> responseAuditData = captorResponseAuditData.getValue();
+
+        assertThat(responseAuditData.get("method")).isEqualTo("get-hmrc-data");
+        assertThat(responseAuditData.get("response")).isInstanceOf(IncomeSummary.class);
+
+        IncomeSummary is = (IncomeSummary) responseAuditData.get("response");
+        assertThat(is.getIncome().size()).isEqualTo(1);
+        assertThat(is.getIncome().get(0)).isEqualTo(new Income("payref", new BigDecimal(4.5), new BigDecimal(6.5), "2017-01-01", 1, null));
+        assertThat(is.getEmployments().size()).isEqualTo(1);
+
+        Employment employment = is.getEmployments().get(0);
+
+        assertThat(employment.getPayFrequency()).isEqualTo("WEEKLY");
+        assertThat(employment.getStartDate()).isEqualTo("2016-6-21");
+        assertThat(employment.getEndDate()).isEqualTo("2016-6-21");
+
+        Employer employer = employment.getEmployer();
+
+        assertThat(employer.getPayeReference()).isEqualTo("payref");
+        assertThat(employer.getName()).isEqualTo("Cadburys");
+        assertThat(employer.getAddress().getLine1()).isEqualTo("line1");
+        assertThat(employer.getAddress().getLine2()).isEqualTo("line2");
+        assertThat(employer.getAddress().getLine3()).isEqualTo("line3");
+        assertThat(employer.getAddress().getLine4()).isEqualTo("line4");
+        assertThat(employer.getAddress().getLine5()).isEqualTo("line5");
+        assertThat(employer.getAddress().getPostcode()).isEqualTo("S102BB");
     }
 
     private IncomeSummary buildIncomeSummary() {
