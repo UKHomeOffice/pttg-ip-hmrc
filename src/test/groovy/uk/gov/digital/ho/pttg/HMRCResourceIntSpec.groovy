@@ -76,6 +76,10 @@ class HMRCResourceIntSpec extends Specification {
         hmrcSummary.income.size == 7
         hmrcSummary.employments[0].employer.name == 'Acme Inc'
         hmrcSummary.income[0].weekPayNumber == 49
+        hmrcSummary.individual.firstName == 'Joe'
+        hmrcSummary.individual.lastName == 'Bloggs'
+        hmrcSummary.individual.nino == 'YZ859178D'
+        hmrcSummary.individual.dateOfBirth == '1980-01-13'
     }
 
     def 'Happy path - HMRC data returned with zeros removed'() {
