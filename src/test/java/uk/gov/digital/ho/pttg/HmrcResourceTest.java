@@ -112,13 +112,18 @@ public class HmrcResourceTest {
         assertThat(employer.getAddress().getLine4()).isEqualTo("line4");
         assertThat(employer.getAddress().getLine5()).isEqualTo("line5");
         assertThat(employer.getAddress().getPostcode()).isEqualTo("S102BB");
+
+        assertThat(is.getIndividual().getNino()).isEqualTo(NINO);
+        assertThat(is.getIndividual().getFirstName()).isEqualTo(FIRST_NAME);
+        assertThat(is.getIndividual().getLastName()).isEqualTo(LAST_NAME);
+        assertThat(is.getIndividual().getDateOfBirth()).isEqualTo(DATE_OF_BIRTH);
     }
 
     private IncomeSummary buildIncomeSummary() {
         final ImmutableList<Income> incomes = ImmutableList.of(new Income("payref", new BigDecimal(4.5), new BigDecimal(6.5), "2017-01-01", 1, null));
         final Employer employer = new Employer("payref", "Cadburys", new Address("line1", "line2", "line3", "line4", "line5", "S102BB"));
         final ImmutableList<Employment> employment = ImmutableList.of(new Employment("WEEKLY", "2016-6-21", "2016-6-21", employer));
-        return new IncomeSummary(incomes, employment);
+        return new IncomeSummary(incomes, employment, new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH));
     }
 
 }

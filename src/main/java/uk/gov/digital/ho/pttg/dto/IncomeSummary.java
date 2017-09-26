@@ -12,6 +12,7 @@ import java.util.List;
 public class IncomeSummary {
     private final List<Income> income;
     private final List<Employment> employments;
+    private final Individual individual;
 }
 
 

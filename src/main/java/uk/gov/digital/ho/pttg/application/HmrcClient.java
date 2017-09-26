@@ -41,6 +41,8 @@ public class HmrcClient {
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {
     };
+    private static final ParameterizedTypeReference<Resource<Individual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<Individual>>() {
+    };
     private static final ParameterizedTypeReference<Resource<EmbeddedIncome>> incomesResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIncome>>() {
     };
     private static final ParameterizedTypeReference<Resource<EmbeddedEmployments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedEmployments>>() {
@@ -63,14 +65,14 @@ public class HmrcClient {
         String accessToken = getAccessCode();
         //entrypoint to retrieve match url
         final String matchUrl = getMatchUrl(accessToken);
-        final Resource<String> individualResource = getIndividual(individual, accessToken, matchUrl);
+        final Resource<Individual> individualResource = getIndividual(individual, accessToken, matchUrl);
         final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
         final List<Income> incomeList = DataCleanser.clean(individual, getIncome(fromDate, toDate, accessToken, individualResource));
 
-        return new IncomeSummary(incomeList, employments);
+        return new IncomeSummary(incomeList, employments, individualResource.getContent());
     }
 
-    private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
+    private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
 
         final Resource<EmbeddedIncome> incomeResource =
                 followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("income").getHref())), accessToken)
@@ -94,17 +96,17 @@ public class HmrcClient {
         return href.replaceAll("[{}]", "");
     }
 
-    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
+    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
         final Resource<EmbeddedEmployments> employmentsResource =
                 followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("employments").getHref())), accessToken)
                 .toObject(employmentsResourceTypeRef);
         return employmentsResource.getContent().get_embedded().getEmployments();
     }
 
-    private Resource<String> getIndividual(Individual individual, String accessToken, String matchUrl) {
+    private Resource<Individual> getIndividual(Individual individual, String accessToken, String matchUrl) {
         log.info("POST to {}", matchUrl);
         //post includes following 303 redirect
-        Resource<String> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
+        Resource<Individual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), individualResourceTypeRef).getBody();
         log.info("Response is {}", resource);
         return resource;
     }
