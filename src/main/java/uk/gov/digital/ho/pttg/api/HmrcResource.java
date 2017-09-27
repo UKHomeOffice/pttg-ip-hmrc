@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_RESPONSE;
 
 @Slf4j
 @RestController
@@ -48,11 +47,7 @@ public class HmrcResource {
 
         auditService.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
 
-        final IncomeSummary incomeSummary = client.getIncome(individual, fromDate, toDate);
-
-        auditService.add(HMRC_INCOME_RESPONSE, eventId, auditData(incomeSummary));
-
-        return incomeSummary;
+        return client.getIncome(individual, fromDate, toDate);
     }
 
     private Map<String, Object> auditData(Individual individual) {
@@ -64,16 +59,6 @@ public class HmrcResource {
         auditData.put("forename", individual.getFirstName());
         auditData.put("surname", individual.getLastName());
         auditData.put("dateOfBirth", individual.getDateOfBirth());
-
-        return auditData;
-    }
-
-    private Map<String, Object> auditData(IncomeSummary response) {
-
-        Map<String, Object> auditData = new HashMap<>();
-
-        auditData.put("method", "get-hmrc-data");
-        auditData.put("response", response);
 
         return auditData;
     }
