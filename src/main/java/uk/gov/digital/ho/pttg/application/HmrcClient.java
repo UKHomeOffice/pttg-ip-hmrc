@@ -107,7 +107,7 @@ public class HmrcClient {
         log.info("POST to {}", matchUrl);
         //post includes following 303 redirect
         Resource<Individual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), individualResourceTypeRef).getBody();
-        log.info("Response is {}", resource);
+        log.info("Individual Response has been received for {}", individual.getNino());
         return resource;
     }
 
