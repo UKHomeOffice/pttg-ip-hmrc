@@ -267,7 +267,7 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     String buildOauthResponse() {
-        return asJson(new AuthToken(ACCESS_ID));
+        return asJson(new AuthToken(ACCESS_ID, null))
     }
 
     String buildMatchedIndividualResponse() {

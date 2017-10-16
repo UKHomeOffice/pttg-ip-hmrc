@@ -12,12 +12,9 @@ import java.time.LocalDateTime;
 @ToString
 public class AuthToken {
 
-    private final static int EXPIRY_MARGIN = 60;
-
     @JsonProperty(value = "code", required = true)
     private final String code;
-    @JsonProperty(value = "expiry", required = true)
+
+    @JsonProperty(value = "expiry")
     private final LocalDateTime expiry;
-
-
 }

@@ -48,14 +48,14 @@ public class HmrcClient {
     private static final ParameterizedTypeReference<Resource<EmbeddedEmployments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedEmployments>>() {
     };
 
-
-
     private String url;
     private RestTemplate restTemplate;
     private HmrcAccessCodeClient accessCodeClient;
 
     @Autowired
-    public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, HmrcAccessCodeClient accessCodeClient) {
+    public HmrcClient(RestTemplate restTemplate,
+                      @Value("${hmrc.endpoint}") String url,
+                      HmrcAccessCodeClient accessCodeClient) {
         this.restTemplate = restTemplate;
         this.url = url;
         this.accessCodeClient = accessCodeClient;
@@ -74,12 +74,11 @@ public class HmrcClient {
     }
 
 
-
     private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
 
         final Resource<EmbeddedIncome> incomeResource =
                 followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("income").getHref())), accessToken)
-                .toObject(incomesResourceTypeRef);
+                        .toObject(incomesResourceTypeRef);
         return incomeResource.getContent().get_embedded().getIncome();
     }
 
@@ -87,9 +86,9 @@ public class HmrcClient {
         String uri;
         final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripBraces(href)).replaceQuery(null);
         final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
-        if(toDate!=null) {
-            uri =  withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
-        }else{
+        if (toDate != null) {
+            uri = withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
+        } else {
             uri = withFromDate.build().toUriString();
         }
         return uri;
@@ -102,7 +101,7 @@ public class HmrcClient {
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
         final Resource<EmbeddedEmployments> employmentsResource =
                 followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("employments").getHref())), accessToken)
-                .toObject(employmentsResourceTypeRef);
+                        .toObject(employmentsResourceTypeRef);
         return employmentsResource.getContent().get_embedded().getEmployments();
     }
 
@@ -119,8 +118,8 @@ public class HmrcClient {
         return asAbsolute(linksResource.getLink("match").getHref());
     }
 
-    private String asAbsolute(String uri){
-        if(uri.startsWith("http")) {
+    private String asAbsolute(String uri) {
+        if (uri.startsWith("http")) {
             return uri;
         }
         return url + uri;
