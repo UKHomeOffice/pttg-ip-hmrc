@@ -49,21 +49,22 @@ public class HmrcClient {
     };
 
 
-    private RestTemplate restTemplate;
+
     private String url;
-    private final String accessCodeurl;
+    private RestTemplate restTemplate;
+    private HmrcAccessCodeClient accessCodeClient;
 
     @Autowired
-    public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, @Value("${base.hmrc.access.code.url}") String accessCodeurl) {
+    public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, HmrcAccessCodeClient accessCodeClient) {
         this.restTemplate = restTemplate;
         this.url = url;
-        this.accessCodeurl = accessCodeurl;
+        this.accessCodeClient = accessCodeClient;
     }
 
     public IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
-        String accessToken = getAccessCode();
-        //entrypoint to retrieve match url
+        String accessToken = accessCodeClient.getAccessCode();
+
         final String matchUrl = getMatchUrl(accessToken);
         final Resource<Individual> individualResource = getIndividual(individual, accessToken, matchUrl);
         final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
@@ -71,6 +72,8 @@ public class HmrcClient {
 
         return new IncomeSummary(incomeList, employments, individualResource.getContent());
     }
+
+
 
     private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
 
@@ -171,20 +174,4 @@ public class HmrcClient {
 
         return converter;
     }
-
-    private String getAccessCode() {
-
-        final AuthToken oauth = restTemplate.exchange(accessCodeurl + "/access", HttpMethod.GET, createHeadersEntityWithMDC(), AuthToken.class).getBody();
-        log.info("Received AuthToken response");
-        return oauth.getCode();
-    }
-
-    private HttpEntity createHeadersEntityWithMDC() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
-        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<>("headers", headers);
-    }
-
 }
