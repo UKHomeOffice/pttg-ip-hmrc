@@ -11,8 +11,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.RequestData;
 import uk.gov.digital.ho.pttg.dto.AuthToken;
 
-import java.time.LocalDateTime;
-
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static uk.gov.digital.ho.pttg.api.RequestData.*;
 
@@ -20,43 +18,26 @@ import static uk.gov.digital.ho.pttg.api.RequestData.*;
 @Slf4j
 public class HmrcAccessCodeClient {
 
-    private AuthToken currentToken;
     private RestTemplate restTemplate;
-    private final String accessCodeurl;
-    private final int expiryMargin;
+    private final String accessCodeUrl;
     private final RequestData requestData;
 
     public HmrcAccessCodeClient(RestTemplate restTemplate,
-                                @Value("${base.hmrc.access.code.url}") String accessCodeurl,
-                                @Value("${access.code.expiry.margin.in.seconds}") int expiryMargin,
+                                @Value("${base.hmrc.access.code.url}") String accessCodeUrl,
                                 RequestData requestData) {
         this.restTemplate = restTemplate;
-        this.accessCodeurl = accessCodeurl;
-        this.expiryMargin = expiryMargin;
+        this.accessCodeUrl = accessCodeUrl;
         this.requestData = requestData;
     }
 
     public String getAccessCode() {
 
-        if (isExpiring()) {
-            log.info("Need to get new HMRC access code");
-            getAuthToken();
-        }
+        AuthToken currentToken = restTemplate.exchange(accessCodeUrl + "/access",
+                HttpMethod.GET,
+                generateRestHeaders(),
+                AuthToken.class).getBody();
 
         return currentToken.getCode();
-    }
-
-    private boolean isExpiring() {
-        return this.currentToken == null ||
-                this.currentToken.getExpiry() == null ||
-                LocalDateTime.now().plusSeconds(expiryMargin).isAfter(this.currentToken.getExpiry());
-    }
-
-    private synchronized void getAuthToken() {
-        currentToken = restTemplate.exchange(accessCodeurl + "/access",
-                                                HttpMethod.GET,
-                                                generateRestHeaders(),
-                                                AuthToken.class).getBody();
     }
 
     private HttpEntity generateRestHeaders() {

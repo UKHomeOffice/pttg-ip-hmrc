@@ -19,18 +19,15 @@ import static uk.gov.digital.ho.pttg.api.RequestData.*
         justification="Ignore error for serialization of closure")
 class HmrcAccessCodeClientTest extends Specification {
 
-    public static final int EXPIRY_MARGIN_FOR_TEST = 99
-
     HmrcAccessCodeClient client
     RestTemplate mockRestTemplate = Mock(RestTemplate.class)
     RequestData mockRequestData = Mock(RequestData.class)
 
     def setup() {
-        client = new HmrcAccessCodeClient(mockRestTemplate, "some.hmrc.url", EXPIRY_MARGIN_FOR_TEST, mockRequestData)
+        client = new HmrcAccessCodeClient(mockRestTemplate, "some.hmrc.url", mockRequestData)
     }
 
-
-    def "should call access code service when access code is null"() {
+    def "should call access code service to get the latest access code"() {
 
         when:
 
@@ -49,60 +46,15 @@ class HmrcAccessCodeClientTest extends Specification {
 
         when:
 
-        client.getAccessCode()
         def result = client.getAccessCode()
 
         then:
 
-        2 * mockRestTemplate.exchange("some.hmrc.url/access", HttpMethod.GET, _, AuthToken.class) >>
+        1 * mockRestTemplate.exchange("some.hmrc.url/access", HttpMethod.GET, _, AuthToken.class) >>
             new ResponseEntity<AuthToken>(new AuthToken("1234", null),
                                             HttpStatus.OK)
 
         result == "1234"
-    }
-
-    def "should call access code service when access code has expired"() {
-
-        given:
-
-            def timeNow = LocalDateTime.now()
-
-        when:
-
-            def firstCall = client.getAccessCode()
-            def secondCall = client.getAccessCode()
-
-        then:
-
-            2 * mockRestTemplate.exchange("some.hmrc.url/access", HttpMethod.GET, _, AuthToken.class) >>>
-                    [new ResponseEntity<AuthToken>(new AuthToken("1234", timeNow.minusSeconds(EXPIRY_MARGIN_FOR_TEST + 1)),
-                                                    HttpStatus.OK),
-                     new ResponseEntity<AuthToken>(new AuthToken("4321", timeNow.plusHours(1)),
-                                                    HttpStatus.OK)]
-
-            firstCall == "1234"
-            secondCall == "4321"
-    }
-
-    def "should not call access code service when access code expiry is within the margin"() {
-
-        given:
-
-        def timeNow = LocalDateTime.now()
-
-        when:
-
-            def firstCall = client.getAccessCode()
-            def secondCall = client.getAccessCode()
-
-        then:
-
-            1 * mockRestTemplate.exchange("some.hmrc.url/access", HttpMethod.GET, _, AuthToken.class) >>
-                    new ResponseEntity<AuthToken>(new AuthToken("1234", timeNow.plusHours(1)),
-                                                    HttpStatus.OK)
-
-            firstCall == "1234"
-            secondCall == "1234"
     }
 
     def "should set headers for call to access code service"() {
@@ -123,7 +75,6 @@ class HmrcAccessCodeClientTest extends Specification {
         1 * mockRestTemplate.exchange("some.hmrc.url/access",
                                         HttpMethod.GET,
                                         {HttpEntity httpEntity ->
-
 
                                             httpEntity.headers.containsKey(AUTHORIZATION)
                                             httpEntity.headers.get(AUTHORIZATION).get(0) == "some basic auth"
