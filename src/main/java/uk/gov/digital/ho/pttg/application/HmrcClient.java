@@ -48,22 +48,23 @@ public class HmrcClient {
     private static final ParameterizedTypeReference<Resource<EmbeddedEmployments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedEmployments>>() {
     };
 
-
-    private RestTemplate restTemplate;
     private String url;
-    private final String accessCodeurl;
+    private RestTemplate restTemplate;
+    private HmrcAccessCodeClient accessCodeClient;
 
     @Autowired
-    public HmrcClient(RestTemplate restTemplate, @Value("${hmrc.endpoint}") String url, @Value("${base.hmrc.access.code.url}") String accessCodeurl) {
+    public HmrcClient(RestTemplate restTemplate,
+                      @Value("${hmrc.endpoint}") String url,
+                      HmrcAccessCodeClient accessCodeClient) {
         this.restTemplate = restTemplate;
         this.url = url;
-        this.accessCodeurl = accessCodeurl;
+        this.accessCodeClient = accessCodeClient;
     }
 
     public IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
-        String accessToken = getAccessCode();
-        //entrypoint to retrieve match url
+        String accessToken = accessCodeClient.getAccessCode();
+
         final String matchUrl = getMatchUrl(accessToken);
         final Resource<Individual> individualResource = getIndividual(individual, accessToken, matchUrl);
         final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
@@ -72,11 +73,12 @@ public class HmrcClient {
         return new IncomeSummary(incomeList, employments, individualResource.getContent());
     }
 
+
     private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
 
         final Resource<EmbeddedIncome> incomeResource =
                 followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("income").getHref())), accessToken)
-                .toObject(incomesResourceTypeRef);
+                        .toObject(incomesResourceTypeRef);
         return incomeResource.getContent().get_embedded().getIncome();
     }
 
@@ -84,9 +86,9 @@ public class HmrcClient {
         String uri;
         final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripBraces(href)).replaceQuery(null);
         final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
-        if(toDate!=null) {
-            uri =  withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
-        }else{
+        if (toDate != null) {
+            uri = withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
+        } else {
             uri = withFromDate.build().toUriString();
         }
         return uri;
@@ -99,7 +101,7 @@ public class HmrcClient {
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
         final Resource<EmbeddedEmployments> employmentsResource =
                 followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("employments").getHref())), accessToken)
-                .toObject(employmentsResourceTypeRef);
+                        .toObject(employmentsResourceTypeRef);
         return employmentsResource.getContent().get_embedded().getEmployments();
     }
 
@@ -116,8 +118,8 @@ public class HmrcClient {
         return asAbsolute(linksResource.getLink("match").getHref());
     }
 
-    private String asAbsolute(String uri){
-        if(uri.startsWith("http")) {
+    private String asAbsolute(String uri) {
+        if (uri.startsWith("http")) {
             return uri;
         }
         return url + uri;
@@ -171,20 +173,4 @@ public class HmrcClient {
 
         return converter;
     }
-
-    private String getAccessCode() {
-
-        final AuthToken oauth = restTemplate.exchange(accessCodeurl + "/access", HttpMethod.GET, createHeadersEntityWithMDC(), AuthToken.class).getBody();
-        log.info("Received AuthToken response");
-        return oauth.getCode();
-    }
-
-    private HttpEntity createHeadersEntityWithMDC() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
-        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<>("headers", headers);
-    }
-
 }

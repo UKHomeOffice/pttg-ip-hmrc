@@ -10,10 +10,12 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
- * @Author Home Office Digital
+ * Author Home Office Digital
  */
 @Component
 public class RequestData implements HandlerInterceptor {
@@ -24,6 +26,7 @@ public class RequestData implements HandlerInterceptor {
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
+    @Value("${hmrc.access.service.auth}") private String hmrcAccessBasicAuth;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -68,6 +71,8 @@ public class RequestData implements HandlerInterceptor {
     public String deploymentNamespace() {
         return deploymentNamespace;
     }
+
+    public String hmrcBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(hmrcAccessBasicAuth.getBytes(Charset.forName("utf-8")))); }
 
     public String sessionId() {
         return MDC.get(SESSION_ID_HEADER);

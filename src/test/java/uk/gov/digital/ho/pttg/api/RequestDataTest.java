@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +27,12 @@ public class RequestDataTest {
     @Before
     public void setup() {
         requestData = new RequestData();
+        ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
+    }
+
+    @Test
+    public void shouldProduceBasicAuthHeaderValue() {
+        assertThat(requestData.hmrcBasicAuth()).isEqualTo("Basic dXNlcjpwYXNzd29yZA==");
     }
 
     @Test
