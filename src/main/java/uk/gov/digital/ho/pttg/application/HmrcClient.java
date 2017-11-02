@@ -21,7 +21,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -63,7 +64,8 @@ public class HmrcClient {
     }
 
     @Retryable(
-            value = { RestClientException.class },
+            include = { HttpServerErrorException.class },
+            exclude = { HttpClientErrorException.class },
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
@@ -81,8 +83,14 @@ public class HmrcClient {
     }
 
     @Recover
-    IncomeSummary getIncomeRetryFailureRecovery(RestClientException e) {
+    IncomeSummary getIncomeRetryFailureRecovery(HttpServerErrorException e) {
         log.error("Failed to retrieve HMRC data after retries", e.getMessage());
+        throw(e);
+    }
+
+    @Recover
+    IncomeSummary getIncomeRetryFailureRecovery(HttpClientErrorException e) {
+        log.error("Failed to retrieve HMRC data (no retries attempted)", e.getMessage());
         throw(e);
     }
 

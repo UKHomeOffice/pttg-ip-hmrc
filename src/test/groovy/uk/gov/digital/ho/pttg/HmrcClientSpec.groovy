@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg
 
-import org.springframework.web.client.RestClientException
+import org.springframework.http.HttpStatus
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import uk.gov.digital.ho.pttg.application.HmrcClient
@@ -55,10 +56,10 @@ class HmrcClientSpec extends Specification {
     def "should rethrow exception when retry limit reached cos of RestClientException"() {
 
         when:
-            client.getIncomeRetryFailureRecovery(new RestClientException("test"))
+            client.getIncomeRetryFailureRecovery(new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "test"))
         then:
-            RestClientException e = thrown()
-            e.message == "test"
+        HttpServerErrorException e = thrown()
+            e.message == "502 test"
     }
 
 }

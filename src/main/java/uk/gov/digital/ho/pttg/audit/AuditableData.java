@@ -35,5 +35,5 @@ class AuditableData {
     private AuditEventType eventType;
 
     @JsonProperty(value="data", required=true)
-    private AuditIndividualData data;
+    private String data;
 }

@@ -49,8 +49,6 @@ public class HmrcResource {
 
         auditClient.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
 
-        log.info("Get the Access Token");
-
         String accessToken = accessCodeClient.getAccessCode();
 
         return hmrcClient.getIncome(accessToken, individual, fromDate, toDate);

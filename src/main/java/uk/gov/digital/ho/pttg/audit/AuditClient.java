@@ -1,5 +1,7 @@
 package uk.gov.digital.ho.pttg.audit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -28,29 +30,39 @@ public class AuditClient {
     private final RestTemplate restTemplate;
     private final String auditEndpoint;
     private final RequestData requestData;
+    private final ObjectMapper mapper;
 
     public AuditClient(Clock clock,
                        RestTemplate restTemplate,
                        RequestData requestData,
-                       @Value("${pttg.audit.endpoint}") String auditEndpoint) {
+                       @Value("${pttg.audit.endpoint}") String auditEndpoint,
+                       ObjectMapper mapper) {
         this.clock = clock;
         this.restTemplate = restTemplate;
         this.requestData = requestData;
         this.auditEndpoint = auditEndpoint;
+        this.mapper = mapper;
+    }
+
+    public void add(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) {
+
+        log.info("POST data for {} to audit service");
+
+        try {
+            AuditableData auditableData = generateAuditableData(eventType, eventId, auditData);
+            dispatchAuditableData(auditableData);
+            log.info("data POSTed to audit service");
+        } catch (JsonProcessingException e) {
+            log.error("Failed to create json representation of audit data");
+        }
     }
 
     @Retryable(
             value = { RestClientException.class },
             maxAttemptsExpression = "#{${audit.service.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${audit.service.retry.delay}}"))
-    public void add(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) {
-        log.info("POST data for {} to audit service");
-
-        AuditableData auditableData = generateAuditableData(eventType, eventId, auditData);
-
+    private void dispatchAuditableData(AuditableData auditableData) {
         restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
-
-        log.info("data POSTed to audit service");
     }
 
     @Recover
@@ -58,7 +70,7 @@ public class AuditClient {
         log.error("Failed to audit {} after retries", eventType);
     }
 
-    private AuditableData generateAuditableData(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) {
+    private AuditableData generateAuditableData(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) throws JsonProcessingException {
         return new AuditableData(eventId.toString(),
                                     LocalDateTime.now(clock),
                                     requestData.sessionId(),
@@ -67,7 +79,7 @@ public class AuditClient {
                                     requestData.deploymentName(),
                                     requestData.deploymentNamespace(),
                                     eventType,
-                                    auditData);
+                                    mapper.writeValueAsString(auditData));
     }
 
     private HttpEntity<AuditableData> toEntity(AuditableData auditableData) {
