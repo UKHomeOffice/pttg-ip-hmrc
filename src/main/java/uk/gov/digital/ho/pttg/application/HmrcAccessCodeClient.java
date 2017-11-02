@@ -6,7 +6,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.RequestData;
 import uk.gov.digital.ho.pttg.dto.AuthToken;
@@ -30,7 +34,13 @@ public class HmrcAccessCodeClient {
         this.requestData = requestData;
     }
 
+    @Retryable(
+            value = { RestClientException.class },
+            maxAttemptsExpression = "#{${hmrc.access.service.retry.attempts}}",
+            backoff = @Backoff(delayExpression = "#{${hmrc.access.service.retry.delay}}"))
     public String getAccessCode() {
+
+        log.info("Fetch the latest access code");
 
         AuthToken currentToken = restTemplate.exchange(accessCodeUrl + "/access",
                 HttpMethod.GET,
@@ -38,6 +48,12 @@ public class HmrcAccessCodeClient {
                 AuthToken.class).getBody();
 
         return currentToken.getCode();
+    }
+
+    @Recover
+    String getAccessCodeRetryFailureRecovery(RestClientException e) {
+        log.error("Failed to retrieve access code after retries", e.getMessage());
+        throw(e);
     }
 
     private HttpEntity generateRestHeaders() {

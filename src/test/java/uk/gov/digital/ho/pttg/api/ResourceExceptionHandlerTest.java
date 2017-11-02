@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -21,7 +22,7 @@ public class ResourceExceptionHandlerTest {
         AuditDataException mockAuditDataException = mock(AuditDataException.class);
         when(mockAuditDataException.getMessage()).thenReturn("any message");
 
-        ResponseEntity responseEntity = handler.auditDataMarshalFailureHandler(mockAuditDataException);
+        ResponseEntity responseEntity = handler.handle(mockAuditDataException);
 
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
@@ -32,7 +33,7 @@ public class ResourceExceptionHandlerTest {
         HmrcException mockHmrcException = mock(HmrcException.class);
         when(mockHmrcException.getMessage()).thenReturn("any message");
 
-        ResponseEntity responseEntity = handler.handleHmrcException(mockHmrcException);
+        ResponseEntity responseEntity = handler.handle(mockHmrcException);
 
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
@@ -44,7 +45,7 @@ public class ResourceExceptionHandlerTest {
         when(mockHttpClientErrorException.getMessage()).thenReturn("any message");
         when(mockHttpClientErrorException.getStatusCode()).thenReturn(I_AM_A_TEAPOT);
 
-        ResponseEntity responseEntity = handler.handleHttpClientErrorException(mockHttpClientErrorException);
+        ResponseEntity responseEntity = handler.handle(mockHttpClientErrorException);
 
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(I_AM_A_TEAPOT);
@@ -56,7 +57,7 @@ public class ResourceExceptionHandlerTest {
         when(mockHttpServerErrorException.getMessage()).thenReturn("any message");
         when(mockHttpServerErrorException.getStatusCode()).thenReturn(I_AM_A_TEAPOT);
 
-        ResponseEntity responseEntity = handler.handleHttpServerErrorException(mockHttpServerErrorException);
+        ResponseEntity responseEntity = handler.handle(mockHttpServerErrorException);
 
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(I_AM_A_TEAPOT);
@@ -67,7 +68,7 @@ public class ResourceExceptionHandlerTest {
         Exception mockException = mock(Exception.class);
         when(mockException.getMessage()).thenReturn("any message");
 
-        ResponseEntity responseEntity = handler.handleException(mockException);
+        ResponseEntity responseEntity = handler.handle(mockException);
 
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
@@ -78,9 +79,20 @@ public class ResourceExceptionHandlerTest {
         HmrcNotFoundException mockHmrcNotFoundException = mock(HmrcNotFoundException.class);
         when(mockHmrcNotFoundException.getMessage()).thenReturn("any message");
 
-        ResponseEntity responseEntity = handler.handleHmrcNotFoundException(mockHmrcNotFoundException);
+        ResponseEntity responseEntity = handler.handle(mockHmrcNotFoundException);
 
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    public void shouldProduceInternalServerErrorForRestClientException() {
+        RestClientException mockRestClientException = mock(RestClientException.class);
+        when(mockRestClientException.getMessage()).thenReturn("any message");
+
+        ResponseEntity responseEntity = handler.handle(mockRestClientException);
+
+        assertThat(responseEntity.getBody()).isEqualTo("any message");
+        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
     }
 }

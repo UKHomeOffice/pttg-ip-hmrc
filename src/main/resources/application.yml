@@ -1,5 +1,0 @@
-spring:
- datasource:
-    url: ${audit.jdbc.url}
-    username: ${ip.db.username}
-    password: ${ip.db.password}
