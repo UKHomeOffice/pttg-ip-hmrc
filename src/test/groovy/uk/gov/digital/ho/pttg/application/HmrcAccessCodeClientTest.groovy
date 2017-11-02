@@ -4,6 +4,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import uk.gov.digital.ho.pttg.api.RequestData
@@ -92,4 +93,12 @@ class HmrcAccessCodeClientTest extends Specification {
         result == "1234"
     }
 
+    def "should rethrow exception when retry limit reached cos of RestClientException"() {
+
+        when:
+            client.getAccessCodeRetryFailureRecovery( new RestClientException("test"))
+        then:
+            RestClientException e = thrown()
+            e.message == "test"
+    }
 }

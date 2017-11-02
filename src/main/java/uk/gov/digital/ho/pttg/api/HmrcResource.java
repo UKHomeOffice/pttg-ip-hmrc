@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
-import uk.gov.digital.ho.pttg.audit.AuditService;
+import uk.gov.digital.ho.pttg.audit.AuditClient;
+import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
@@ -22,12 +22,14 @@ import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 @RestController
 public class HmrcResource {
 
-    private final HmrcClient client;
-    private final AuditService auditService;
+    private final HmrcClient hmrcClient;
+    private final HmrcAccessCodeClient accessCodeClient;
+    private final AuditClient auditClient;
 
-    public HmrcResource(HmrcClient client, AuditService auditService) {
-        this.client = client;
-        this.auditService = auditService;
+    public HmrcResource(HmrcClient hmrcClient, HmrcAccessCodeClient accessCodeClient, AuditClient auditClient) {
+        this.hmrcClient = hmrcClient;
+        this.accessCodeClient = accessCodeClient;
+        this.auditClient = auditClient;
     }
 
     @RequestMapping(value = "/income", method = RequestMethod.GET, produces = "application/json")
@@ -45,22 +47,23 @@ public class HmrcResource {
 
         UUID eventId = UUID.randomUUID();
 
-        auditService.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
+        auditClient.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
 
-        return client.getIncome(individual, fromDate, toDate);
+        log.info("Get the Access Token");
+
+        String accessToken = accessCodeClient.getAccessCode();
+
+        return hmrcClient.getIncome(accessToken, individual, fromDate, toDate);
     }
 
-    private Map<String, Object> auditData(Individual individual) {
+    private AuditIndividualData auditData(Individual individual) {
 
-        Map<String, Object> auditData = new HashMap<>();
-
-        auditData.put("method", "get-hmrc-data");
-        auditData.put("nino", individual.getNino());
-        auditData.put("forename", individual.getFirstName());
-        auditData.put("surname", individual.getLastName());
-        auditData.put("dateOfBirth", individual.getDateOfBirth());
-
-        return auditData;
+        return new AuditIndividualData(
+                "get-hmrc-data",
+                individual.getNino(),
+                individual.getFirstName(),
+                individual.getLastName(),
+                individual.getDateOfBirth());
     }
 
 }

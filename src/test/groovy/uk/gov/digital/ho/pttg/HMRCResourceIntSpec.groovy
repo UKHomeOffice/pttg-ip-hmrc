@@ -1,9 +1,10 @@
 package uk.gov.digital.ho.pttg
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule
 import groovy.json.JsonSlurper
 import org.apache.commons.io.IOUtils
+import org.junit.ClassRule
 import org.junit.Rule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -24,13 +25,15 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ContextConfiguration
 class HMRCResourceIntSpec extends Specification {
 
-
     public static final int WIREMOCK_PORT = 8999
     public static final String MATCH_ID = "87654321"
     public static final String ACCESS_ID = "987987987"
 
+    @ClassRule
+    public static final WireMockClassRule wireMockClassRule = new WireMockClassRule(options().port(WIREMOCK_PORT))
+
     @Rule
-    WireMockRule wireMockRule = new WireMockRule(options().port(WIREMOCK_PORT))
+    WireMockClassRule wireMockRule = wireMockClassRule
 
     @Autowired
     private TestRestTemplate restTemplate
@@ -42,6 +45,7 @@ class HMRCResourceIntSpec extends Specification {
 
 
     def 'Happy path - HMRC data returned'() {
+
         given:
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())

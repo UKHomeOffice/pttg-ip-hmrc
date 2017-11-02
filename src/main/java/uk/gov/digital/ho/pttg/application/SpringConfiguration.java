@@ -3,12 +3,9 @@ package uk.gov.digital.ho.pttg.application;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.ImmutableMap;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,27 +14,24 @@ import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import uk.gov.digital.ho.pttg.api.RequestData;
 
 import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Configuration
-public class HmrcConfiguration extends WebMvcConfigurerAdapter {
+@EnableRetry
+public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
-
-    @Autowired
-    public HmrcConfiguration(ObjectMapper objectMapper) {
+    public SpringConfiguration(ObjectMapper objectMapper) {
         initialiseObjectMapper(objectMapper);
     }
 
@@ -50,29 +44,18 @@ public class HmrcConfiguration extends WebMvcConfigurerAdapter {
         return m;
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(requestData());
-    }
-
     @Bean
-    public RequestData requestData() {
-        return new RequestData();
-    }
-
-
-    @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder, ObjectMapper mapper) {
+    public RestTemplate createRestTemplate(RestTemplateBuilder builder, ObjectMapper mapper) {
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(mapper);
         converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
 
-        return builder.requestFactory(clientHttpRequestFactory()).additionalMessageConverters(converter).build();
+        return builder.requestFactory(createClientHttpRequestFactory()).additionalMessageConverters(converter).build();
     }
 
     @Bean
-    public ClientHttpRequestFactory clientHttpRequestFactory() {
+    public ClientHttpRequestFactory createClientHttpRequestFactory() {
         HttpComponentsClientHttpRequestFactory factory =
                 new HttpComponentsClientHttpRequestFactory();
 
@@ -87,19 +70,19 @@ public class HmrcConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public RetryTemplate retryTemplate(@Value("${retry.attempts}") int maxAttempts,
-                                       @Value("${retry.delay}") Long backOffPeriod) {
-        final RetryTemplate retryTemplate = new RetryTemplate();
-        final FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-        final SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(maxAttempts, ImmutableMap.of(ResourceAccessException.class, true, HttpServerErrorException.class, true));
-        fixedBackOffPolicy.setBackOffPeriod(backOffPeriod);
-        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-        retryTemplate.setRetryPolicy(simpleRetryPolicy);
-        return retryTemplate;
+    Clock createClock() {
+        return Clock.system(ZoneId.of("UTC"));
     }
 
+    @Bean
+    public RequestData createRequestData() {
+        return new RequestData();
+    }
 
-
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(createRequestData());
+    }
 
 }
 

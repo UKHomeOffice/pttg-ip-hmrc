@@ -17,7 +17,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -50,29 +54,37 @@ public class HmrcClient {
 
     private String url;
     private RestTemplate restTemplate;
-    private HmrcAccessCodeClient accessCodeClient;
 
     @Autowired
     public HmrcClient(RestTemplate restTemplate,
-                      @Value("${hmrc.endpoint}") String url,
-                      HmrcAccessCodeClient accessCodeClient) {
+                      @Value("${hmrc.endpoint}") String url) {
         this.restTemplate = restTemplate;
         this.url = url;
-        this.accessCodeClient = accessCodeClient;
     }
 
-    public IncomeSummary getIncome(Individual individual, LocalDate fromDate, LocalDate toDate) {
+    @Retryable(
+            value = { RestClientException.class },
+            maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
+            backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
+    public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
 
-        String accessToken = accessCodeClient.getAccessCode();
+        log.info("Get the Income data from HMRC");
 
         final String matchUrl = getMatchUrl(accessToken);
         final Resource<Individual> individualResource = getIndividual(individual, accessToken, matchUrl);
         final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
         final List<Income> incomeList = DataCleanser.clean(individual, getIncome(fromDate, toDate, accessToken, individualResource));
 
+        log.info("Got Income data");
+
         return new IncomeSummary(incomeList, employments, individualResource.getContent());
     }
 
+    @Recover
+    IncomeSummary getIncomeRetryFailureRecovery(RestClientException e) {
+        log.error("Failed to retrieve HMRC data after retries", e.getMessage());
+        throw(e);
+    }
 
     private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
 
@@ -123,7 +135,6 @@ public class HmrcClient {
             return uri;
         }
         return url + uri;
-
     }
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
