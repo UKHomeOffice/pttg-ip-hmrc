@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule
 import groovy.json.JsonSlurper
 import org.apache.commons.io.IOUtils
-import org.junit.ClassRule
 import org.junit.Rule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -29,11 +28,8 @@ class HMRCResourceIntSpec extends Specification {
     public static final String MATCH_ID = "87654321"
     public static final String ACCESS_ID = "987987987"
 
-    @ClassRule
-    public static final WireMockClassRule wireMockClassRule = new WireMockClassRule(options().port(WIREMOCK_PORT))
-
     @Rule
-    WireMockClassRule wireMockRule = wireMockClassRule
+    WireMockClassRule wireMockRule = new WireMockClassRule(options().port(WIREMOCK_PORT))
 
     @Autowired
     private TestRestTemplate restTemplate
@@ -43,10 +39,12 @@ class HMRCResourceIntSpec extends Specification {
 
     def jsonSlurper = new JsonSlurper()
 
-
     def 'Happy path - HMRC data returned'() {
 
         given:
+        stubFor(post(urlEqualTo("/audit"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
@@ -87,7 +85,11 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'Happy path - HMRC data returned with zeros removed'() {
+
         given:
+        stubFor(post(urlEqualTo("/audit"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
@@ -125,7 +127,11 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'Allow optional toDate'() {
+
         given:
+        stubFor(post(urlEqualTo("/audit"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
@@ -162,7 +168,11 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'Any HMRC error should be perculated through'() {
+
         given:
+        stubFor(post(urlEqualTo("/audit"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
@@ -180,7 +190,11 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'HMRC bad request should be handled'() {
+
         given:
+        stubFor(post(urlEqualTo("/audit"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
@@ -198,7 +212,11 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'HMRC returns error during link traversal'() {
+
         given:
+        stubFor(post(urlEqualTo("/audit"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
@@ -231,6 +249,7 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'Access code service throws error'() {
+
         given:
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.BAD_REQUEST.value())
@@ -245,6 +264,7 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     def 'Access code service not available'() {
+
         given:
         wireMockRule.stop()
 

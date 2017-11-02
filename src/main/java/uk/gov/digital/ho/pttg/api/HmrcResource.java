@@ -47,9 +47,9 @@ public class HmrcResource {
 
         UUID eventId = UUID.randomUUID();
 
-        auditClient.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
-
         String accessToken = accessCodeClient.getAccessCode();
+
+        auditClient.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
 
         return hmrcClient.getIncome(accessToken, individual, fromDate, toDate);
     }
