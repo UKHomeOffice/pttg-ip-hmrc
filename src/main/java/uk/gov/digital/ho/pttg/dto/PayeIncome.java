@@ -8,8 +8,8 @@ import org.springframework.hateoas.ResourceSupport;
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class EmbeddedIncome extends ResourceSupport{
-    private final Incomes _embedded;
+public class PayeIncome extends ResourceSupport{
+    private final Incomes paye;
 }
 
 

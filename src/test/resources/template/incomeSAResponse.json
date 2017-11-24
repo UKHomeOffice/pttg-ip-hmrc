@@ -1,0 +1,4 @@
+{
+  "code": "INVALID_SCOPE",
+  "message": "Can not access the required resource. Ensure this token has all the required scopes."
+}
