@@ -194,7 +194,7 @@ public class HmrcClient {
     }
 
     private HttpEntity createHeadersEntity(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = generateHeaders();
         headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
@@ -209,7 +209,7 @@ public class HmrcClient {
 
     private static HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
         headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
