@@ -42,39 +42,44 @@ class HMRCResourceHeadersIntSpec extends Specification {
     def 'Incoming correlation id and user id headers are added to MDC and transferred to further rest calls'() {
 
         given:
-        stubFor(get(urlEqualTo("/access"))
-                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody("{\"code\" : \"some code\"}")
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
-
         stubFor(post(urlEqualTo("/audit"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
 
-        stubFor(get(urlEqualTo("/individuals/"))
+        stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(buildEntryPointResponse())
+                .withBody(buildOauthResponse())
+
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+        stubFor(post(urlEqualTo("/individuals/matching/"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(buildMatchResponse())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
 
-        stubFor(post(urlEqualTo("/individuals/match"))
-                .willReturn(aResponse().withStatus(HttpStatus.SEE_OTHER.value())
-                .withHeader("Location", String.format("/individuals/",WIREMOCK_PORT) + MATCH_ID)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
-
-        stubFor(get(urlEqualTo("/individuals/"+MATCH_ID))
+        stubFor(get(urlEqualTo("/individuals/matching/" + MATCH_ID))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildMatchedIndividualResponse())))
 
-        stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/employments/paye"))
+        stubFor(get(urlEqualTo("/individuals/income/?matchId=" + MATCH_ID))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildIncomeResponse())))
+
+        stubFor(get(urlEqualTo("/individuals/employments/?matchId=" + MATCH_ID))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildEmploymentsResponse())))
 
-        stubFor(get(urlPathMatching("/individuals/"+MATCH_ID+"/income/paye"))
+        stubFor(get(urlEqualTo("/individuals/employments/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(buildInvalidIncomeResponse())))
+                .withBody(buildEmploymentsPayeResponse())))
+
+        stubFor(get(urlEqualTo("/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildPayeIncomeResponse())))
         when:
         sleep(2000)
         restTemplate.exchange("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&dateOfBirth=2000-03-01", HttpMethod.GET, createEntityForHeaders("headers"), String.class)
@@ -84,9 +89,9 @@ class HMRCResourceHeadersIntSpec extends Specification {
         verify(getRequestedFor(urlEqualTo("/access"))
                 .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
 
-        verify(getRequestedFor(urlEqualTo("/individuals/"))
+        verify(getRequestedFor(urlEqualTo("/individuals/income/paye?matchId=87654321&fromDate=2017-01-01"))
                 .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
-        verify(getRequestedFor(urlEqualTo("/individuals/"))
+        verify(getRequestedFor(urlEqualTo("/individuals/income/paye?matchId=87654321&fromDate=2017-01-01"))
                 .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
     }
 
@@ -98,25 +103,25 @@ class HMRCResourceHeadersIntSpec extends Specification {
         return new HttpEntity<>(entity, headers)
     }
 
-    String asJson(Object input){
+    String asJson(Object input) {
         def string = objectMapper.writeValueAsString(input)
         string
     }
 
-    String buildEntryPointResponse() {
-        IOUtils.toString(this.getClass().getResourceAsStream("/template/entrypoint.json"))
-                .replace("\${port}", WIREMOCK_PORT.toString())
+    String buildMatchResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/matchResponse.json"))
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildMatchedIndividualResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/individualMatchResponse.json"))
+                .replace("\${matchId}", MATCH_ID)
     }
 
     String buildOauthResponse() {
         return asJson(new AuthToken(ACCESS_ID, null))
     }
 
-    String buildMatchedIndividualResponse() {
-        IOUtils.toString(this.getClass().getResourceAsStream("/template/matchResponse.json"))
-                .replace("\${port}", WIREMOCK_PORT.toString())
-                .replace("\${matchId}", MATCH_ID)
-    }
 
     String buildInvalidIncomeResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/invalidIncomeResponse.json"))
@@ -130,14 +135,21 @@ class HMRCResourceHeadersIntSpec extends Specification {
                 .replace("\${matchId}", MATCH_ID)
     }
 
-    String buildIncomeResponseWithZeroPayments() {
-        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeResponseWithZeroPayments.json"))
+    String buildPayeIncomeResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/IncomePayeResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
 
+
     String buildEmploymentsResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/employmentsResponse.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildEmploymentsPayeResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/employmentsPayeResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }

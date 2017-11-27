@@ -1,0 +1,23 @@
+{
+  "_links": {
+    "income": {
+      "href": "/individuals/income/?matchId=${matchId}",
+      "name": "GET",
+      "title": "View individual's income"
+    },
+    "employments": {
+      "href": "/individuals/employments/?matchId=${matchId}",
+      "name": "GET",
+      "title": "View individual's employments"
+    },
+    "self": {
+      "href": "/individuals/matching/${matchId}"
+    }
+  },
+  "individual": {
+    "firstName": "Laurie",
+    "lastName": "Halford",
+    "nino": "GH576240A",
+    "dateOfBirth": "1992-03-01"
+  }
+}

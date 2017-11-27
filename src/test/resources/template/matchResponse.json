@@ -1,11 +1,12 @@
 {
   "_links": {
-    "self": {"href": "http://localhost:${port}/individuals/${matchId}"},
-    "employments": {"href": "http://localhost:${port}/individuals/${matchId}/employments/paye?fromDate=2016-01-13&toDate=2017-04-13", "name": "GET", "title": "View individual's employment data"},
-    "income": {"href": "http://localhost:${port}/individuals/${matchId}/income/paye?fromDate=2016-01-13&toDate=2017-04-13", "name": "GET", "title": "View individual's income data"}
-  },
-  "nino": "YZ859178D",
-  "dateOfBirth": "1980-01-13",
-  "firstName": "Joe",
-  "lastName": "Bloggs"
+    "individual": {
+      "href": "/individuals/matching/${matchId}",
+      "name": "GET",
+      "title": "Individual Details"
+    },
+    "self": {
+      "href": "/individuals/matching/"
+    }
+  }
 }

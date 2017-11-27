@@ -46,11 +46,11 @@ public class HmrcClient {
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {
     };
-    private static final ParameterizedTypeReference<Resource<Individual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<Individual>>() {
+    private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {
     };
-    private static final ParameterizedTypeReference<Resource<EmbeddedIncome>> incomesResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIncome>>() {
+    private static final ParameterizedTypeReference<Resource<PayeIncome>> payeIncomesResourceTypeRef = new ParameterizedTypeReference<Resource<PayeIncome>>() {
     };
-    private static final ParameterizedTypeReference<Resource<EmbeddedEmployments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedEmployments>>() {
+    private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {
     };
 
     private String url;
@@ -70,16 +70,29 @@ public class HmrcClient {
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
 
-        log.info("Get the Income data from HMRC");
+        //individual match response with income and employment hrefs
+        final Resource<EmbeddedIndividual> individualResource = getIndividualResource(individual, accessToken, getIndividualLink(individual, accessToken, getIndividualMatchUrl()));
 
-        final String matchUrl = getMatchUrl(accessToken);
-        final Resource<Individual> individualResource = getIndividual(individual, accessToken, matchUrl);
-        final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, individualResource);
-        final List<Income> incomeList = DataCleanser.clean(individual, getIncome(fromDate, toDate, accessToken, individualResource));
+        //income response with paye and SA hrefs
+        final String incomeLink = asAbsolute(individualResource.getLink("income").getHref());
+        final Resource<String> incomeResource = getIncomeResource(individual, accessToken, incomeLink);
 
-        log.info("Got Income data");
+        //income paye response
+        final List<Income> incomeList = DataCleanser.clean(individual, getIncome(fromDate, toDate, accessToken, incomeResource));
 
-        return new IncomeSummary(incomeList, employments, individualResource.getContent());
+        //income SA response
+        //TODO
+
+        //employments response with paye href
+        final String employmentLink = asAbsolute(individualResource.getLink("employments").getHref());
+        final Resource<String> employmentResource = getEmploymentResource(individual, accessToken, employmentLink);
+
+        //employment paye response
+        final List<Employment> employments = getEmployments(fromDate, toDate, accessToken, employmentResource);
+
+        log.info("Received Income data for nino {}", individual.getNino());
+
+        return new IncomeSummary(incomeList, employments, individualResource.getContent().getIndividual());
     }
 
     @Recover
@@ -94,17 +107,17 @@ public class HmrcClient {
         throw(e);
     }
 
-    private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
+    private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
 
-        final Resource<EmbeddedIncome> incomeResource =
-                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("income").getHref())), accessToken)
-                        .toObject(incomesResourceTypeRef);
-        return incomeResource.getContent().get_embedded().getIncome();
+        final Resource<PayeIncome> incomeResource =
+                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("paye").getHref())), accessToken)
+                        .toObject(payeIncomesResourceTypeRef);
+        return incomeResource.getContent().getPaye().getIncome();
     }
 
     private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripBraces(href)).replaceQuery(null);
+        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
         final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
         if (toDate != null) {
             uri = withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
@@ -114,28 +127,55 @@ public class HmrcClient {
         return uri;
     }
 
-    private String stripBraces(String href) {
-        return href.replaceAll("[{}]", "");
+
+    private String stripPlaceholderQueryParams(String href) {
+        return href.replace("{&fromDate,toDate}", "").replace("{&toDate,fromDate}", "");
     }
 
-    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<Individual> linksResource) {
-        final Resource<EmbeddedEmployments> employmentsResource =
-                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("employments").getHref())), accessToken)
+    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
+        final Resource<Employments> employmentsResource =
+                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("paye").getHref())), accessToken)
                         .toObject(employmentsResourceTypeRef);
-        return employmentsResource.getContent().get_embedded().getEmployments();
+        return employmentsResource.getContent().getEmployments();
     }
 
-    private Resource<Individual> getIndividual(Individual individual, String accessToken, String matchUrl) {
+    private String getIndividualLink(Individual individual, String accessToken, String matchUrl) {
         log.info("POST to {}", matchUrl);
-        //post includes following 303 redirect
-        Resource<Individual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), individualResourceTypeRef).getBody();
+        //post includes following 303 redirect NOT ANYMORE
+
+        Resource<String> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
+        log.info("Individual Response has been received for {}, {}", individual.getNino(), resource);
+        return asAbsolute(resource.getLink("individual").getHref());
+    }
+
+    private Resource<EmbeddedIndividual> getIndividualResource(Individual individual, String accessToken, String matchUrl) {
+        log.info("GET from {}", matchUrl);
+        //post includes following 303 redirect NOT ANYMORE
+
+        Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
         log.info("Individual Response has been received for {}", individual.getNino());
         return resource;
     }
 
-    private String getMatchUrl(String accessToken) {
-        final Resource<String> linksResource = followTraverson(url + "/individuals/", accessToken).toObject(linksResourceTypeRef);
-        return asAbsolute(linksResource.getLink("match").getHref());
+    private Resource<String> getIncomeResource(Individual individual, String accessToken, String incomeLink) {
+        log.info("GET from {}", incomeLink);
+
+        Resource<String> resource = restTemplate.exchange(URI.create(incomeLink), HttpMethod.GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        log.info("Income Response has been received for {}, {}", individual.getNino(), resource);
+        return resource;
+    }
+
+    private Resource<String> getEmploymentResource(Individual individual, String accessToken, String employmentLink) {
+        log.info("GET from {}", employmentLink);
+
+        Resource<String> resource = restTemplate.exchange(URI.create(employmentLink), HttpMethod.GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        log.info("Employment Response has been received for {}, {}", individual.getNino(), resource);
+        return resource;
+    }
+
+    private String getIndividualMatchUrl() {
+
+        return url + "/individuals/matching/";
     }
 
     private String asAbsolute(String uri) {
@@ -147,9 +187,18 @@ public class HmrcClient {
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity<>(individual, headers);
+    }
+
+    private HttpEntity createHeadersEntity(String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("Authorization", format("Bearer %s", accessToken));
+        return new HttpEntity(null, headers);
     }
 
     private static HttpHeaders generateHeaders(String accessToken) {

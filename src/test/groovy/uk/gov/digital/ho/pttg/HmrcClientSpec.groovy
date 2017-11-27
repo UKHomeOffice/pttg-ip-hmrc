@@ -14,7 +14,7 @@ class HmrcClientSpec extends Specification {
     private static final LocalDate TO_DATE = LocalDate.of(2016, 8, 1)
     private static final String HMRC_BASE_URL = "http://hmrc.com"
     private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123"
-    private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_CURLY_BRACES = HMRC_BASE_URL + "/individuals{?existingParam=123}"
+    private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123{&toDate,fromDate}"
     private static final String ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS = HMRC_BASE_URL +  "/individuals"
 
     public RestTemplate mockRestTemplate = Mock(RestTemplate.class)
@@ -25,18 +25,18 @@ class HmrcClientSpec extends Specification {
         client = new HmrcClient(mockRestTemplate, HMRC_BASE_URL)
     }
 
-    def 'should replace any returned query params from absolute url'() {
+    def 'should retain any returned query params from absolute url'() {
         when:
             def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS)
         then:
-            link == HMRC_BASE_URL + '/individuals?fromDate=2016-06-21&toDate=2016-08-01'
+            link == HMRC_BASE_URL + '/individuals?existingParam=123&fromDate=2016-06-21&toDate=2016-08-01'
     }
 
-    def 'should strip curly braces from url'() {
+    def 'should retain any returned query params from absolute url and replace date templated query params'() {
         when:
-            def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_CURLY_BRACES)
+        def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS)
         then:
-            link == HMRC_BASE_URL + '/individuals?fromDate=2016-06-21&toDate=2016-08-01'
+        link == HMRC_BASE_URL + '/individuals?existingParam=123&fromDate=2016-06-21&toDate=2016-08-01'
     }
 
     def 'should add query params to absolute url which does not already have query params'() {
