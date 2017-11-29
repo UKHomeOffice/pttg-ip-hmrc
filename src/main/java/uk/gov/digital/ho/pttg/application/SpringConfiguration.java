@@ -14,7 +14,6 @@ import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -28,7 +27,6 @@ import java.util.Arrays;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Configuration
-@EnableRetry
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
     public SpringConfiguration(ObjectMapper objectMapper) {
