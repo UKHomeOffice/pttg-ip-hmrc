@@ -1,0 +1,29 @@
+{
+  "_links": {
+    "self": {
+      "href": "/individuals/income/sa/employments?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
+    }
+  },
+  "selfAssessment": {
+    "taxReturns": [
+      {
+        "taxYear": "2014-15",
+        "employments": [
+          {
+            "utr": "2432552635",
+            "employmentIncome": 0
+          }
+        ]
+      },
+      {
+        "taxYear": "2013-14",
+        "employments": [
+          {
+            "utr": "2432552635",
+            "employmentIncome": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

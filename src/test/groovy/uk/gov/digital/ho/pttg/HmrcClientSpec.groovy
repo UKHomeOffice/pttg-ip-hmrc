@@ -15,7 +15,11 @@ class HmrcClientSpec extends Specification {
     private static final String HMRC_BASE_URL = "http://hmrc.com"
     private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123"
     private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123{&toDate,fromDate}"
+    private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS_TAX_YEAR = HMRC_BASE_URL + "/individuals?existingParam=123{&toTaxYear,fromTaxYear}"
     private static final String ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS = HMRC_BASE_URL +  "/individuals"
+    private static final LocalDate DATE_5_APRIL_2015 = LocalDate.of(2015, 4, 5)
+    private static final LocalDate DATE_1_MAY_2013 = LocalDate.of(2013, 5, 1)
+    private static final LocalDate DATE_6_APRIL_2011 = LocalDate.of(2011, 4, 6)
 
     public RestTemplate mockRestTemplate = Mock(RestTemplate.class)
 
@@ -30,6 +34,13 @@ class HmrcClientSpec extends Specification {
             def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS)
         then:
             link == HMRC_BASE_URL + '/individuals?existingParam=123&fromDate=2016-06-21&toDate=2016-08-01'
+    }
+
+    def 'should retain any returned query params from absolute url -  for taxYear params'() {
+        when:
+        def link = client.buildLinkWithTaxYearRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS_TAX_YEAR)
+        then:
+        link == HMRC_BASE_URL + '/individuals?existingParam=123&fromTaxYear=2016-17&toTaxYear=2016-17'
     }
 
     def 'should retain any returned query params from absolute url and replace date templated query params'() {
@@ -60,6 +71,17 @@ class HmrcClientSpec extends Specification {
         then:
         HttpServerErrorException e = thrown()
             e.message == "502 test"
+    }
+
+    def 'should return tax Year from Date'() {
+        when:
+        def taxYear1 = client.getTaxYear(DATE_5_APRIL_2015)
+        def taxYear2 = client.getTaxYear(DATE_1_MAY_2013)
+        def taxYear3 = client.getTaxYear(DATE_6_APRIL_2011)
+        then:
+        taxYear1 == "2014-15"
+        taxYear2 == "2013-14"
+        taxYear3 == "2011-12"
     }
 
 }

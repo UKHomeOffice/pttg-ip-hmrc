@@ -71,18 +71,24 @@ class HMRCResourceIntSpec extends Specification {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildEmploymentsResponse())))
 
-        stubFor(get(urlEqualTo("/individuals/employments/paye?matchId="+MATCH_ID+"&fromDate=2017-01-01&toDate=2017-03-01"))
+        stubFor(get(urlEqualTo("/individuals/employments/paye?matchId="+MATCH_ID+"&fromDate=2017-01-01&toDate=2017-06-01"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildEmploymentsPayeResponse())))
 
-        stubFor(get(urlEqualTo("/individuals/income/paye?matchId="+MATCH_ID+"&fromDate=2017-01-01&toDate=2017-03-01"))
+        stubFor(get(urlEqualTo("/individuals/income/paye?matchId="+MATCH_ID+"&fromDate=2017-01-01&toDate=2017-06-01"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildPayeIncomeResponse())))
 
+        stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17&toTaxYear=2017-18"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildSAResponse())))
+
+
         when:
-        def response = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-03-01&dateOfBirth=1992-03-01", String.class)
+        def response = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", String.class)
         then:
         response.statusCode == HttpStatus.OK
         def hmrcSummary = jsonSlurper.parseText(response.body)
@@ -93,6 +99,8 @@ class HMRCResourceIntSpec extends Specification {
         hmrcSummary.individual.lastName == 'Halford'
         hmrcSummary.individual.nino == 'GH576240A'
         hmrcSummary.individual.dateOfBirth == '1992-03-01'
+        hmrcSummary.saSubmissionDates[0] == '2015-10-06'
+        hmrcSummary.saSubmissionDates[1] == '2014-06-06'
     }
 
     def 'Allow optional toDate'() {
@@ -137,6 +145,11 @@ class HMRCResourceIntSpec extends Specification {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildPayeIncomeResponse())))
 
+        stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildEmptySAResponse())))
+
         when:
         sleep(2000)
         def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&dateOfBirth=2000-03-01", String.class)
@@ -146,6 +159,7 @@ class HMRCResourceIntSpec extends Specification {
         hmrcSummary.employments[0].employer.name == 'Acme Inc'
         hmrcSummary.income[0].weekPayNumber == 49
     }
+
 
     def 'Any HMRC error should be perculated through'() {
 
@@ -233,6 +247,7 @@ class HMRCResourceIntSpec extends Specification {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildInvalidIncomeResponse())))
 
+
         when:
         def response = restTemplate.getForEntity("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&dateOfBirth=2000-03-01", String.class)
         then:
@@ -305,7 +320,7 @@ class HMRCResourceIntSpec extends Specification {
     }
 
     String buildPayeIncomeResponse() {
-        IOUtils.toString(this.getClass().getResourceAsStream("/template/IncomePayeResponse.json"))
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomePayeResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
@@ -319,6 +334,18 @@ class HMRCResourceIntSpec extends Specification {
 
     String buildEmploymentsPayeResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/employmentsPayeResponse.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildSAResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSAResponse.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildEmptySAResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSAResponseEmpty.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
