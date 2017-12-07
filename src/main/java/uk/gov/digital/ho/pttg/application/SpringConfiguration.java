@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,9 +32,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
     @Value("${https.useProxy}") private boolean useProxy;
-    @Value("${https.proxyHost}") private String proxyHost;
-    @Value("${https.proxyPort}") private String proxyPort;
-    @Value("${https.nonProxyHosts}") private String nonProxyHosts;
 
     public SpringConfiguration(ObjectMapper objectMapper) {
         initialiseObjectMapper(objectMapper);
@@ -53,6 +49,10 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public RestTemplate createRestTemplate(RestTemplateBuilder builder, ObjectMapper mapper) {
 
+        if (useProxy) {
+            builder.additionalCustomizers(new ProxyCustomiser()).build();
+        }
+
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(mapper);
         converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
@@ -69,14 +69,7 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
            need to alter the default redirect strategy for redirect on post
          */
 
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new LaxRedirectStrategy());
-
-        if (useProxy) {
-            log.info("Using proxy {}:{}", proxyHost, proxyPort);
-            builder.setProxy(new HttpHost(proxyHost, Integer.parseInt(proxyPort), "https"));
-        }
-
+        HttpClientBuilder builder = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy());
         factory.setHttpClient(builder.build());
 
         return factory;
