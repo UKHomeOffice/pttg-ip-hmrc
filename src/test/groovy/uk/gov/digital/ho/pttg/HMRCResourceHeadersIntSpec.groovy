@@ -142,7 +142,7 @@ class HMRCResourceHeadersIntSpec extends Specification {
     }
 
     String buildPayeIncomeResponse() {
-        IOUtils.toString(this.getClass().getResourceAsStream("/template/IncomePayeResponse.json"))
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomePayeResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
