@@ -1,0 +1,20 @@
+{
+  "_links": {
+    "summary": {
+      "href": "/individuals/income/sa/summary?matchId=${matchId}&fromTaxYear=2013-14"
+    },
+    "selfEmployments": {
+      "href": "/individuals/income/sa/self-employments?matchId=${matchId}&fromTaxYear=2013-14"
+    },
+    "self": {
+      "href": "/individuals/income/sa?matchId=${matchId}&fromTaxYear=2013-14"
+    },
+    "employments": {
+      "href": "/individuals/income/sa/employments?matchId=${matchId}&fromTaxYear=2013-14"
+    }
+  },
+  "selfAssessment": {
+    "registrations": [],
+    "taxReturns": []
+  }
+}

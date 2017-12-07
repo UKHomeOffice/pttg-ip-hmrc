@@ -1,0 +1,27 @@
+{
+  "_links": {
+    "self": {"href": "/individuals/income/sa/summary?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"}
+  },
+  "selfAssessment": {
+    "taxReturns": [
+      {
+        "taxYear": "2014-15",
+        "summary": [
+          {
+            "utr": "2432552635",
+            "totalIncome": 0
+          }
+        ]
+      },
+      {
+        "taxYear": "2013-14",
+        "summary": [
+          {
+            "utr": "2432552635",
+            "totalIncome": 30000
+          }
+        ]
+      }
+    ]
+  }
+}

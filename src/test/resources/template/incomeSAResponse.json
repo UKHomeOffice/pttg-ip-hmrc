@@ -1,4 +1,44 @@
 {
-  "code": "INVALID_SCOPE",
-  "message": "Can not access the required resource. Ensure this token has all the required scopes."
+  "_links": {
+    "self": {
+      "href": "/individuals/income/sa?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
+    },
+    "selfEmployments": {
+      "href": "/individuals/income/sa/self-employments?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
+    },
+    "employments": {
+      "href": "/individuals/income/sa/employments?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
+    },
+    "summary": {
+      "href": "/individuals/income/sa/summary?&matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
+    }
+  },
+  "selfAssessment": {
+    "registrations": [
+      {
+        "utr": "2432552635",
+        "registrationDate": "2012-01-06"
+      }
+    ],
+    "taxReturns": [
+      {
+        "taxYear": "2014-15",
+        "submissions": [
+          {
+            "utr": "2432552635",
+            "receivedDate": "2015-10-06"
+          }
+        ]
+      },
+      {
+        "taxYear": "2013-14",
+        "submissions": [
+          {
+            "utr": "2432552635",
+            "receivedDate": "2014-06-06"
+          }
+        ]
+      }
+    ]
+  }
 }

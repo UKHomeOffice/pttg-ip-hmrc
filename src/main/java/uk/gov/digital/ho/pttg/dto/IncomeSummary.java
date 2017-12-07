@@ -11,6 +11,7 @@ import java.util.List;
 @EqualsAndHashCode
 public class IncomeSummary {
     private final List<Income> income;
+    private final List<String> saSubmissionDates;
     private final List<Employment> employments;
     private final Individual individual;
 }

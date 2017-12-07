@@ -80,6 +80,12 @@ class HMRCResourceHeadersIntSpec extends Specification {
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildPayeIncomeResponse())))
+
+        stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildEmptySAResponse())))
+
         when:
         sleep(2000)
         restTemplate.exchange("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&dateOfBirth=2000-03-01", HttpMethod.GET, createEntityForHeaders("headers"), String.class)
@@ -150,6 +156,12 @@ class HMRCResourceHeadersIntSpec extends Specification {
 
     String buildEmploymentsPayeResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/employmentsPayeResponse.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildEmptySAResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSAResponseEmpty.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }

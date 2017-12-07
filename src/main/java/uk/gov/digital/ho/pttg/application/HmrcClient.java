@@ -30,10 +30,12 @@ import uk.gov.digital.ho.pttg.dto.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
+import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -52,9 +54,17 @@ public class HmrcClient {
     };
     private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {
     };
-
+    private static final ParameterizedTypeReference<Resource<SelfAssessment>> selfAssessmentResourceTypeRef = new ParameterizedTypeReference<Resource<SelfAssessment>>() {
+    };
+    private static final MonthDay END_OF_TAX_YEAR = MonthDay.of(4, 5);
+    private static final String QUERY_PARAM_TO_DATE = "toDate";
+    private static final String QUERY_PARAM_FROM_DATE = "fromDate";
+    private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
+    private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
+    private static final String HMRC_VERSION_ACCEPT_HEADER = "application/vnd.hmrc.P1.0+json";
     private String url;
     private RestTemplate restTemplate;
+
 
     @Autowired
     public HmrcClient(RestTemplate restTemplate,
@@ -81,7 +91,7 @@ public class HmrcClient {
         final List<Income> incomeList = DataCleanser.clean(individual, getIncome(fromDate, toDate, accessToken, incomeResource));
 
         //income SA response
-        //TODO
+        final List<String> selfAssessment = getSelfAssessment(fromDate, toDate, accessToken, incomeResource);
 
         //employments response with paye href
         final String employmentLink = asAbsolute(individualResource.getLink("employments").getHref());
@@ -92,7 +102,7 @@ public class HmrcClient {
 
         log.info("Received Income data for nino {}", individual.getNino());
 
-        return new IncomeSummary(incomeList, employments, individualResource.getContent().getIndividual());
+        return new IncomeSummary(incomeList, selfAssessment, employments, individualResource.getContent().getIndividual());
     }
 
     @Recover
@@ -115,21 +125,58 @@ public class HmrcClient {
         return incomeResource.getContent().getPaye().getIncome();
     }
 
+    private List<String> getSelfAssessment(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
+
+        final Resource<SelfAssessment> incomeResource =
+                followTraverson(buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("selfAssessment").getHref())), accessToken)
+                        .toObject(selfAssessmentResourceTypeRef);
+        final List<TaxReturn> taxReturns = incomeResource.getContent().getSelfAssessment().getTaxReturns();
+
+        return taxReturns.stream().flatMap(taxReturn ->
+            taxReturn.getSubmissions().stream().map(Submission::getReceivedDate)
+        ).collect(Collectors.toList());
+    }
+
     private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
         final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam("fromDate", fromDate.format(DateTimeFormatter.ISO_DATE));
+        final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_DATE, fromDate.format(DateTimeFormatter.ISO_DATE));
         if (toDate != null) {
-            uri = withFromDate.queryParam("toDate", toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
+            uri = withFromDate.queryParam(QUERY_PARAM_TO_DATE, toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
         } else {
             uri = withFromDate.build().toUriString();
         }
         return uri;
     }
 
+    private String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
+        String uri;
+        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
+        final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
+        if (toDate != null) {
+            uri = withFromDate.queryParam(QUERY_PARAM_TO_TAX_YEAR, getTaxYear(toDate)).build().toUriString();
+        } else {
+            uri = withFromDate.build().toUriString();
+        }
+        return uri;
+    }
+
+    private String getTaxYear(LocalDate date) {
+        String taxYear;
+        if (MonthDay.from(date).isAfter(END_OF_TAX_YEAR)) {
+            taxYear = date.getYear() + "-" + (removeFirstTwoDigits(date.getYear() + 1));
+        } else {
+            taxYear = (date.getYear() - 1) + "-" + removeFirstTwoDigits(date.getYear());
+        }
+        return taxYear;
+    }
+
+    private int removeFirstTwoDigits(int fourDigitYear) {
+        return fourDigitYear % 100;
+    }
 
     private String stripPlaceholderQueryParams(String href) {
-        return href.replace("{&fromDate,toDate}", "").replace("{&toDate,fromDate}", "");
+        return href.replaceFirst("\\{&.*\\}", "");
     }
 
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
@@ -141,7 +188,6 @@ public class HmrcClient {
 
     private String getIndividualLink(Individual individual, String accessToken, String matchUrl) {
         log.info("POST to {}", matchUrl);
-        //post includes following 303 redirect NOT ANYMORE
 
         Resource<String> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
         log.info("Individual Response has been received for {}, {}", individual.getNino(), resource);
@@ -150,7 +196,6 @@ public class HmrcClient {
 
     private Resource<EmbeddedIndividual> getIndividualResource(Individual individual, String accessToken, String matchUrl) {
         log.info("GET from {}", matchUrl);
-        //post includes following 303 redirect NOT ANYMORE
 
         Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
         log.info("Individual Response has been received for {}", individual.getNino());
@@ -187,7 +232,7 @@ public class HmrcClient {
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
+        headers.add(HttpHeaders.ACCEPT, HMRC_VERSION_ACCEPT_HEADER);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity<>(individual, headers);
@@ -195,7 +240,7 @@ public class HmrcClient {
 
     private HttpEntity createHeadersEntity(String accessToken) {
         HttpHeaders headers = generateHeaders();
-        headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
+        headers.add(HttpHeaders.ACCEPT, HMRC_VERSION_ACCEPT_HEADER);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity(null, headers);
@@ -209,7 +254,7 @@ public class HmrcClient {
 
     private static HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, "application/vnd.hmrc.P1.0+json");
+        headers.add(HttpHeaders.ACCEPT, HMRC_VERSION_ACCEPT_HEADER);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
         headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
