@@ -3,9 +3,12 @@ package uk.gov.digital.ho.pttg.application;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +29,14 @@ import java.util.Arrays;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+@Slf4j
 @Configuration
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
+
+    @Value("${https.useProxy}") private boolean useProxy;
+    @Value("${https.proxyHost}") private String proxyHost;
+    @Value("${https.proxyPort}") private int proxyPort;
+    @Value("${https.nonProxyHosts}") private String nonProxyHosts;
 
     public SpringConfiguration(ObjectMapper objectMapper) {
         initialiseObjectMapper(objectMapper);
@@ -60,9 +69,16 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         /* HttpClient - By default, only GET requests resulting in a redirect are automatically followed
            need to alter the default redirect strategy for redirect on post
          */
-        HttpClient httpClient =
-                HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
-        factory.setHttpClient(httpClient);
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setRedirectStrategy(new LaxRedirectStrategy());
+
+        if (useProxy) {
+            log.info("Using proxy {}:{}", proxyHost, proxyPort);
+            builder.setProxy(new HttpHost(proxyHost, proxyPort, "https"));
+        }
+
+        factory.setHttpClient(builder.build());
 
         return factory;
     }
