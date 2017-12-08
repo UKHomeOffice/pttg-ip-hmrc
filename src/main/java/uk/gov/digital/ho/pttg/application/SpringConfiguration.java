@@ -52,7 +52,7 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
     public RestTemplate createRestTemplate(RestTemplateBuilder builder, ObjectMapper mapper) {
 
         if (useProxy) {
-            builder.additionalCustomizers(createProxyCustomiser()).build();
+            builder = builder.additionalCustomizers(createProxyCustomiser());
         }
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
