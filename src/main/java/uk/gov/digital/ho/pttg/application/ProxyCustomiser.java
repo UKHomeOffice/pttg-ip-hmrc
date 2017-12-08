@@ -1,6 +1,6 @@
 package uk.gov.digital.ho.pttg.application;
 
-import com.google.common.net.InternetDomainName;
+import com.google.common.net.HostAndPort;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -9,33 +9,37 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.protocol.HttpContext;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+
 @Slf4j
 public class ProxyCustomiser implements RestTemplateCustomizer {
 
-    @Value("${hmrc.endpoint}") private String hmrcBaseUrl;
-    @Value("${https.proxyHost}") private String proxyHost;
-    @Value("${https.proxyPort}") private String proxyPort;
+    private final String hostToProxy;
+    private final String proxyHost;
+    private final int proxyPort;
+
+    public ProxyCustomiser(String baseURL, String proxyHost, int proxyPort) {
+        this.hostToProxy = URI.create(baseURL).getHost();
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
+    }
 
     @Override
     public void customize(RestTemplate restTemplate)  {
-        String proxyUrl = proxyHost;
-        int port = Integer.parseInt(proxyPort);
-        String proxyDomain = InternetDomainName.from(hmrcBaseUrl).topPrivateDomain().toString();
 
-        log.info("Using proxy {}:{} for {}", proxyUrl, proxyPort, proxyDomain);
+        log.info("Using proxy {}:{} for {}", proxyHost, proxyPort, hostToProxy);
 
-        HttpHost proxy = new HttpHost(proxyUrl, port, "https");
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort, "https");
         HttpClient httpClient = HttpClientBuilder.create().setRoutePlanner(new DefaultProxyRoutePlanner(proxy) {
             @Override
             protected HttpHost determineProxy(HttpHost target, HttpRequest request, HttpContext context)
                     throws HttpException {
 
-                if (target.getHostName().equals(proxyDomain)) {
+                if (target.getHostName().equals(hostToProxy)) {
                     return super.determineProxy(target, request, context);
                 }
                 return null;
