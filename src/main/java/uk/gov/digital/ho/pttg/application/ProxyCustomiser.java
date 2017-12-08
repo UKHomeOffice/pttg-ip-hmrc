@@ -39,6 +39,7 @@ public class ProxyCustomiser implements RestTemplateCustomizer {
                     throws HttpException {
 
                 if (target.getHostName().equals(hostToProxy)) {
+                    log.info("proxying {} to {}", target.getHostName(), hostToProxy);
                     return super.determineProxy(target, request, context);
                 }
                 return null;
