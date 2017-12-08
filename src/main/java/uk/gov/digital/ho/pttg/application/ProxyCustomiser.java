@@ -42,6 +42,10 @@ public class ProxyCustomiser implements RestTemplateCustomizer {
                     log.info("proxying {} to {}", target.getHostName(), hostToProxy);
                     return super.determineProxy(target, request, context);
                 }
+                else {
+                    log.info("not proxying {}", target.getHostName(), hostToProxy);
+                }
+
                 return null;
             }
         }).build();
