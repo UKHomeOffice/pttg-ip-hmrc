@@ -32,7 +32,7 @@ public class ProxyCustomiser implements RestTemplateCustomizer {
 
         log.info("Using proxy {}:{} for {}", proxyHost, proxyPort, hostToProxy);
 
-        HttpHost proxy = new HttpHost(proxyHost, proxyPort, "https");
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
         HttpClient httpClient = HttpClientBuilder.create().setRoutePlanner(new DefaultProxyRoutePlanner(proxy) {
             @Override
             protected HttpHost determineProxy(HttpHost target, HttpRequest request, HttpContext context)
