@@ -31,6 +31,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
     @Value("${https.useProxy}") private boolean useProxy;
+    @Value("${hmrc.endpoint}") String hmrcBaseUrl;
+    @Value("${https.proxyHost}") String proxyHost;
+    @Value("${https.proxyPort}") String proxyPort;
 
     public SpringConfiguration(ObjectMapper objectMapper) {
         initialiseObjectMapper(objectMapper);
@@ -49,15 +52,18 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
     public RestTemplate createRestTemplate(RestTemplateBuilder builder, ObjectMapper mapper) {
 
         if (useProxy) {
-            builder.additionalCustomizers(new ProxyCustomiser()).build();
+            builder.additionalCustomizers(createProxyCustomiser()).build();
         }
-
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(mapper);
         converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
 
         return builder.requestFactory(createClientHttpRequestFactory()).additionalMessageConverters(converter).build();
+    }
+
+    public ProxyCustomiser createProxyCustomiser() {
+        return new ProxyCustomiser(hmrcBaseUrl, proxyHost, Integer.parseInt(proxyPort));
     }
 
     @Bean
