@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.pttg.application;
 
-import com.google.common.net.HostAndPort;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;

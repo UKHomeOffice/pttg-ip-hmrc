@@ -62,8 +62,6 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         return builder.requestFactory(createClientHttpRequestFactory()).additionalMessageConverters(converter).build();
     }
 
-
-    @Bean
     public ProxyCustomiser createProxyCustomiser() {
         return new ProxyCustomiser(hmrcBaseUrl, proxyHost, Integer.parseInt(proxyPort));
     }
