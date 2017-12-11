@@ -30,12 +30,21 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Configuration
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
-    @Value("${https.useProxy}") private boolean useProxy;
-    @Value("${hmrc.endpoint}") String hmrcBaseUrl;
-    @Value("${https.proxyHost}") String proxyHost;
-    @Value("${https.proxyPort}") String proxyPort;
+   private final boolean useProxy;
+    private final String hmrcBaseUrl;
+    private final String proxyHost;
+   private final Integer proxyPort;
 
-    public SpringConfiguration(ObjectMapper objectMapper) {
+    public SpringConfiguration(ObjectMapper objectMapper,
+                                @Value("${proxy.enabled:false}") boolean useProxy,
+                                @Value("${hmrc.endpoint:}") String hmrcBaseUrl,
+                                @Value("${proxy.host:}") String proxyHost,
+                                @Value("${proxy.port}") Integer proxyPort) {
+
+        this.useProxy =useProxy;
+        this.hmrcBaseUrl = hmrcBaseUrl;
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
         initialiseObjectMapper(objectMapper);
     }
 
@@ -62,8 +71,8 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         return builder.requestFactory(createClientHttpRequestFactory()).additionalMessageConverters(converter).build();
     }
 
-    public ProxyCustomiser createProxyCustomiser() {
-        return new ProxyCustomiser(hmrcBaseUrl, proxyHost, Integer.parseInt(proxyPort));
+    ProxyCustomizer createProxyCustomiser() {
+        return new ProxyCustomizer(hmrcBaseUrl, proxyHost, proxyPort.intValue());
     }
 
     @Bean

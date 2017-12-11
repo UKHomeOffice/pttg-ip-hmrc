@@ -1,22 +1,16 @@
 package uk.gov.digital.ho.pttg.application;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
-import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -32,8 +26,6 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -246,13 +238,13 @@ public class HmrcClient {
         return new HttpEntity(null, headers);
     }
 
-    private static HttpHeaders generateHeaders(String accessToken) {
+    private HttpHeaders generateHeaders(String accessToken) {
         final HttpHeaders headers = generateHeaders();
         headers.add("Authorization", format("Bearer %s", accessToken));
         return headers;
     }
 
-    private static HttpHeaders generateHeaders() {
+    private HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.ACCEPT, HMRC_VERSION_ACCEPT_HEADER);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -261,29 +253,17 @@ public class HmrcClient {
         return headers;
     }
 
-    private static Traverson traversonFor(String link) {
+    private Traverson traversonFor(String link) {
         try {
-            return new Traverson(new URI(link), APPLICATION_JSON).setRestOperations(new RestTemplate(Collections.singletonList(getHalConverter())));
+            return new Traverson(new URI(link), APPLICATION_JSON).setRestOperations(this.restTemplate);
         } catch (URISyntaxException e) {
             throw new ApplicationExceptions.HmrcException("Problem building hmrc API url", e);
         }
     }
 
-    private static Traverson.TraversalBuilder followTraverson(String link, String accessToken) {
+    private Traverson.TraversalBuilder followTraverson(String link, String accessToken) {
         log.info("following traverson for {}", link);
         return traversonFor(link).follow().withHeaders(generateHeaders(accessToken));
     }
 
-    private static HttpMessageConverter<?> getHalConverter() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new Jackson2HalModule());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-
-        converter.setObjectMapper(mapper);
-        converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
-
-        return converter;
-    }
 }
