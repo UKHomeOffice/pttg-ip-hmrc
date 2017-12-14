@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,9 +13,6 @@ import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.UUID;
 
-/**
- * Author Home Office Digital
- */
 @Component
 public class RequestData implements HandlerInterceptor {
 
@@ -41,8 +37,17 @@ public class RequestData implements HandlerInterceptor {
         return true;
     }
 
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        MDC.clear();
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    }
+
     private String initialiseSessionId(HttpServletRequest request) {
-        String sessionId = WebUtils.getSessionId(request);
+        String sessionId = request.getHeader(SESSION_ID_HEADER);
         return StringUtils.isNotBlank(sessionId) ? sessionId : "unknown";
     }
 
@@ -54,15 +59,6 @@ public class RequestData implements HandlerInterceptor {
     private String initialiseUserName(HttpServletRequest request) {
         String userId = request.getHeader(USER_ID_HEADER);
         return StringUtils.isNotBlank(userId) ? userId : "anonymous";
-    }
-
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        MDC.clear();
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
     }
 
     public String deploymentName() {

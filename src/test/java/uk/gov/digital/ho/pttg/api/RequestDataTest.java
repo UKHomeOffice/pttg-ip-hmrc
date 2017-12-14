@@ -9,10 +9,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -48,9 +46,7 @@ public class RequestDataTest {
 
     @Test
     public void shouldUseSessionIdFromRequest() throws Exception {
-        HttpSession mockSessison = mock(HttpSession.class);
-        when(mockSessison.getId()).thenReturn("some session id");
-        when(mockHttpServletRequest.getSession(false)).thenReturn(mockSessison);
+        when(mockHttpServletRequest.getHeader("x-session-id")).thenReturn("some session id");
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
