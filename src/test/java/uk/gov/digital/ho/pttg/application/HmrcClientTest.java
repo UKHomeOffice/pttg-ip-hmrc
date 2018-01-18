@@ -113,8 +113,8 @@ public class HmrcClientTest {
         String somePayeReference = "some ref";
         BigDecimal anyTaxablePayment = new BigDecimal("0");
         BigDecimal anyNonTaxablePayment = new BigDecimal("0");
-        Integer anyWeekPayNumber = new Integer("1");
-        Integer anyMonthPayNumber = new Integer("1");
+        Integer anyWeekPayNumber = 1;
+        Integer anyMonthPayNumber = 1;
         String somePayFrequency = "any pay frequency";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
