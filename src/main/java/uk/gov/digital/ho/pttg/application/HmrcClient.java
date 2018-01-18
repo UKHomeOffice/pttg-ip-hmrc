@@ -103,16 +103,16 @@ public class HmrcClient {
 
     }
 
-    private void enrichIncomeData(List<Income> incomes, List<Employment> employments) {
+    private void enrichIncomeData(List<Income> incomeList, List<Employment> employments) {
 
-        Map<String, String> map = produceMap(employments);
-        addPaymentFrequency(incomes, map);
+        Map<String, String> m = produceMap(employments);
+        addPaymentFrequency(incomeList, m);
 
     }
 
-    void addPaymentFrequency(List<Income> incomes, Map<String, String> m) {
+    void addPaymentFrequency(List<Income> incomeList, Map<String, String> m) {
 
-        for (Income income : incomes) {
+        for (Income income : incomeList) {
             income.setPaymentFrequency(m.get(income.getEmployerPayeReference()));
         }
 
@@ -122,9 +122,9 @@ public class HmrcClient {
         Map<String, String> paymentFrequency = new HashMap<>();
 
 
-        for(Employment employment : employments) {
+        for(int i = 0; i < employments.size(); i++) {
 
-            Employment employmentEntry = employment;
+            Employment employmentEntry = employments.get(i);
 
             String payFrequency = employmentEntry.getPayFrequency();
             String payeReference = employmentEntry.getEmployer().getPayeReference();
