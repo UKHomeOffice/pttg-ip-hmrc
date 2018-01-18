@@ -96,7 +96,7 @@ public class HmrcResourceTest {
     }
 
     private IncomeSummary buildIncomeSummary() {
-        final ImmutableList<Income> incomes = ImmutableList.of(new Income("payref", new BigDecimal(4.5), new BigDecimal(6.5), "2017-01-01", 1, null));
+        final ImmutableList<Income> incomes = ImmutableList.of(new Income("payref", new BigDecimal(4.5), new BigDecimal(6.5), "2017-01-01", 1, null, "PAYE_WEEKLY"));
         final Employer employer = new Employer("payref", "Cadburys", new Address("line1", "line2", "line3", "line4", "line5", "S102BB"));
         final ImmutableList<Employment> employment = ImmutableList.of(new Employment("WEEKLY", "2016-6-21", "2016-6-21", employer));
         final ImmutableList<String> selfAssessment = ImmutableList.of("2013-03-03", "2015-06-06", "2017-01-01");

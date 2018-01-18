@@ -26,7 +26,9 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -94,7 +96,44 @@ public class HmrcClient {
 
         log.info("Received Income data for nino {}", individual.getNino());
 
+        enrichIncomeData(incomeList, employments);
+
         return new IncomeSummary(incomeList, selfAssessment, employments, individualResource.getContent().getIndividual());
+
+
+    }
+
+    private void enrichIncomeData(List<Income> incomes, List<Employment> employments) {
+
+        Map<String, String> map = produceMap(employments);
+        addPaymentFrequency(incomes, map);
+
+    }
+
+    void addPaymentFrequency(List<Income> incomes, Map<String, String> m) {
+
+        for (Income income : incomes) {
+            income.setPaymentFrequency(m.get(income.getEmployerPayeReference()));
+        }
+
+    }
+
+    Map<String, String> produceMap(List<Employment> employments) {
+        Map<String, String> paymentFrequency = new HashMap<>();
+
+
+        for(Employment employment : employments) {
+
+            Employment employmentEntry = employment;
+
+            String payFrequency = employmentEntry.getPayFrequency();
+            String payeReference = employmentEntry.getEmployer().getPayeReference();
+
+            paymentFrequency.put(payeReference, payFrequency);
+
+        }
+
+        return paymentFrequency;
     }
 
     @Recover
