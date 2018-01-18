@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
@@ -18,4 +19,7 @@ public class Income {
     private final String paymentDate;
     private Integer weekPayNumber;
     private Integer monthPayNumber;
+
+    @Setter
+    private String paymentFrequency;
 }
