@@ -28,8 +28,8 @@ apply plugin: 'checkstyle'
 apply plugin: 'findbugs'
 apply plugin: 'jacoco'
 
-
 checkstyle {
+  toolVersion = "5.9"
   ignoreFailures = false
 }
 findbugs {
