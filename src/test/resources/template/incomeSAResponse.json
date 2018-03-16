@@ -4,7 +4,7 @@
       "href": "/individuals/income/sa?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
     },
     "selfEmployments": {
-      "href": "/individuals/income/sa/self-employments?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"
+      "href": "/individuals/income/sa/self-employments?matchId=${matchId}&fromTaxYear=2016-17&toTaxYear=2017-18"
     },
     "employments": {
       "href": "/individuals/income/sa/employments?matchId=${matchId}&fromTaxYear=2013-14&toTaxYear=2015-16"

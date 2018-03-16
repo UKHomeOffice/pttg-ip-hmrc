@@ -4,14 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.springframework.hateoas.ResourceSupport;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class TaxReturns extends ResourceSupport {
-    private final List<TaxReturn> taxReturns;
+@EqualsAndHashCode
+public class SelfEmployment {
+    private final BigDecimal selfEmploymentProfit;
 }

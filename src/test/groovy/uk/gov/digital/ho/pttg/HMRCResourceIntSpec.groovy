@@ -84,23 +84,29 @@ class HMRCResourceIntSpec extends Specification {
         stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17&toTaxYear=2017-18"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(buildSAResponse())))
+                .withBody(buildSaResponse())))
 
+        stubFor(get(urlEqualTo("/individuals/income/sa/self-employments?matchId="+MATCH_ID+"&fromTaxYear=2016-17&toTaxYear=2017-18"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildSaSelfEmploymentResponse())))
 
         when:
         def response = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", String.class)
         then:
         response.statusCode == HttpStatus.OK
         def hmrcSummary = jsonSlurper.parseText(response.body)
-        hmrcSummary.income.size == 7
+        hmrcSummary.paye.size == 7
         hmrcSummary.employments[0].employer.name == 'Acme Inc'
-        hmrcSummary.income[0].weekPayNumber == 49
+        hmrcSummary.paye[0].weekPayNumber == 49
         hmrcSummary.individual.firstName == 'Laurie'
         hmrcSummary.individual.lastName == 'Halford'
         hmrcSummary.individual.nino == 'GH576240A'
         hmrcSummary.individual.dateOfBirth == '1992-03-01'
-        hmrcSummary.saSubmissionDates[0] == '2015-10-06'
-        hmrcSummary.saSubmissionDates[1] == '2014-06-06'
+        hmrcSummary.selfAssessment[0].selfEmploymentProfit == 0
+        hmrcSummary.selfAssessment[0].taxYear == "2014-15"
+        hmrcSummary.selfAssessment[1].selfEmploymentProfit == 10500
+        hmrcSummary.selfAssessment[1].taxYear == "2013-14"
     }
 
     def 'Allow optional toDate'() {
@@ -148,7 +154,12 @@ class HMRCResourceIntSpec extends Specification {
         stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(buildEmptySAResponse())))
+                .withBody(buildEmptySaResponse())))
+
+        stubFor(get(urlEqualTo("/individuals/income/sa/self-employments?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildSaSelfEmploymentResponse())))
 
         when:
         sleep(2000)
@@ -157,7 +168,7 @@ class HMRCResourceIntSpec extends Specification {
         response.statusCode == HttpStatus.OK
         def hmrcSummary = jsonSlurper.parseText(response.body)
         hmrcSummary.employments[0].employer.name == 'Acme Inc'
-        hmrcSummary.income[0].weekPayNumber == 49
+        hmrcSummary.paye[0].weekPayNumber == 49
     }
 
 
@@ -338,14 +349,20 @@ class HMRCResourceIntSpec extends Specification {
                 .replace("\${matchId}", MATCH_ID)
     }
 
-    String buildSAResponse() {
+    String buildSaResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSAResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }
 
-    String buildEmptySAResponse() {
+    String buildEmptySaResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSAResponseEmpty.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildSaSelfEmploymentResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSASelfEmploymentsResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }

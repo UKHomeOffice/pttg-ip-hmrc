@@ -99,7 +99,10 @@ public class HmrcResourceTest {
         final ImmutableList<Income> incomes = ImmutableList.of(new Income("payref", new BigDecimal(4.5), new BigDecimal(6.5), "2017-01-01", 1, null, "PAYE_WEEKLY"));
         final Employer employer = new Employer("payref", "Cadburys", new Address("line1", "line2", "line3", "line4", "line5", "S102BB"));
         final ImmutableList<Employment> employment = ImmutableList.of(new Employment("WEEKLY", "2016-6-21", "2016-6-21", employer));
-        final ImmutableList<String> selfAssessment = ImmutableList.of("2013-03-03", "2015-06-06", "2017-01-01");
+        final ImmutableList<AnnualSelfAssessmentTaxReturn> selfAssessment = ImmutableList.of(
+                new AnnualSelfAssessmentTaxReturn("2013-14", new BigDecimal("11500.00")),
+                new AnnualSelfAssessmentTaxReturn("2014-15", new BigDecimal("11500.00")),
+                new AnnualSelfAssessmentTaxReturn("2015-16", new BigDecimal("11500.00")));
         return new IncomeSummary(incomes, selfAssessment, employment, new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH));
     }
 
