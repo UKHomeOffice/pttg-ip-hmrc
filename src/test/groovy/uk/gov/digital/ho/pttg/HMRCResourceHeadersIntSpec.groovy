@@ -84,7 +84,12 @@ class HMRCResourceHeadersIntSpec extends Specification {
         stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(buildEmptySAResponse())))
+                .withBody(buildEmptySaResponse())))
+
+        stubFor(get(urlEqualTo("/individuals/income/sa/self-employments?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withBody(buildSaSelfEmploymentResponse())))
 
         when:
         sleep(2000)
@@ -160,8 +165,14 @@ class HMRCResourceHeadersIntSpec extends Specification {
                 .replace("\${matchId}", MATCH_ID)
     }
 
-    String buildEmptySAResponse() {
+    String buildEmptySaResponse() {
         IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSAResponseEmpty.json"))
+                .replace("\${port}", WIREMOCK_PORT.toString())
+                .replace("\${matchId}", MATCH_ID)
+    }
+
+    String buildSaSelfEmploymentResponse() {
+        IOUtils.toString(this.getClass().getResourceAsStream("/template/incomeSASelfEmploymentsResponse.json"))
                 .replace("\${port}", WIREMOCK_PORT.toString())
                 .replace("\${matchId}", MATCH_ID)
     }

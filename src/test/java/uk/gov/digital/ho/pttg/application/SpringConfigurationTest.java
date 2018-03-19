@@ -26,7 +26,7 @@ public class SpringConfigurationTest {
     public void shouldUseCustomizerWhenProxyEnabled() {
 
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                true,"","", 1234);
+                true,"","some-proxy-host", 1234);
         config.createRestTemplate(builder, new ObjectMapper());
         verify(builder).additionalCustomizers(any(ProxyCustomizer.class));
     }

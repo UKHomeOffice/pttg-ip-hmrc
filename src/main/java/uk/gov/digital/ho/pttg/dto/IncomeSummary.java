@@ -10,8 +10,8 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class IncomeSummary {
-    private final List<Income> income;
-    private final List<String> saSubmissionDates;
+    private final List<Income> paye;
+    private final List<AnnualSelfAssessmentTaxReturn> selfAssessment;
     private final List<Employment> employments;
     private final Individual individual;
 }

@@ -1,6 +1,6 @@
 buildscript {
   ext {
-    springBootVersion = '1.5.2.RELEASE'
+    springBootVersion = '1.5.8.RELEASE'
   }
   repositories {
     mavenCentral()
@@ -28,8 +28,8 @@ apply plugin: 'checkstyle'
 apply plugin: 'findbugs'
 apply plugin: 'jacoco'
 
-
 checkstyle {
+  toolVersion = "5.9"
   ignoreFailures = false
 }
 findbugs {

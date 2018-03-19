@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HmrcClientTest {
@@ -20,9 +21,10 @@ public class HmrcClientTest {
     public void shouldProduceEmptyMap() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        String anyApiVersion = "any api version";
         String anyUrl = "any url";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
         List<Employment> employments = new ArrayList<>();
 
         Map<String, String> p = client.produceMap(employments);
@@ -34,6 +36,7 @@ public class HmrcClientTest {
     public void shouldProduceMapWithOneEntry() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
@@ -43,7 +46,7 @@ public class HmrcClientTest {
 
         String somePayeReference = "some ref";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
         List<Employment> employments = new ArrayList<>();
 
         employments.add(0, new Employment(
@@ -66,6 +69,7 @@ public class HmrcClientTest {
     public void shouldProduceMapWithMutlipleEntries() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
@@ -76,7 +80,7 @@ public class HmrcClientTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
         List<Employment> employments = new ArrayList<>();
 
         employments.add(0, new Employment(
@@ -108,6 +112,7 @@ public class HmrcClientTest {
     public void shouldAddPaymentFrequencyToIncomeData() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
         String somePayeReference = "some ref";
@@ -121,7 +126,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
         List<Income> incomes = new ArrayList<>();
         List<Employment> employments = new ArrayList<>();
 

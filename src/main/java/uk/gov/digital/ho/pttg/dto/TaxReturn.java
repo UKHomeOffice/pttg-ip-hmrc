@@ -7,10 +7,11 @@ import lombok.Getter;
 
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @EqualsAndHashCode
 public class TaxReturn {
-    private final List<Submission> submissions;
+    private final String taxYear;
+    private final List<SelfEmployment> selfEmployments;
 }
