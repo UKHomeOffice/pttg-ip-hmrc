@@ -54,6 +54,8 @@ public class HmrcClient {
     private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
     private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
 
+    static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
+
     private String hmrcApiVerison;
     private String url;
     private RestTemplate restTemplate;
@@ -127,7 +129,7 @@ public class HmrcClient {
             String payeReference = employment.getEmployer().getPayeReference();
 
             if (StringUtils.isEmpty(employment.getPayFrequency())) {
-                paymentFrequency.put(payeReference, "ONE_OFF");
+                paymentFrequency.put(payeReference, DEFAULT_PAYMENT_FREQUENCY);
             } else {
                 paymentFrequency.put(payeReference, employment.getPayFrequency());
             }
