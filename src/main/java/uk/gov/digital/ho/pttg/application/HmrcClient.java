@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,6 +54,8 @@ public class HmrcClient {
     private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
     private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
 
+    static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
+
     private String hmrcApiVerison;
     private String url;
     private RestTemplate restTemplate;
@@ -104,27 +107,32 @@ public class HmrcClient {
     }
 
     private void enrichIncomeData(List<Income> incomes, List<Employment> employments) {
-        Map<String, String> m = produceMap(employments);
-        addPaymentFrequency(incomes, m);
+        Map<String, String> employerPaymentRefMap = createEmployerPaymentRefMap(employments);
+        addPaymentFrequency(incomes, employerPaymentRefMap);
     }
 
-    void addPaymentFrequency(List<Income> incomes, Map<String, String> m) {
-        for (Income income : incomes) {
-            income.setPaymentFrequency(m.get(income.getEmployerPayeReference()));
+    void addPaymentFrequency(List<Income> incomes, Map<String, String> employerPaymentRefMap) {
+        if (incomes == null) {
+            return;
         }
+
+        incomes
+            .stream()
+            .forEach(income -> income.setPaymentFrequency(employerPaymentRefMap.get(income.getEmployerPayeReference())));
     }
 
-    Map<String, String> produceMap(List<Employment> employments) {
+    Map<String, String> createEmployerPaymentRefMap(List<Employment> employments) {
         Map<String, String> paymentFrequency = new HashMap<>();
 
-        for(Employment employment : employments) {
+        for (Employment employment : employments) {
 
-            Employment employmentEntry = employment;
+            String payeReference = employment.getEmployer().getPayeReference();
 
-            String payFrequency = employmentEntry.getPayFrequency();
-            String payeReference = employmentEntry.getEmployer().getPayeReference();
-
-            paymentFrequency.put(payeReference, payFrequency);
+            if (StringUtils.isEmpty(employment.getPayFrequency())) {
+                paymentFrequency.put(payeReference, DEFAULT_PAYMENT_FREQUENCY);
+            } else {
+                paymentFrequency.put(payeReference, employment.getPayFrequency());
+            }
 
         }
 
