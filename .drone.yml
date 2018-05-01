@@ -74,8 +74,8 @@ pipeline:
       - ENVIRONMENT=${DRONE_DEPLOY_TO}
       - KUBE_SERVER=https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
     secrets:
-      - pttg_fs_dev
-      - pttg_fs_test
+      - pttg_ip_dev
+      - pttg_ip_test
     commands:
       - cd kube-pttg-ip-hmrc
       - ./deploy.sh
