@@ -32,7 +32,7 @@ public class ResourceExceptionHandler {
 
     @ExceptionHandler(value = HttpClientErrorException.class)
     public ResponseEntity handle(HttpClientErrorException e) {
-        log.error("HttpClientErrorException: {}", e.getMessage());
+        log.error("HttpClientErrorException: {} {}", e.getStatusCode(), e.getMessage());
         log.error("Error response body: {}", e.getResponseBodyAsString());
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }

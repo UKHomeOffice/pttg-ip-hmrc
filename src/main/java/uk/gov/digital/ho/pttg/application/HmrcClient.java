@@ -54,9 +54,9 @@ public class HmrcClient {
     private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
     private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
 
-    static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
+    private static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
 
-    private String hmrcApiVerison;
+    private String hmrcApiVersion;
     private String url;
     private RestTemplate restTemplate;
 
@@ -65,7 +65,7 @@ public class HmrcClient {
                       @Value("${hmrc.api.version}") String hmrcApiVersion,
                       @Value("${hmrc.endpoint}") String url) {
         this.restTemplate = restTemplate;
-        this.hmrcApiVerison = hmrcApiVersion;
+        this.hmrcApiVersion = hmrcApiVersion;
         this.url = url;
     }
 
@@ -117,7 +117,6 @@ public class HmrcClient {
         }
 
         incomes
-            .stream()
             .forEach(income -> income.setPaymentFrequency(employerPaymentRefMap.get(income.getEmployerPayeReference())));
     }
 
@@ -140,14 +139,8 @@ public class HmrcClient {
     }
 
     @Recover
-    IncomeSummary getIncomeRetryFailureRecovery(HttpServerErrorException e) {
+    IncomeSummary getIncomeRetryFailureRecovery(RuntimeException e, String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
         log.error("Failed to retrieve HMRC data after retries", e.getMessage());
-        throw(e);
-    }
-
-    @Recover
-    IncomeSummary getIncomeRetryFailureRecovery(HttpClientErrorException e) {
-        log.error("Failed to retrieve HMRC data (no retries attempted)", e.getMessage());
         throw(e);
     }
 
@@ -181,7 +174,7 @@ public class HmrcClient {
                 .map(tr -> new AnnualSelfAssessmentTaxReturn(tr.getTaxYear(),
                                                 tr.getSelfEmployments()
                                                     .stream()
-                                                    .map(se -> se.getSelfEmploymentProfit())
+                                                    .map(SelfEmployment::getSelfEmploymentProfit)
                                                     .reduce(BigDecimal.ZERO, (a, b) -> a.add(b))))
                 .collect(Collectors.toList());
     }
@@ -284,7 +277,7 @@ public class HmrcClient {
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, hmrcApiVerison);
+        headers.add(HttpHeaders.ACCEPT, hmrcApiVersion);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity<>(individual, headers);
@@ -292,7 +285,7 @@ public class HmrcClient {
 
     private HttpEntity createHeadersEntity(String accessToken) {
         HttpHeaders headers = generateHeaders();
-        headers.add(HttpHeaders.ACCEPT, hmrcApiVerison);
+        headers.add(HttpHeaders.ACCEPT, hmrcApiVersion);
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity(null, headers);
@@ -306,7 +299,7 @@ public class HmrcClient {
 
     private HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, hmrcApiVerison);
+        headers.add(HttpHeaders.ACCEPT, hmrcApiVersion);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
         headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
