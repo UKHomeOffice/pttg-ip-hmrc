@@ -14,6 +14,7 @@ import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -28,6 +29,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 
 @Configuration
+@EnableRetry
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
    private final boolean useProxy;
@@ -48,13 +50,12 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         initialiseObjectMapper(objectMapper);
     }
 
-    private static ObjectMapper initialiseObjectMapper(final ObjectMapper m) {
-        m.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
-        m.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        m.enable(SerializationFeature.INDENT_OUTPUT);
-        m.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        m.registerModule(new Jackson2HalModule());
-        return m;
+    private static void initialiseObjectMapper(final ObjectMapper mapper) {
+        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.registerModule(new Jackson2HalModule());
     }
 
     @Bean
@@ -71,8 +72,8 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         return builder.requestFactory(createClientHttpRequestFactory()).additionalMessageConverters(converter).build();
     }
 
-    ProxyCustomizer createProxyCustomiser() {
-        return new ProxyCustomizer(hmrcBaseUrl, proxyHost, proxyPort.intValue());
+    private ProxyCustomizer createProxyCustomiser() {
+        return new ProxyCustomizer(hmrcBaseUrl, proxyHost, proxyPort);
     }
 
     @Bean
