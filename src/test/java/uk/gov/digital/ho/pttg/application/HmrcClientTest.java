@@ -18,7 +18,7 @@ public class HmrcClientTest {
     @Test
     public void shouldProduceEmptyMap() {
 
-        HmrcClient client = new HmrcClient(new RestTemplate(), "any api version", "any url");
+        HmrcClient client = new HmrcClient(new RestTemplate(), new NinoUtils(),"any api version", "any url");
 
         Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
 
@@ -29,6 +29,7 @@ public class HmrcClientTest {
     public void shouldProduceMapWithOneEntry() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -39,7 +40,7 @@ public class HmrcClientTest {
 
         String somePayeReference = "some ref";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                     somePayFrequency,
@@ -61,6 +62,7 @@ public class HmrcClientTest {
     public void shouldProduceMapWithMutlipleEntries() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -72,7 +74,7 @@ public class HmrcClientTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                     somePayFrequency,
@@ -104,6 +106,7 @@ public class HmrcClientTest {
     public void shouldDoNothingWhenNoIncome() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         String somePayeReference = "some ref";
@@ -113,7 +116,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
         List<Income> incomes = null;
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -134,6 +137,7 @@ public class HmrcClientTest {
     public void shouldDoNothingWhenEmptyIncome() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         String somePayeReference = "some ref";
@@ -143,7 +147,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
         List<Income> incomes = Collections.emptyList();
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -166,6 +170,7 @@ public class HmrcClientTest {
     public void shouldDefaultPaymentFrequencyWhenNoPaymentFrequency() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
@@ -179,7 +184,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
 
         List<Employment> employments = Arrays.asList(
             new Employment(
@@ -214,6 +219,7 @@ public class HmrcClientTest {
     public void shouldAddPaymentFrequencyToIncomeData() {
 
         RestTemplate anyRestTemplate = new RestTemplate();
+        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
@@ -228,7 +234,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(
