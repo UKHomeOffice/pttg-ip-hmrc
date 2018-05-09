@@ -5,6 +5,7 @@ import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import uk.gov.digital.ho.pttg.application.HmrcClient
+import uk.gov.digital.ho.pttg.application.NinoUtils
 
 import java.time.LocalDate
 
@@ -23,11 +24,12 @@ class HmrcClientSpec extends Specification {
     private static final LocalDate DATE_6_APRIL_2011 = LocalDate.of(2011, 4, 6)
 
     public RestTemplate mockRestTemplate = Mock(RestTemplate.class)
+    private NinoUtils ninoUtils = new NinoUtils();
 
     public HmrcClient client
 
     def setup() {
-        client = new HmrcClient(mockRestTemplate, HMRC_API_VERSION, HMRC_BASE_URL)
+        client = new HmrcClient(mockRestTemplate, ninoUtils, HMRC_API_VERSION, HMRC_BASE_URL)
     }
 
     def 'should retain any returned query params from absolute url'() {

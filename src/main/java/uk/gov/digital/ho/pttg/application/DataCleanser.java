@@ -8,10 +8,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/* removes inconsistencies from the HMRC income response:
-* 1. any payments with a taxable amnount of zero
-*  Any adjusted income lists will be identified in the log by NINO for information */
+/**
+ * @deprecated HMRC now provide the data without empty income data
+ */
 @Slf4j
+@Deprecated
 public class DataCleanser {
 
     public static List<Income> clean(Individual individual, List<Income> incomes) {
@@ -23,7 +24,7 @@ public class DataCleanser {
         if (incomes != null) {
             incomeZerosRemoved = incomes.stream().filter(p -> (p.getTaxablePayment().compareTo(BigDecimal.ZERO) > 0)).collect(Collectors.toList());
             if (incomeZerosRemoved.size() < incomes.size()) {
-                log.info("Removing zero-valued incomes from HMRC income response from NINO: {}", individual.getNino());
+                log.info("Removing zero-valued incomes from HMRC income response");
             }
         }
         return incomeZerosRemoved;
