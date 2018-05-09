@@ -205,7 +205,7 @@ public class HmrcResourceIntegrationTest {
         mockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-    }
+}
 
     @Test
     public void accessCodeServiceGetsResponseAfterRetry() {
