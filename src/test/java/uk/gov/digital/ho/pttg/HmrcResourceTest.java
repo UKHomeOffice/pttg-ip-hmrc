@@ -11,6 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.api.HmrcResource;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.application.NinoUtils;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -41,6 +42,7 @@ public class HmrcResourceTest {
     @Mock private HmrcClient mockHmrcClient;
     @Mock private AuditClient mockAuditClient;
     @Mock private HmrcAccessCodeClient mockHmrcAccessCodeClient;
+    @Mock private NinoUtils mockNinoUtils;
 
     @Captor private ArgumentCaptor<UUID> captorRequestEventId;
     @Captor private ArgumentCaptor<AuditIndividualData> captorRequestAuditData;
@@ -49,7 +51,7 @@ public class HmrcResourceTest {
 
     @Before
     public void setup() {
-        resource = new HmrcResource(mockHmrcClient, mockHmrcAccessCodeClient, mockAuditClient);
+        resource = new HmrcResource(mockHmrcClient, mockNinoUtils, mockHmrcAccessCodeClient, mockAuditClient);
     }
 
     @Test

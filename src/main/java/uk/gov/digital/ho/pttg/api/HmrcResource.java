@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.application.NinoUtils;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
@@ -25,11 +26,13 @@ public class HmrcResource {
     private final HmrcClient hmrcClient;
     private final HmrcAccessCodeClient accessCodeClient;
     private final AuditClient auditClient;
+    private final NinoUtils ninoUtils;
 
-    public HmrcResource(HmrcClient hmrcClient, HmrcAccessCodeClient accessCodeClient, AuditClient auditClient) {
+    public HmrcResource(HmrcClient hmrcClient, NinoUtils ninoUtils, HmrcAccessCodeClient accessCodeClient, AuditClient auditClient) {
         this.hmrcClient = hmrcClient;
         this.accessCodeClient = accessCodeClient;
         this.auditClient = auditClient;
+        this.ninoUtils = ninoUtils;
     }
 
     @RequestMapping(value = "/income", method = RequestMethod.GET, produces = "application/json")
@@ -43,7 +46,7 @@ public class HmrcResource {
 
         final Individual individual = new Individual(firstName, lastName, nino, dob);
 
-        log.info("Hmrc service invoked for nino {} with date range {} to {}", individual.getNino(), fromDate, toDate);
+        log.info("Hmrc service invoked for nino {} with date range {} to {}", ninoUtils.redactedNino(individual.getNino()), fromDate, toDate);
 
         UUID eventId = UUID.randomUUID();
 
