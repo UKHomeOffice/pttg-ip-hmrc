@@ -9,7 +9,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -25,16 +24,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.I_AM_A_TEAPOT;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.client.MockRestServiceServer.MockRestServiceServerBuilder;
+import static org.springframework.test.web.client.MockRestServiceServer.bindTo;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = ServiceRunner.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        classes = ServiceRunner.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class HmrcResourceIntegrationTest {
 
     private static final String MATCH_ID = "87654321";
@@ -53,7 +54,7 @@ public class HmrcResourceIntegrationTest {
 
     @Before
     public void setup() throws JsonProcessingException {
-        MockRestServiceServer.MockRestServiceServerBuilder builder = MockRestServiceServer.bindTo(mockRestTemplate);
+        MockRestServiceServerBuilder builder = bindTo(mockRestTemplate);
         builder.ignoreExpectOrder(true);
         mockService = builder.build();
 
@@ -124,11 +125,10 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody().getIndividual().getLastName()).isEqualTo("Halford");
         assertThat(responseEntity.getBody().getIndividual().getNino()).isEqualTo("GH576240A");
         assertThat(responseEntity.getBody().getIndividual().getDateOfBirth()).isEqualTo(LocalDate.of(1992, 3, 1));
-
     }
 
     @Test
-    public void shouldHandleBadHMRCServiceRequest() throws IOException {
+    public void shouldHandleBadHMRCServiceRequest() {
 
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -141,12 +141,11 @@ public class HmrcResourceIntegrationTest {
 
         mockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-
+        assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
     }
 
     @Test
-    public void anyHMRCErrorShouldBePercolatedThrough() throws IOException {
+    public void anyHMRCErrorShouldBePercolatedThrough() {
 
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -159,12 +158,11 @@ public class HmrcResourceIntegrationTest {
 
         mockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.I_AM_A_TEAPOT);
-
+        assertThat(responseEntity.getStatusCode()).isEqualTo(I_AM_A_TEAPOT);
     }
 
     @Test
-    public void accessCodeServiceThrowsError() throws IOException {
+    public void accessCodeServiceThrowsClientError() {
 
         mockService.reset();
 
@@ -179,15 +177,22 @@ public class HmrcResourceIntegrationTest {
 
         mockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-
+        assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
     }
 
     @Test
-    public void accessCodeServiceNotAvailable() throws IOException {
+    public void accessCodeServiceWithRetriesThrowsServerError() {
 
         mockService.reset();
 
+        mockService
+                .expect(requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(withServerError());
+        mockService
+                .expect(requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(withServerError());
         mockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
@@ -199,7 +204,30 @@ public class HmrcResourceIntegrationTest {
 
         mockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    public void accessCodeServiceGetsResponseAfterRetry() {
+
+        mockService.reset();
+
+        mockService
+                .expect(requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(withServerError());
+        mockService
+                .expect(requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(withBadRequest());
+
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                String.class);
+
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
 
     }
 
@@ -255,7 +283,7 @@ public class HmrcResourceIntegrationTest {
 
         mockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
         assertThat(responseEntity.getBody().getEmployments().get(0).getEmployer().getName()).isEqualTo("Acme Inc");
         assertThat(responseEntity.getBody().getPaye().get(0).getWeekPayNumber()).isEqualTo(49);
 
@@ -283,15 +311,14 @@ public class HmrcResourceIntegrationTest {
                 .expect(requestTo(containsString(
                         "/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01")))
                 .andExpect(method(GET))
-                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+                .andRespond(withStatus(INTERNAL_SERVER_ERROR));
 
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(
                 "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", String.class);
 
         mockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-
+        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
     }
 
 

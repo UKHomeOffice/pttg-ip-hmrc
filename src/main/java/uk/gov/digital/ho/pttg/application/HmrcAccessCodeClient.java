@@ -10,7 +10,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.RequestData;
 import uk.gov.digital.ho.pttg.dto.AuthToken;
@@ -35,7 +36,8 @@ public class HmrcAccessCodeClient {
     }
 
     @Retryable(
-            value = { RestClientException.class },
+            include = {HttpServerErrorException.class},
+            exclude = {HttpClientErrorException.class},
             maxAttemptsExpression = "#{${hmrc.access.service.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.access.service.retry.delay}}"))
     public String getAccessCode() {
@@ -51,7 +53,7 @@ public class HmrcAccessCodeClient {
     }
 
     @Recover
-    String getAccessCodeRetryFailureRecovery(RestClientException e) {
+    String getAccessCodeRetryFailureRecovery(RuntimeException e) {
         log.error("Failed to retrieve access code after retries", e.getMessage());
         throw(e);
     }

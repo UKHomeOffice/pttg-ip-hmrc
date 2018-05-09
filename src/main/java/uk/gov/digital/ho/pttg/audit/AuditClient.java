@@ -10,7 +10,8 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.RequestData;
 
@@ -58,16 +59,18 @@ public class AuditClient {
     }
 
     @Retryable(
-            value = { RestClientException.class },
+            include = {HttpServerErrorException.class},
+            exclude = {HttpClientErrorException.class},
             maxAttemptsExpression = "#{${audit.service.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${audit.service.retry.delay}}"))
-    private void dispatchAuditableData(AuditableData auditableData) {
+    public void dispatchAuditableData(AuditableData auditableData) {
         restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
     }
 
     @Recover
-    void addRetryFailureRecovery(RestClientException e, AuditEventType eventType) {
-        log.error("Failed to audit {} after retries", eventType);
+    void dispatchAuditableDataFailureRecovery(RuntimeException e, AuditableData auditableData) {
+        log.error("Failed to audit {} after retries", auditableData.getEventType());
+        throw(e);
     }
 
     private AuditableData generateAuditableData(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) throws JsonProcessingException {

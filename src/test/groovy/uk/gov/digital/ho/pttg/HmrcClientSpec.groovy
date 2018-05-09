@@ -13,7 +13,7 @@ class HmrcClientSpec extends Specification {
 
     private static final LocalDate FROM_DATE = LocalDate.of(2016, 6, 21)
     private static final LocalDate TO_DATE = LocalDate.of(2016, 8, 1)
-    private static final String HMRC_API_VERSION = "hmrc.api.version=application/vnd.hmrc.P1.0+json";
+    private static final String HMRC_API_VERSION = "hmrc.api.version=application/vnd.hmrc.P1.0+json"
     private static final String HMRC_BASE_URL = "http://hmrc.com"
     private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123"
     private static final String ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS = HMRC_BASE_URL + "/individuals?existingParam=123{&toDate,fromDate}"
@@ -70,7 +70,7 @@ class HmrcClientSpec extends Specification {
     def "should rethrow exception when retry limit reached cos of RestClientException"() {
 
         when:
-            client.getIncomeRetryFailureRecovery(new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "test"))
+            client.getIncomeRetryFailureRecovery(new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "test"), "access token", null, null, null)
         then:
         HttpServerErrorException e = thrown()
             e.message == "502 test"
