@@ -25,6 +25,7 @@ import java.time.Month;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
@@ -201,9 +202,13 @@ public class IncomeSummaryServiceTest {
                 .thenThrow(new IllegalArgumentException())
                 .thenReturn(mockIncomeSummary);
 
-        expectedException.expect(IllegalArgumentException.class);
         // when
-        final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+        try {
+            incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+            fail("A `IllegalArgumentException` should have been thrown.");
+        } catch (final IllegalArgumentException e) {
+            // success
+        }
 
         // then
         // verify an access code is requested
@@ -211,9 +216,6 @@ public class IncomeSummaryServiceTest {
 
         // verify an income summary request is made to HMRC
         verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
-
-        // verify output matches value from HMRC call
-        assertThat(mockIncomeSummary).isEqualTo(incomeSummary);
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -233,9 +235,13 @@ public class IncomeSummaryServiceTest {
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST))
                 .thenReturn(mockIncomeSummary);
 
-        expectedException.expect(HttpClientErrorException.class);
         // when
-        final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+        try {
+            incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+            fail("A `HttpClientErrorException` should have been thrown");
+        } catch (final HttpClientErrorException e) {
+            // success
+        }
 
         // then
         // verify an access code is requested
@@ -243,9 +249,6 @@ public class IncomeSummaryServiceTest {
 
         // verify an income summary request is made to HMRC
         verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
-
-        // verify output matches value from HMRC call
-        assertThat(mockIncomeSummary).isEqualTo(incomeSummary);
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -265,9 +268,13 @@ public class IncomeSummaryServiceTest {
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR))
                 .thenReturn(mockIncomeSummary);
 
-        expectedException.expect(HttpServerErrorException.class);
         // when
-        final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+        try {
+            incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+            fail("A `HttpServerErrorException.class` should have been thrown.");
+        } catch (final HttpServerErrorException e) {
+            // success
+        }
 
         // then
         // verify an access code is requested
@@ -275,9 +282,6 @@ public class IncomeSummaryServiceTest {
 
         // verify an income summary request is made to HMRC
         verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
-
-        // verify output matches value from HMRC call
-        assertThat(mockIncomeSummary).isEqualTo(incomeSummary);
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));

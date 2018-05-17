@@ -7,7 +7,6 @@ import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
 
-@AllArgsConstructor
 @Getter
 public class AuditIndividualData {
     public static final String GET_HMRC_DATA_METHOD = "get-hmrc-data";

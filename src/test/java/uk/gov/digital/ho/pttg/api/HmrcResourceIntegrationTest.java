@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +37,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @SpringBootTest(
         classes = ServiceRunner.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+        "hmrc.retry.unauthorized.attempts=1"
+})
 public class HmrcResourceIntegrationTest {
 
     private static final String MATCH_ID = "87654321";
@@ -72,7 +76,7 @@ public class HmrcResourceIntegrationTest {
     @Test
     public void shouldMakeAllServiceCalls() throws IOException {
 
-        expectSuccessfulTraversal();
+        buildAndExpectSuccessfulTraversal();
 
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", IncomeSummary.class);
 
@@ -312,7 +316,7 @@ public class HmrcResourceIntegrationTest {
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
 
 
-        expectSuccessfulTraversal();
+        buildAndExpectSuccessfulTraversal();
 
         // when
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(
@@ -320,10 +324,8 @@ public class HmrcResourceIntegrationTest {
                 IncomeSummary.class);
 
         // then
-        // verify all expected calls were made
         mockService.verify();
 
-        // verify success response code
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
 
         // verify response body is correct
@@ -365,14 +367,12 @@ public class HmrcResourceIntegrationTest {
                 String.class);
 
         // then
-        // verify all expected calls were made
         mockService.verify();
 
-        // verify success response code
         assertThat(responseEntity.getStatusCode()).isEqualTo(UNAUTHORIZED);
     }
 
-    private void expectSuccessfulTraversal() throws IOException {
+    private void buildAndExpectSuccessfulTraversal() throws IOException {
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
                 .andExpect(method(POST))

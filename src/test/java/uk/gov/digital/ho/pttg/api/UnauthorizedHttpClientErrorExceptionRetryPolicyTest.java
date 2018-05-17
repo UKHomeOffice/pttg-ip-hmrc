@@ -37,7 +37,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicyTest {
         final boolean canRetry = unauthorizedHttpClientErrorExceptionRetryPolicy.canRetry(mockRetryContext);
 
         // then
-        // verify can retry
         assertThat(canRetry).isTrue();
     }
 
@@ -51,7 +50,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicyTest {
         final boolean canRetry = unauthorizedHttpClientErrorExceptionRetryPolicy.canRetry(mockRetryContext);
 
         // then
-        // verify can retry
         assertThat(canRetry).isTrue();
     }
 
@@ -65,7 +63,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicyTest {
         final boolean canRetry = unauthorizedHttpClientErrorExceptionRetryPolicy.canRetry(mockRetryContext);
 
         // then
-        // verify cannot retry
         assertThat(canRetry).isFalse();
     }
 
@@ -79,7 +76,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicyTest {
         final boolean canRetry = unauthorizedHttpClientErrorExceptionRetryPolicy.canRetry(mockRetryContext);
 
         // then
-        // verify cannot retry
         assertThat(canRetry).isFalse();
     }
 
@@ -93,7 +89,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicyTest {
         final boolean canRetry = unauthorizedHttpClientErrorExceptionRetryPolicy.canRetry(mockRetryContext);
 
         // then
-        // verify cannot retry
         assertThat(canRetry).isFalse();
     }
 }

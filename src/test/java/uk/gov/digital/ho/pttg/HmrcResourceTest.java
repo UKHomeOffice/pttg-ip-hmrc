@@ -1,8 +1,8 @@
 package uk.gov.digital.ho.pttg;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.api.HmrcResource;
@@ -16,6 +16,7 @@ import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -36,12 +37,8 @@ public class HmrcResourceTest {
     @Mock
     private IncomeSummary mockIncomeSummary;
 
+    @InjectMocks
     private HmrcResource hmrcResource;
-
-    @Before
-    public void setup() {
-        hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils);
-    }
 
     @Test
     public void shouldCallIncomeSummaryServiceCorrectlyOnInvocation() {
@@ -54,6 +51,7 @@ public class HmrcResourceTest {
         // then
         // verify expected `IncomeSummary` is returned
         assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
+        verifyZeroInteractions(mockIncomeSummary);
     }
 
     @Test
@@ -67,5 +65,6 @@ public class HmrcResourceTest {
         // then
         // verify expected `IncomeSummary` is returned
         assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
+        verifyZeroInteractions(mockIncomeSummary);
     }
 }
