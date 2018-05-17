@@ -12,7 +12,6 @@ import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
-import javax.annotation.Nullable;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -53,7 +52,7 @@ public class IncomeSummaryService {
         });
     }
 
-    private IncomeSummary requestIncomeSummary(final Individual individual, final LocalDate fromDate, final @Nullable LocalDate toDate) {
+    private IncomeSummary requestIncomeSummary(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
         auditRequestToHmrc(individual);
 
         final String accessCode = requestAccessCode();

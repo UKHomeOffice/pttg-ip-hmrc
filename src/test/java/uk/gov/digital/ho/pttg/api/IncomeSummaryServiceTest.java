@@ -1,9 +1,7 @@
 package uk.gov.digital.ho.pttg.api;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -36,9 +34,6 @@ public class IncomeSummaryServiceTest {
 
     private static final String TEST_ACCESS_CODE = "TestAccessCode";
     private static final int RETRY_ATTEMPTS = 2;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @Mock
     private HmrcClient mockHmrcClient;

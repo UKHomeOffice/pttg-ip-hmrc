@@ -99,6 +99,7 @@ class HMRCResourceIntSpec extends Specification {
                 .withBody(buildSaSelfEmploymentResponse())))
 
         when:
+        sleep(2000)
         def response = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", String.class)
         then:
         response.statusCode == HttpStatus.OK
