@@ -46,7 +46,7 @@ public class IncomeSummaryService {
         return requestIncomeSummaryWithRetries(individual, fromDate, toDate);
     }
 
-    private IncomeSummary requestIncomeSummaryWithRetries(final Individual individual, final LocalDate fromDate, final @Nullable LocalDate toDate) {
+    private IncomeSummary requestIncomeSummaryWithRetries(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
         return retryTemplate.execute(context -> {
             log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
             return requestIncomeSummary(individual, fromDate, toDate);
