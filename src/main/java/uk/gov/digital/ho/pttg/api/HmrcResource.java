@@ -6,32 +6,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
-import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
-import uk.gov.digital.ho.pttg.audit.AuditClient;
-import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
-import java.util.UUID;
-
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 
 @Slf4j
 @RestController
 public class HmrcResource {
 
-    private final HmrcClient hmrcClient;
-    private final HmrcAccessCodeClient accessCodeClient;
-    private final AuditClient auditClient;
+    private final IncomeSummaryService incomeSummaryService;
     private final NinoUtils ninoUtils;
 
-    public HmrcResource(HmrcClient hmrcClient, NinoUtils ninoUtils, HmrcAccessCodeClient accessCodeClient, AuditClient auditClient) {
-        this.hmrcClient = hmrcClient;
-        this.accessCodeClient = accessCodeClient;
-        this.auditClient = auditClient;
+    public HmrcResource(final IncomeSummaryService incomeSummaryService, final NinoUtils ninoUtils) {
+        this.incomeSummaryService = incomeSummaryService;
         this.ninoUtils = ninoUtils;
     }
 
@@ -44,27 +33,10 @@ public class HmrcResource {
             @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
+        final String redactedNino = ninoUtils.redactedNino(nino);
+        log.info("Hmrc service invoked for nino {} with date range {} to {}", redactedNino, fromDate, toDate);
+
         final Individual individual = new Individual(firstName, lastName, nino, dob);
-
-        log.info("Hmrc service invoked for nino {} with date range {} to {}", ninoUtils.redactedNino(individual.getNino()), fromDate, toDate);
-
-        UUID eventId = UUID.randomUUID();
-
-        String accessToken = accessCodeClient.getAccessCode();
-
-        auditClient.add(HMRC_INCOME_REQUEST, eventId, auditData(individual));
-
-        return hmrcClient.getIncome(accessToken, individual, fromDate, toDate);
+        return incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
     }
-
-    private AuditIndividualData auditData(Individual individual) {
-
-        return new AuditIndividualData(
-                "get-hmrc-data",
-                individual.getNino(),
-                individual.getFirstName(),
-                individual.getLastName(),
-                individual.getDateOfBirth());
-    }
-
 }

@@ -1,111 +1,103 @@
 package uk.gov.digital.ho.pttg;
 
-import com.google.common.collect.ImmutableList;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.LoggerFactory;
 import uk.gov.digital.ho.pttg.api.HmrcResource;
-import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
-import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.api.IncomeSummaryService;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
-import uk.gov.digital.ho.pttg.audit.AuditClient;
-import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
-import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.IncomeSummary;
+import uk.gov.digital.ho.pttg.dto.Individual;
 
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcResourceTest {
-
-    private static final String SOME_ACCESS_CODE = "some access code";
-    private static final String FIRST_NAME = "Den";
-    private static final String LAST_NAME = "Chimes";
-    private static final String NINO = "AA654321AA";
-    private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1975, 6, 21);
-    private static final LocalDate FROM_DATE = LocalDate.of(2016, 6, 21);
-    private static final LocalDate TO_DATE = LocalDate.of(2016, 6, 21);
-
-    @Mock private HmrcClient mockHmrcClient;
-    @Mock private AuditClient mockAuditClient;
-    @Mock private HmrcAccessCodeClient mockHmrcAccessCodeClient;
-    @Mock private NinoUtils mockNinoUtils;
-
-    @Captor private ArgumentCaptor<UUID> captorRequestEventId;
-    @Captor private ArgumentCaptor<AuditIndividualData> captorRequestAuditData;
-
-    private HmrcResource resource;
+    private static final String NINO = "QQ123456C";
+    private static final String LAST_NAME = "LastName";
+    private static final String FIRST_NAME = "FirstName";
+    private static final LocalDate TO_DATE = LocalDate.of(2018, Month.MAY, 1);
+    private static final LocalDate FROM_DATE = LocalDate.of(2018, Month.JANUARY, 1);
+    private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1990, Month.DECEMBER, 25);
+    @Mock
+    private IncomeSummaryService mockIncomeSummaryService;
+    @Mock
+    private NinoUtils mockNinoUtils;
+    @Mock
+    private IncomeSummary mockIncomeSummary;
+    @Mock
+    private Appender<ILoggingEvent> mockAppender;
+    @InjectMocks
+    private HmrcResource hmrcResource;
 
     @Before
     public void setup() {
-        resource = new HmrcResource(mockHmrcClient, mockNinoUtils, mockHmrcAccessCodeClient, mockAuditClient);
+        ;
     }
 
     @Test
-    public void testCollaboratorsWhenCreatingCase() {
+    public void shouldCallIncomeSummaryServiceCorrectlyOnInvocation() {
+        // given
+        when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
 
-        when(mockHmrcAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(SOME_ACCESS_CODE, new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, TO_DATE)).thenReturn(buildIncomeSummary());
+        // when
+        final IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
-        resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
-
-        verify(mockAuditClient).add(eq(HMRC_INCOME_REQUEST), any(UUID.class), any(AuditIndividualData.class));
-        verify(mockHmrcAccessCodeClient).getAccessCode();
-        verify(mockHmrcClient).getIncome("some access code", new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, TO_DATE);
+        // then
+        // verify expected `IncomeSummary` is returned
+        assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
+        verifyZeroInteractions(mockIncomeSummary);
     }
 
     @Test
-    public void shouldAllowOptionalToDate() {
+    public void shouldHandleOptionalToDate() {
+        // given
+        when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), isNull(LocalDate.class))).thenReturn(mockIncomeSummary);
 
-        when(mockHmrcAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(SOME_ACCESS_CODE, new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, null)).thenReturn(buildIncomeSummary());
+        // when
+        final IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);
 
-        resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);
-
-        verify(mockHmrcClient).getIncome("some access code", new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, null);
+        // then
+        // verify expected `IncomeSummary` is returned
+        assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
+        verifyZeroInteractions(mockIncomeSummary);
     }
 
     @Test
-    public void shouldAuditHmrcRequestAndHmrcResponse() throws IOException {
+    public void shouldOnlyLogRedactedNino() {
+        // given
+        final String redactedNino = "QQ1***56C";
+        when(mockNinoUtils.redactedNino(NINO)).thenReturn(redactedNino);
 
-        when(mockHmrcAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(SOME_ACCESS_CODE, new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH), FROM_DATE, null)).thenReturn(buildIncomeSummary());
+        final Logger root = (Logger) LoggerFactory.getLogger(HmrcResource.class);
+        root.addAppender(mockAppender);
 
-        resource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);
+        // when
+        hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
-        verify(mockAuditClient).add(eq(HMRC_INCOME_REQUEST), captorRequestEventId.capture(), captorRequestAuditData.capture());
+        // then
+        final ArgumentCaptor<ILoggingEvent> logCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
+        verify(mockAppender).doAppend(logCaptor.capture());
 
-        assertThat(captorRequestEventId.getValue()).isNotNull();
-
-        assertThat(captorRequestAuditData.getValue().getMethod()).isEqualTo("get-hmrc-data");
-        assertThat(captorRequestAuditData.getValue().getNino()).isEqualTo(NINO);
-        assertThat(captorRequestAuditData.getValue().getForename()).isEqualTo(FIRST_NAME);
-        assertThat(captorRequestAuditData.getValue().getSurname()).isEqualTo(LAST_NAME);
-        assertThat(captorRequestAuditData.getValue().getDateOfBirth()).isEqualTo(DATE_OF_BIRTH);
+        // verify formatted log message only contains redacted nino
+        final ILoggingEvent logEvent = logCaptor.getValue();
+        final String formattedLogMessage = logEvent.getFormattedMessage();
+        assertThat(formattedLogMessage).contains(redactedNino);
+        assertThat(formattedLogMessage).doesNotContain(NINO);
     }
-
-    private IncomeSummary buildIncomeSummary() {
-        final ImmutableList<Income> incomes = ImmutableList.of(new Income("payref", new BigDecimal(4.5), new BigDecimal(6.5), "2017-01-01", 1, null, "PAYE_WEEKLY"));
-        final Employer employer = new Employer("payref", "Cadburys", new Address("line1", "line2", "line3", "line4", "line5", "S102BB"));
-        final ImmutableList<Employment> employment = ImmutableList.of(new Employment("WEEKLY", "2016-6-21", "2016-6-21", employer));
-        final ImmutableList<AnnualSelfAssessmentTaxReturn> selfAssessment = ImmutableList.of(
-                new AnnualSelfAssessmentTaxReturn("2013-14", new BigDecimal("11500.00")),
-                new AnnualSelfAssessmentTaxReturn("2014-15", new BigDecimal("11500.00")),
-                new AnnualSelfAssessmentTaxReturn("2015-16", new BigDecimal("11500.00")));
-        return new IncomeSummary(incomes, selfAssessment, employment, new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH));
-    }
-
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +37,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @SpringBootTest(
         classes = ServiceRunner.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+        "hmrc.retry.unauthorized.attempts=1"
+})
 public class HmrcResourceIntegrationTest {
 
     private static final String MATCH_ID = "87654321";
@@ -72,45 +76,7 @@ public class HmrcResourceIntegrationTest {
     @Test
     public void shouldMakeAllServiceCalls() throws IOException {
 
-        mockService
-                .expect(requestTo(containsString("/individuals/matching/")))
-                .andExpect(method(POST))
-                .andRespond(withSuccess(buildMatchResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/matching/" + MATCH_ID)))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildMatchedIndividualResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/income/?matchId=" + MATCH_ID)))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildIncomeResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/employments/?matchId=" + MATCH_ID)))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildEmploymentsResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/employments/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01")))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildEmploymentsPayeResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01")))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildPayeIncomeResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/income/sa?matchId=" + MATCH_ID + "&fromTaxYear=2016-17&toTaxYear=2017-18")))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildSaResponse(), APPLICATION_JSON));
-
-        mockService
-                .expect(requestTo(containsString("/individuals/income/sa/self-employments?matchId=" + MATCH_ID + "&fromTaxYear=2016-17&toTaxYear=2017-18")))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildSaSelfEmploymentResponse(), APPLICATION_JSON));
+        buildAndExpectSuccessfulTraversal();
 
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", IncomeSummary.class);
 
@@ -167,6 +133,10 @@ public class HmrcResourceIntegrationTest {
         mockService.reset();
 
         mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
+        mockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withBadRequest());
@@ -185,6 +155,10 @@ public class HmrcResourceIntegrationTest {
 
         mockService.reset();
 
+        mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
         mockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
@@ -205,13 +179,17 @@ public class HmrcResourceIntegrationTest {
         mockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-}
+    }
 
     @Test
     public void accessCodeServiceGetsResponseAfterRetry() {
 
         mockService.reset();
 
+        mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
         mockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
@@ -317,6 +295,123 @@ public class HmrcResourceIntegrationTest {
         mockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    public void shouldRetryAccessCallIfUnauthorizedResponseFromHmrcCalls() throws IOException {
+        // given
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withUnauthorizedRequest());
+
+        mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
+
+        mockService
+                .expect(requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
+
+
+        buildAndExpectSuccessfulTraversal();
+
+        // when
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                IncomeSummary.class);
+
+        // then
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
+
+        // verify response body is correct
+        assertThat(responseEntity.getBody().getPaye().size()).isEqualTo(7);
+        assertThat(responseEntity.getBody().getSelfAssessment().size()).isEqualTo(2);
+        assertThat(responseEntity.getBody().getSelfAssessment().size()).isEqualTo(2);
+        assertThat(responseEntity.getBody().getIndividual().getFirstName()).isEqualTo("Laurie");
+        assertThat(responseEntity.getBody().getIndividual().getLastName()).isEqualTo("Halford");
+        assertThat(responseEntity.getBody().getIndividual().getNino()).isEqualTo("GH576240A");
+        assertThat(responseEntity.getBody().getIndividual().getDateOfBirth()).isEqualTo(LocalDate.of(1992, 3, 1));
+    }
+
+    @Test
+    public void shouldGiveUnauthorizedWhenFailedUnauthorizedRetriesWithHmrc() throws IOException {
+        // given
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withUnauthorizedRequest());
+
+        mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
+
+        mockService
+                .expect(requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withUnauthorizedRequest());
+
+        // when
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                String.class);
+
+        // then
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(UNAUTHORIZED);
+    }
+
+    private void buildAndExpectSuccessfulTraversal() throws IOException {
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess(buildMatchResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildMatchedIndividualResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/income/?matchId=" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildIncomeResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/employments/?matchId=" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildEmploymentsResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/employments/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildEmploymentsPayeResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildPayeIncomeResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/income/sa?matchId=" + MATCH_ID + "&fromTaxYear=2016-17&toTaxYear=2017-18")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildSaResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/income/sa/self-employments?matchId=" + MATCH_ID + "&fromTaxYear=2016-17&toTaxYear=2017-18")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildSaSelfEmploymentResponse(), APPLICATION_JSON));
     }
 
 
