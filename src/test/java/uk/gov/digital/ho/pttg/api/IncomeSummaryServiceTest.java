@@ -176,13 +176,13 @@ public class IncomeSummaryServiceTest {
 
         // then
         // verify an access code is requested
-        verify(mockAccessCodeClient, times(RETRY_ATTEMPTS)).getAccessCode();
+        verify(mockAccessCodeClient, times(2)).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient, times(RETRY_ATTEMPTS)).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+        verify(mockHmrcClient, times(2)).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         // verify an audit call is made
-        verify(mockAuditClient, times(RETRY_ATTEMPTS)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
+        verify(mockAuditClient, times(2)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
 
         // verify output matches value from HMRC call
         assertThat(mockIncomeSummary).isEqualTo(incomeSummary);

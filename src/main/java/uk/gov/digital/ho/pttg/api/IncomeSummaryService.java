@@ -42,7 +42,7 @@ public class IncomeSummaryService {
         this.retryTemplate.setRetryPolicy(new UnauthorizedHttpClientErrorExceptionRetryPolicy(hmrcUnauthorizedRetryAttempts));
     }
 
-    public IncomeSummary getIncomeSummary(final Individual individual, final LocalDate fromDate, @Nullable final LocalDate toDate) {
+    public IncomeSummary getIncomeSummary(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
         return requestIncomeSummaryWithRetries(individual, fromDate, toDate);
     }
 
