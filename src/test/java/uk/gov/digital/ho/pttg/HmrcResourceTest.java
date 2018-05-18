@@ -82,7 +82,7 @@ public class HmrcResourceTest {
     public void shouldOnlyLogRedactedNino() {
         // given
         final String redactedNino = "QQ1***56C";
-        when(mockNinoUtils.redactedNino(NINO)).thenReturn(redactedNino);
+        when(mockNinoUtils.redact(NINO)).thenReturn(redactedNino);
 
         final Logger root = (Logger) LoggerFactory.getLogger(HmrcResource.class);
         root.addAppender(mockAppender);
