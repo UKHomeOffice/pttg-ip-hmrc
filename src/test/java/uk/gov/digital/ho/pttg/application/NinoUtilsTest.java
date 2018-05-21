@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import org.junit.Test;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InvalidNationalInsuranceNumberException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -115,7 +116,7 @@ public class NinoUtilsTest {
     @Test
     public void shouldThrowExceptionWhenInvalidNino() {
         for (final String invalidNino : INVALID_NINOS) {
-            assertThatThrownBy(() -> ninoUtils.validate(invalidNino)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> ninoUtils.validate(invalidNino)).isInstanceOf(InvalidNationalInsuranceNumberException.class);
         }
     }
 
