@@ -32,17 +32,17 @@ public class NinoUtilsTest {
             "\tSP  42  00  00  A"
     };
 
-    private static final String[] REDACTED_NINOS = new String[]{
-            "PP20***0A",
-            "PP21***0A",
-            "PP30***0A",
-            "PP31***0A",
-            "PP42***0A",
-            "SP10***0A",
-            "SP20***0A",
-            "SP40***0A",
-            "SP41***0A",
-            "SP42***0A"
+    private static final String[] VALID_NINOS_REDACTED = new String[]{
+            "PP200****",
+            "PP210****",
+            "PP300****",
+            "PP310****",
+            "PP420****",
+            "SP100****",
+            "SP200****",
+            "SP400****",
+            "SP410****",
+            "SP420****"
     };
 
     private static final String[] INVALID_NINOS = {
@@ -59,7 +59,30 @@ public class NinoUtilsTest {
             "TN123456A",
             "NT123456A",
             "ZZ123456A",
-            "AA123456E"
+            "AA123456E",
+            "AA12",
+            "SP123",
+            "PA5432"
+    };
+
+    private static final String[] INVALID_NINOS_REDACTED = {
+            null,
+            "",
+            "12345*****",
+            "ABC45****",
+            "AB345****",
+            "AB345****",
+            "BG123****",
+            "GB123****",
+            "NK123****",
+            "KN123****",
+            "TN123****",
+            "NT123****",
+            "ZZ123****",
+            "AA123****",
+            "AA12",
+            "SP123",
+            "PA543*"
     };
 
     private final NinoUtils ninoUtils = new NinoUtils();
@@ -104,17 +127,20 @@ public class NinoUtilsTest {
     }
 
     @Test
-    public void shouldNotRedactInvalidLengthNino() {
-        assertThat(ninoUtils.redact("12345678")).isEqualTo("12345678");
-        assertThat(ninoUtils.redact("1234567890")).isEqualTo("1234567890");
-        assertThat(ninoUtils.redact("ABCDefg")).isEqualTo("ABCDefg");
+    public void shouldRedactInvalidNinos() {
+        for (int i = 0; i < INVALID_NINOS.length; i++) {
+            final String invalidNino = INVALID_NINOS[i];
+            final String redactedNino = INVALID_NINOS_REDACTED[i];
+
+            assertThat(ninoUtils.redact(invalidNino)).isEqualTo(redactedNino);
+        }
     }
 
     @Test
     public void shouldRedactValidNinosWhenCorrectlyFormatted() {
         for (int i = 0; i < VALID_NINOS_VALID_FORMAT.length; i++) {
             final String validNino = VALID_NINOS_VALID_FORMAT[i];
-            final String redactedNino = REDACTED_NINOS[i];
+            final String redactedNino = VALID_NINOS_REDACTED[i];
 
             assertThat(ninoUtils.redact(validNino)).isEqualTo(redactedNino);
         }
@@ -124,7 +150,7 @@ public class NinoUtilsTest {
     public void shouldRedactValidNinosWhenIncorrectlyFormatted() {
         for (int i = 0; i < VALID_NINOS_VALID_FORMAT.length; i++) {
             final String validNino = VALID_NINOS_INVALID_FORMAT[i];
-            final String redactedNino = REDACTED_NINOS[i];
+            final String redactedNino = VALID_NINOS_REDACTED[i];
 
             assertThat(ninoUtils.redact(validNino)).isEqualTo(redactedNino);
         }
