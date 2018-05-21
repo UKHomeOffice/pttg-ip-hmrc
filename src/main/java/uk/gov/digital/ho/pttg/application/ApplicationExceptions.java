@@ -33,4 +33,10 @@ public interface ApplicationExceptions {
             super(message);
         }
     }
+
+    class InvalidNationalInsuranceNumberException extends IllegalArgumentException {
+        public InvalidNationalInsuranceNumberException(final String s) {
+            super(s);
+        }
+    }
 }

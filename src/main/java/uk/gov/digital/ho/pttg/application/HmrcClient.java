@@ -104,7 +104,7 @@ public class HmrcClient {
         // income SA response
         List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmployment = getSelfAssessmentSelfEmployment(fromDate, toDate, accessToken, incomeResource);
 
-        log.info("Received Income data for nino {}", ninoUtils.redactedNino(individual.getNino()));
+        log.info("Received Income data for nino {}", ninoUtils.redact(individual.getNino()));
 
         return new IncomeSummary(payeIncomes, selfAssessmentSelfEmployment, employments, individualResource.getContent().getIndividual());
     }
@@ -235,7 +235,7 @@ public class HmrcClient {
         log.info("POST to {}", matchUrl);
 
         Resource<String> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
-        log.info("Individual Response has been received for {}, {}", ninoUtils.redactedNino(individual.getNino()), resource);
+        log.info("Individual Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);
         return asAbsolute(resource.getLink("individual").getHref());
     }
 
@@ -243,7 +243,7 @@ public class HmrcClient {
         log.info("GET from {}", matchUrl);
 
         Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
-        log.info("Individual Response has been received for {}", ninoUtils.redactedNino(individual.getNino()));
+        log.info("Individual Response has been received for {}", ninoUtils.redact(individual.getNino()));
         return resource;
     }
 
@@ -251,7 +251,7 @@ public class HmrcClient {
         log.info("GET from {}", incomeLink);
 
         Resource<String> resource = restTemplate.exchange(URI.create(incomeLink), HttpMethod.GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Income Response has been received for {}, {}", ninoUtils.redactedNino(individual.getNino()), resource);
+        log.info("Income Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);
         return resource;
     }
 
@@ -267,7 +267,7 @@ public class HmrcClient {
         log.info("GET from {}", employmentLink);
 
         Resource<String> resource = restTemplate.exchange(URI.create(employmentLink), HttpMethod.GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Employment Response has been received for {}, {}", ninoUtils.redactedNino(individual.getNino()), resource);
+        log.info("Employment Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);
         return resource;
     }
 

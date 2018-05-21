@@ -3,7 +3,6 @@ package uk.gov.digital.ho.pttg;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,11 +44,6 @@ public class HmrcResourceTest {
     @InjectMocks
     private HmrcResource hmrcResource;
 
-    @Before
-    public void setup() {
-        ;
-    }
-
     @Test
     public void shouldCallIncomeSummaryServiceCorrectlyOnInvocation() {
         // given
@@ -81,8 +75,8 @@ public class HmrcResourceTest {
     @Test
     public void shouldOnlyLogRedactedNino() {
         // given
-        final String redactedNino = "QQ1***56C";
-        when(mockNinoUtils.redactedNino(NINO)).thenReturn(redactedNino);
+        final String redactedNino = "QQ123****";
+        when(mockNinoUtils.redact(NINO)).thenReturn(redactedNino);
 
         final Logger root = (Logger) LoggerFactory.getLogger(HmrcResource.class);
         root.addAppender(mockAppender);
