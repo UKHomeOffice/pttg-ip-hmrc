@@ -33,10 +33,13 @@ public class HmrcResource {
             @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
-        final String redactedNino = ninoUtils.redactedNino(nino);
+        final String redactedNino = ninoUtils.redact(nino);
         log.info("Hmrc service invoked for nino {} with date range {} to {}", redactedNino, fromDate, toDate);
 
-        final Individual individual = new Individual(firstName, lastName, nino, dob);
+        final String sanitisedNino = ninoUtils.sanitise(nino);
+        ninoUtils.validate(sanitisedNino);
+
+        final Individual individual = new Individual(firstName, lastName, sanitisedNino, dob);
         return incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
     }
 }
