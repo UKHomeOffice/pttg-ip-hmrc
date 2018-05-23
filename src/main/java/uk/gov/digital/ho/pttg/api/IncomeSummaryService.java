@@ -7,6 +7,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.application.HmrcClientErrorRetryPolicy;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
@@ -26,6 +27,7 @@ public class IncomeSummaryService {
     private final HmrcAccessCodeClient accessCodeClient;
     private final AuditClient auditClient;
     private final RetryTemplate retryTemplate;
+    private final int hmrcUnauthorizedRetryAttempts;
 
     @Autowired
     public IncomeSummaryService(
@@ -38,7 +40,8 @@ public class IncomeSummaryService {
         this.auditClient = auditClient;
 
         this.retryTemplate = new RetryTemplate();
-        this.retryTemplate.setRetryPolicy(new UnauthorizedHttpClientErrorExceptionRetryPolicy(hmrcUnauthorizedRetryAttempts));
+        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
+//        this.retryTemplate.setRetryPolicy(new UnauthorizedHttpClientErrorExceptionRetryPolicy(hmrcUnauthorizedRetryAttempts));
     }
 
     public IncomeSummary getIncomeSummary(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
@@ -46,6 +49,7 @@ public class IncomeSummaryService {
     }
 
     private IncomeSummary requestIncomeSummaryWithRetries(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
+        retryTemplate.setRetryPolicy(new HmrcClientErrorRetryPolicy(hmrcUnauthorizedRetryAttempts));
         return retryTemplate.execute(context -> {
             log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
             return requestIncomeSummary(individual, fromDate, toDate);

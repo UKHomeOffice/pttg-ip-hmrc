@@ -5,6 +5,7 @@ import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
@@ -15,7 +16,7 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicy implements RetryPol
 
     private final int maxAttempts;
 
-    UnauthorizedHttpClientErrorExceptionRetryPolicy(final int maxAttempts) {
+    public UnauthorizedHttpClientErrorExceptionRetryPolicy(final int maxAttempts) {
         this.maxAttempts = maxAttempts;
     }
 
@@ -44,7 +45,8 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicy implements RetryPol
         final boolean noExceptionThrown = (lastThrowable == null);
         final boolean hasRetriesLeft = this.maxAttempts >= context.getRetryCount();
 
-        return hasRetriesLeft && (noExceptionThrown || isUnauthorizedHttpClientErrorException(lastThrowable));
+//        return hasRetriesLeft && (noExceptionThrown || isUnauthorizedHttpClientErrorException(lastThrowable));
+        return hasRetriesLeft && (noExceptionThrown || ApplicationExceptions.HmrcUnauthorisedException.class.isInstance(lastThrowable));
     }
 
     private boolean isUnauthorizedHttpClientErrorException(final Throwable throwable) {
