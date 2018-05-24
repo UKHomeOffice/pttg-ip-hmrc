@@ -7,7 +7,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
-import uk.gov.digital.ho.pttg.application.HmrcClientErrorRetryPolicy;
+import uk.gov.digital.ho.pttg.application.retry.HmrcClientErrorRetryPolicy;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;

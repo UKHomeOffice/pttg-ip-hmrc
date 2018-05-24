@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.retry.RetryContext;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
+import uk.gov.digital.ho.pttg.application.retry.UnauthorizedHttpClientErrorExceptionRetryPolicy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;

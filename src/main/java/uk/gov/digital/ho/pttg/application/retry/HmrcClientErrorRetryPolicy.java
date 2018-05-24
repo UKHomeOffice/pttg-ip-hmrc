@@ -1,9 +1,9 @@
-package uk.gov.digital.ho.pttg.application;
+package uk.gov.digital.ho.pttg.application.retry;
 
 import com.google.common.collect.ImmutableMap;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.policy.ExceptionClassifierRetryPolicy;
-import uk.gov.digital.ho.pttg.api.UnauthorizedHttpClientErrorExceptionRetryPolicy;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 public class HmrcClientErrorRetryPolicy extends ExceptionClassifierRetryPolicy {
 

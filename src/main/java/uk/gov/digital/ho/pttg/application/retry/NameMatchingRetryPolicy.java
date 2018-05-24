@@ -1,8 +1,9 @@
-package uk.gov.digital.ho.pttg.application;
+package uk.gov.digital.ho.pttg.application.retry;
 
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 public class NameMatchingRetryPolicy implements RetryPolicy {
 

@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application;
+package uk.gov.digital.ho.pttg.application.retry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,6 +8,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.retry.RetryContext;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
+import uk.gov.digital.ho.pttg.application.retry.NameMatchingRetryPolicy;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
