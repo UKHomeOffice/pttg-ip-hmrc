@@ -4,15 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.context.RetryContextSupport;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
-
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Slf4j
 public class UnauthorizedHttpClientErrorExceptionRetryPolicy implements RetryPolicy {
-
-    private static final Class<HttpClientErrorException> HTTP_CLIENT_ERROR_EXCEPTION = HttpClientErrorException.class;
 
     private final int maxAttempts;
 
@@ -46,17 +41,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicy implements RetryPol
         final boolean hasRetriesLeft = this.maxAttempts >= context.getRetryCount();
 
         return hasRetriesLeft && (noExceptionThrown || ApplicationExceptions.HmrcUnauthorisedException.class.isInstance(lastThrowable));
-    }
-
-    private boolean isUnauthorizedHttpClientErrorException(final Throwable throwable) {
-        final boolean isRetryableException = HTTP_CLIENT_ERROR_EXCEPTION.isInstance(throwable);
-
-        if (isRetryableException) {
-            final HttpClientErrorException httpClientErrorException = HTTP_CLIENT_ERROR_EXCEPTION.cast(throwable);
-            return httpClientErrorException.getStatusCode().equals(UNAUTHORIZED);
-        }
-
-        return false;
     }
 
     @Override
