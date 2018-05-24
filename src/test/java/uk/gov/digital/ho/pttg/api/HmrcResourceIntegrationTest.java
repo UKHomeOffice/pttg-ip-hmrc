@@ -43,7 +43,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         classes = ServiceRunner.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-        "hmrc.retry.unauthorized.attempts=1"
+        "hmrc.retry.unauthorized.attempts=1",
+        "hmrc.access.service.retry.attempts=3"
 })
 public class HmrcResourceIntegrationTest {
 
@@ -404,6 +405,7 @@ public class HmrcResourceIntegrationTest {
         mockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
+        assertThat(responseEntity.getBody()).contains("HttpHostConnectException: Connect to /access refused");
     }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {
