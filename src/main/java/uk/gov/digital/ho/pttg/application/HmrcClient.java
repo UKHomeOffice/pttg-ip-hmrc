@@ -60,9 +60,6 @@ public class HmrcClient {
     private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
 
-    private final RetryTemplate individualRetryTemplate = new RetryTemplate();
-    private final ThreadLocal<RetryPolicy> individualRetryPolicy = new ThreadLocal<>();
-
     @Autowired
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,

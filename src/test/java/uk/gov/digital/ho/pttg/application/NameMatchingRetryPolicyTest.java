@@ -24,10 +24,9 @@ public class NameMatchingRetryPolicyTest {
     private NameMatchingRetryPolicy nameMatchingRetryPolicy;
 
     @Test
-    public void retriesWithHandledException() {
+    public void retriesWithHandledForbiddenException() {
         when(mockRetryContext.getLastThrowable()).thenReturn(new ApplicationExceptions.HmrcForbiddenException("test"));
 
-        NameMatchingRetryPolicy retryPolicy = new NameMatchingRetryPolicy();
         boolean retry = nameMatchingRetryPolicy.canRetry(mockRetryContext);
 
         verify(mockRetryContext).getLastThrowable();
@@ -36,10 +35,9 @@ public class NameMatchingRetryPolicyTest {
     }
 
     @Test
-    public void noRetriesWithUnhandledException() {
+    public void noRetriesWithUnhandledForbiddenStatus() {
         when(mockRetryContext.getLastThrowable()).thenReturn(new HttpClientErrorException(HttpStatus.FORBIDDEN, "test"));
 
-        NameMatchingRetryPolicy retryPolicy = new NameMatchingRetryPolicy();
         boolean retry = nameMatchingRetryPolicy.canRetry(mockRetryContext);
 
         verify(mockRetryContext).getLastThrowable();

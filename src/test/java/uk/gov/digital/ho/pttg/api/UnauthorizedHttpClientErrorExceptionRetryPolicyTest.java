@@ -8,6 +8,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.retry.RetryContext;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -44,7 +45,7 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicyTest {
     public void canRetryWhenUnauthorizedHttpClientErrorExceptionThrown() {
         // given
         when(mockRetryContext.getRetryCount()).thenReturn(0);
-        when(mockRetryContext.getLastThrowable()).thenReturn(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+        when(mockRetryContext.getLastThrowable()).thenReturn(new ApplicationExceptions.HmrcUnauthorisedException("test"));
 
         // when
         final boolean canRetry = unauthorizedHttpClientErrorExceptionRetryPolicy.canRetry(mockRetryContext);

@@ -45,7 +45,6 @@ public class UnauthorizedHttpClientErrorExceptionRetryPolicy implements RetryPol
         final boolean noExceptionThrown = (lastThrowable == null);
         final boolean hasRetriesLeft = this.maxAttempts >= context.getRetryCount();
 
-//        return hasRetriesLeft && (noExceptionThrown || isUnauthorizedHttpClientErrorException(lastThrowable));
         return hasRetriesLeft && (noExceptionThrown || ApplicationExceptions.HmrcUnauthorisedException.class.isInstance(lastThrowable));
     }
 

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.AuditDataException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -30,7 +31,7 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(value = HttpClientErrorException.class)
+    @ExceptionHandler(value = {HttpClientErrorException.class, ApplicationExceptions.HmrcUnauthorisedException.class, ApplicationExceptions.HmrcForbiddenException.class})
     public ResponseEntity handle(HttpClientErrorException e) {
         log.error("HttpClientErrorException: {} {}", e.getStatusCode(), e.getMessage());
         log.error("Error response body: {}", e.getResponseBodyAsString());

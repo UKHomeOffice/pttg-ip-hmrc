@@ -8,7 +8,7 @@ public class NameMatchingRetryPolicy implements RetryPolicy {
 
     private static final Class<ApplicationExceptions.HmrcForbiddenException> HANDLED_EXCEPTION = ApplicationExceptions.HmrcForbiddenException.class;
 
-    private int retries = 2;
+    private int retries = 2; // TODO rather than hardcoding retries we need to take an Individual in the constructor and retry for every name combination
 
     @Override
     public boolean canRetry(RetryContext context) {

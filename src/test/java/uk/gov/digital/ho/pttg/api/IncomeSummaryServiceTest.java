@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
@@ -163,7 +164,7 @@ public class IncomeSummaryServiceTest {
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
         when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
-                .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED))
+                .thenThrow(new ApplicationExceptions.HmrcUnauthorisedException("test"))
                 .thenReturn(mockIncomeSummary);
 
         // when
