@@ -3,6 +3,8 @@ package uk.gov.digital.ho.pttg.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.conn.HttpHostConnectException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,12 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.ServiceRunner;
-import uk.gov.digital.ho.pttg.dto.AuthToken;
+import uk.gov.digital.ho.pttg.dto.AccessCode;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +31,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.MockRestServiceServer.MockRestServiceServerBuilder;
 import static org.springframework.test.web.client.MockRestServiceServer.bindTo;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -38,7 +43,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         classes = ServiceRunner.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-        "hmrc.retry.unauthorized.attempts=1"
+        "hmrc.retry.unauthorized.attempts=1",
+        "hmrc.access.service.retry.attempts=3"
 })
 public class HmrcResourceIntegrationTest {
 
@@ -372,6 +378,36 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(UNAUTHORIZED);
     }
 
+    @Test
+    public void shouldRetryAccessCallIfConnectionRefused() {
+        // given
+        mockService.reset();
+
+        mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
+
+        mockService
+                .expect(times(3), requestTo(containsString("/access")))
+                .andExpect(method(GET))
+                .andRespond(request -> {
+                    final HttpHostConnectException httpHostConnectException = new HttpHostConnectException(new ConnectException(), HttpHost.create("/access"));
+                    throw new ResourceAccessException("ExceptionMessage", httpHostConnectException);
+                });
+
+        // when
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                String.class);
+
+        // then
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
+        assertThat(responseEntity.getBody()).contains("HttpHostConnectException: Connect to /access refused");
+    }
+
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -420,7 +456,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     private String buildOauthResponse() throws JsonProcessingException {
-        return mapper.writeValueAsString(new AuthToken(ACCESS_ID, null));
+        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, null));
     }
 
     private String buildMatchResponse() throws IOException {

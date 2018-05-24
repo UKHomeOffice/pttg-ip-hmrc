@@ -11,7 +11,7 @@ import org.springframework.http.*
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
-import uk.gov.digital.ho.pttg.dto.AuthToken
+import uk.gov.digital.ho.pttg.dto.AccessCode
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
@@ -130,7 +130,7 @@ class HMRCResourceHeadersIntSpec extends Specification {
     }
 
     String buildOauthResponse() {
-        return asJson(new AuthToken(ACCESS_ID, null))
+        return asJson(new AccessCode(ACCESS_ID, null))
     }
 
 
