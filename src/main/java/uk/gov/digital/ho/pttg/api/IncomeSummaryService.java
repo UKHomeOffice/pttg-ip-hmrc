@@ -8,12 +8,14 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.retry.HmrcClientErrorRetryPolicy;
+import uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
@@ -48,7 +50,8 @@ public class IncomeSummaryService {
     }
 
     private IncomeSummary requestIncomeSummaryWithRetries(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
-        retryTemplate.setRetryPolicy(new HmrcClientErrorRetryPolicy(hmrcUnauthorizedRetryAttempts));
+        List<String> candidateNames = NameMatchingCandidatesGenerator.generateCandidates(individual.getFirstName(), individual.getLastName());
+        retryTemplate.setRetryPolicy(new HmrcClientErrorRetryPolicy(hmrcUnauthorizedRetryAttempts, candidateNames, individual));
         return retryTemplate.execute(context -> {
             log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
             return requestIncomeSummary(individual, fromDate, toDate);

@@ -16,4 +16,12 @@ public class Individual {
     private String lastName;
     private String nino;
     private LocalDate dateOfBirth;
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 }
