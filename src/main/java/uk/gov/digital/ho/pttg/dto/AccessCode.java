@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @ToString
-public class AuthToken {
-
+public class AccessCode {
     @JsonProperty(value = "code", required = true)
     private final String code;
 

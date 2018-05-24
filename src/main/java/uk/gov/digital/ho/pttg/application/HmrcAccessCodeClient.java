@@ -4,70 +4,93 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.listener.RetryListenerSupport;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.RequestData;
-import uk.gov.digital.ho.pttg.dto.AuthToken;
+import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
+import uk.gov.digital.ho.pttg.dto.AccessCode;
 
+import java.net.URI;
+
+import static java.util.Objects.isNull;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.*;
 
 @Component
 @Slf4j
 public class HmrcAccessCodeClient {
+    private static final String ACCESS_ENDPOINT_PATH = "/access";
 
-    private RestTemplate restTemplate;
-    private final String accessCodeUrl;
+    private final RestTemplate restTemplate;
+    private final URI accessUri;
     private final RequestData requestData;
+    private final RetryTemplate retryTemplate;
 
-    public HmrcAccessCodeClient(RestTemplate restTemplate,
-                                @Value("${base.hmrc.access.code.url}") String accessCodeUrl,
-                                RequestData requestData) {
+    public HmrcAccessCodeClient(final RestTemplate restTemplate,
+                                final RequestData requestData,
+                                @Value("${base.hmrc.access.code.url}") final String baseAccessCodeUrl,
+                                @Value("${hmrc.access.service.retry.attempts}") final int maxRetryAttempts,
+                                @Value("${hmrc.access.service.retry.delay}") final long retryDelayInMillis) {
         this.restTemplate = restTemplate;
-        this.accessCodeUrl = accessCodeUrl;
+        this.accessUri = URI.create(baseAccessCodeUrl).resolve(ACCESS_ENDPOINT_PATH);
         this.requestData = requestData;
+
+        this.retryTemplate = new RetryTemplateBuilder(maxRetryAttempts)
+                .retryHttpServerErrors()
+                .retryConnectionRefusedErrors()
+                .withBackOffPeriod(retryDelayInMillis)
+                .addListener(new RetryLogger())
+                .build();
     }
 
-    @Retryable(
-            include = {HttpServerErrorException.class},
-            exclude = {HttpClientErrorException.class},
-            maxAttemptsExpression = "#{${hmrc.access.service.retry.attempts}}",
-            backoff = @Backoff(delayExpression = "#{${hmrc.access.service.retry.delay}}"))
     public String getAccessCode() {
-
-        log.info("Fetch the latest access code");
-
-        AuthToken currentToken = restTemplate.exchange(accessCodeUrl + "/access",
-                HttpMethod.GET,
-                generateRestHeaders(),
-                AuthToken.class).getBody();
-
-        return currentToken.getCode();
+        return getAccessCodeWithRetries();
     }
 
-    @Recover
-    String getAccessCodeRetryFailureRecovery(RuntimeException e) {
-        log.error("Failed to retrieve access code after retries", e.getMessage());
-        throw(e);
+    private String getAccessCodeWithRetries() {
+        return this.retryTemplate.execute(context -> {
+            log.info("Attempting to fetch the latest access code. Attempt number #{}", context.getRetryCount() + 1);
+
+            return requestAccessCode().getCode();
+        });
     }
 
-    private HttpEntity generateRestHeaders() {
+    private AccessCode requestAccessCode() {
+        return restTemplate.exchange(accessUri, GET, getHttpEntity(), AccessCode.class).getBody();
+    }
 
-        HttpHeaders headers = new HttpHeaders();
+    private HttpEntity getHttpEntity() {
+        final HttpHeaders headers = new HttpHeaders();
 
         headers.add(AUTHORIZATION, requestData.hmrcBasicAuth());
         headers.add(SESSION_ID_HEADER, requestData.sessionId());
         headers.add(CORRELATION_ID_HEADER, requestData.correlationId());
         headers.add(USER_ID_HEADER, requestData.userId());
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
 
-        return new HttpEntity<>("headers", headers);
+        return new HttpEntity<>(headers);
+    }
+
+    private static class RetryLogger extends RetryListenerSupport {
+        @Override
+        public <T, E extends Throwable> void onError(final RetryContext context, final RetryCallback<T, E> callback, final Throwable throwable) {
+            log.warn("An error occurred while attempting to fetch Access Code.", context.getLastThrowable());
+        }
+
+        @Override
+        public <T, E extends Throwable> void close(final RetryContext context, final RetryCallback<T, E> callback, final Throwable throwable) {
+            final boolean isSuccessful = isNull(throwable);
+            if (isSuccessful) {
+                log.info("Successfully retrieved Access Code.");
+            } else {
+                log.error("Failed to fetch Access Code after {} attempts. Will not try again.", context.getRetryCount());
+            }
+        }
     }
 }
