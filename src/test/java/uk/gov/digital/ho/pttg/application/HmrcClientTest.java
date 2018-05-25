@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -293,14 +293,15 @@ public class HmrcClientTest {
         when(mockRestTemplate.exchange(eq(uri), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
-        try {
-            hmrcClient.getIncome("ACCESS_TOKEN", new Individual("first", "last", "nino", LocalDate.now()), LocalDate.now(), LocalDate.now());
-            fail("The call to getIncome should not succeed");
-        } catch(ApplicationExceptions.HmrcUnauthorisedException ex) {
-            // succeed
-        } catch(Exception ex) {
-            fail("Unexpected expcetion " + ex.getMessage());
-        }
+        assertThatThrownBy(() -> {
+            hmrcClient.getIncome(
+                    "ACCESS_TOKEN",
+                    new Individual("first", "last", "nino", LocalDate.now()),
+                    LocalDate.now(),
+                    LocalDate.now()
+            );
+        }).isInstanceOf(ApplicationExceptions.HmrcUnauthorisedException.class);
+
     }
 
 
