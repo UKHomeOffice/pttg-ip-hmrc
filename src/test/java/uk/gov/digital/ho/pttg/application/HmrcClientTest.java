@@ -281,7 +281,7 @@ public class HmrcClientTest {
 
         assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(somePayFrequency);
     }
-    
+
     @Test
     public void shouldThrowExceptionForHttpUnauthorised() {
         final String baseHmrcUrl = "http://localhost";
@@ -304,5 +304,49 @@ public class HmrcClientTest {
 
     }
 
+
+    @Test(expected = RestClientException.class)
+    public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
+        NinoUtils anyNinoUtils = new NinoUtils();
+        String anyApiVersion = "any api version";
+
+        RestTemplate mockRestTemplate = mock(RestTemplate.class);
+
+        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
+                new RestClientResponseException(
+                        "",
+                        NOT_FOUND.value(),
+                        "",
+                        null,
+                        null,
+                        null));
+
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
+
+        LocalDate now = LocalDate.now();
+        hmrcClient.getIncome("some access token", new Individual("some first name", "some last name", "some nino", now), now, now);
+    }
+
+    @Test(expected = HmrcNotFoundException.class)
+    public void shouldThrowHmrcNotFoundException() {
+        NinoUtils anyNinoUtils = new NinoUtils();
+        String anyApiVersion = "any api version";
+
+        RestTemplate mockRestTemplate = mock(RestTemplate.class);
+
+        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
+                new RestClientResponseException(
+                        "",
+                        FORBIDDEN.value(),
+                        "",
+                        null,
+                        null,
+                        null));
+
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
+
+        LocalDate now = LocalDate.now();
+        hmrcClient.getIncome("some access token", new Individual("some first name", "some last name", "some nino", now), now, now);
+    }
 
 }
