@@ -12,8 +12,6 @@ import static org.hamcrest.Matchers.is;
 @RunWith(MockitoJUnitRunner.class)
 public class NameMatchingCandidatesGeneratorTest {
 
-    private NameMatchingCandidatesGenerator nameMatchingCandidatesGenerator;
-
     @Test(expected = IllegalArgumentException.class)
     public void shouldErrorIfNoName() {
         NameMatchingCandidatesGenerator.generateCandidates("", "");

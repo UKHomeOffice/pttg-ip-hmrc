@@ -1,7 +1,5 @@
 package uk.gov.digital.ho.pttg.application;
 
-import org.springframework.web.client.HttpClientErrorException;
-
 public interface ApplicationExceptions {
 
     class AuditDataException extends RuntimeException {
