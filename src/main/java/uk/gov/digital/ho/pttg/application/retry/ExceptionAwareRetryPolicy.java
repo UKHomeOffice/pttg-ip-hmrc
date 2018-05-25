@@ -39,7 +39,7 @@ public abstract class ExceptionAwareRetryPolicy implements RetryPolicy {
     }
 
     @Override
-    public boolean canRetry(RetryContext context) {
+    public final boolean canRetry(RetryContext context) {
         if (!supportsThrowable(context.getLastThrowable())) {
             return false;
         }
