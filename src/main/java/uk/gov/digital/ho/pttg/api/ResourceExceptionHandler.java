@@ -32,14 +32,14 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(value = {HttpClientErrorException.class})
+    @ExceptionHandler(value = HttpClientErrorException.class)
     public ResponseEntity handle(HttpClientErrorException e) {
         log.error("HttpClientErrorException: {} {}", e.getStatusCode(), e.getMessage());
         log.error("Error response body: {}", e.getResponseBodyAsString());
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }
 
-    @ExceptionHandler(value = {ApplicationExceptions.HmrcUnauthorisedException.class})
+    @ExceptionHandler(value = ApplicationExceptions.HmrcUnauthorisedException.class)
     public ResponseEntity handle(ApplicationExceptions.HmrcUnauthorisedException e) {
         log.error("HmrcUnauthorisedException: {}", e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
