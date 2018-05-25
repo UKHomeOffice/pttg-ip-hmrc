@@ -40,16 +40,6 @@ public interface ApplicationExceptions {
         }
     }
 
-    class HmrcForbiddenException extends RuntimeException {
-        public HmrcForbiddenException(final String s) {
-            super(s);
-        }
-        public HmrcForbiddenException(final String s, final Exception e) {
-            super(s, e);
-        }
-
-    }
-
     class HmrcUnauthorisedException extends RuntimeException {
         public HmrcUnauthorisedException(final String s) {
             super(s);
