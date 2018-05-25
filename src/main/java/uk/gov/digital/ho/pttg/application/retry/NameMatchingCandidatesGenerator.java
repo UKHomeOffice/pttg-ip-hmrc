@@ -59,8 +59,12 @@ public class NameMatchingCandidatesGenerator {
     }
 
     private static boolean isEmptyName(String name) {
-        if(name == null) return true;
-        if(name.trim().equals("")) return true;
+        if(name == null) {
+            return true;
+        }
+        if(name.trim().equals("")) {
+            return true;
+        }
         return false;
     }
 
