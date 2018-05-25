@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 public class NameMatchingCandidatesGenerator {
 
+    private static final String NAME_SPLITTERS = "-'";
+
     // This maps the number of names to a list containing pairs of candidate names in the order defined by the requirements
     private static final Map<Integer, List<List<Integer>>> CANDIDATE_NAME_RULES = ImmutableMap.of(
             1, ImmutableList.of(
@@ -39,8 +41,31 @@ public class NameMatchingCandidatesGenerator {
         validateName(firstName, lastName);
 
         List<String> candidates = new ArrayList<>();
-        List<String> allNames = findAllNames(firstName, lastName);
 
+        if(namesContainSplitters(firstName, lastName)) {
+            generateCandidatesWithSplitters(candidates, firstName, lastName);
+        }
+        else {
+            generateCandidates(candidates, firstName, lastName);
+        }
+
+        return candidates;
+    }
+
+    private static boolean namesContainSplitters(String firstName, String lastName) {
+        long firstNameSplitters = Arrays.stream(NAME_SPLITTERS.split("")).filter(c -> firstName.contains(c)).count();
+        long lastNameSplitters = Arrays.stream(NAME_SPLITTERS.split("")).filter(c -> lastName.contains(c)).count();
+        return firstNameSplitters > 0 || lastNameSplitters > 0;
+    }
+
+    private static void generateCandidatesWithSplitters(List<String> candidates, String firstName, String lastName) {
+        final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
+        generateCandidates(candidates, firstName.replaceAll(NAME_SPLITTER_REGEX, ""), lastName.replaceAll(NAME_SPLITTER_REGEX, ""));
+        generateCandidates(candidates, firstName.replaceAll(NAME_SPLITTER_REGEX, " "), lastName.replaceAll(NAME_SPLITTER_REGEX, " "));
+    }
+
+    private static void generateCandidates(List<String> candidates, String firstName, String lastName) {
+        List<String> allNames = findAllNames(firstName, lastName);
         candidates.addAll(
                 CANDIDATE_NAME_RULES
                         .get(allNames.size())
@@ -48,8 +73,6 @@ public class NameMatchingCandidatesGenerator {
                         .map(l -> allNames.get(l.get(0)) + " " + allNames.get(l.get(1)))
                         .collect(Collectors.toList())
         );
-
-        return candidates;
     }
 
     private static void validateName(String firstName, String lastName) {
