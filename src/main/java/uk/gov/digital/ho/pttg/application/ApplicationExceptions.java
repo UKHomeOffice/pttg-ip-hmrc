@@ -39,4 +39,15 @@ public interface ApplicationExceptions {
             super(s);
         }
     }
+
+    class HmrcUnauthorisedException extends RuntimeException {
+        public HmrcUnauthorisedException(final String s) {
+            super(s);
+        }
+        public HmrcUnauthorisedException(final String s, final Exception e) {
+            super(s, e);
+        }
+
+    }
+
 }

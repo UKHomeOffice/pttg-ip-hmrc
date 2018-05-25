@@ -1,19 +1,36 @@
 package uk.gov.digital.ho.pttg.application;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.dto.Address;
-import uk.gov.digital.ho.pttg.dto.Employer;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
+
+    @Mock
+    private RestTemplate mockRestTemplate;
+
+    @Mock
+    private NinoUtils mockNinoUtils;
 
     @Test
     public void shouldProduceEmptyMap() {
@@ -264,5 +281,28 @@ public class HmrcClientTest {
 
         assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(somePayFrequency);
     }
+    
+    @Test
+    public void shouldThrowExceptionForHttpUnauthorised() {
+        final String baseHmrcUrl = "http://localhost";
+        final URI uri = URI.create(baseHmrcUrl + "/individuals/matching/");
+        final String hmrcApiVersion = "1";
+
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, hmrcApiVersion, baseHmrcUrl);
+
+        when(mockRestTemplate.exchange(eq(uri), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertThatThrownBy(() -> {
+            hmrcClient.getIncome(
+                    "ACCESS_TOKEN",
+                    new Individual("first", "last", "nino", LocalDate.now()),
+                    LocalDate.now(),
+                    LocalDate.now()
+            );
+        }).isInstanceOf(ApplicationExceptions.HmrcUnauthorisedException.class);
+
+    }
+
 
 }

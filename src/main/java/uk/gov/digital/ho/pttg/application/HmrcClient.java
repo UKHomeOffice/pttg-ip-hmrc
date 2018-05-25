@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -20,6 +17,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -74,7 +72,7 @@ public class HmrcClient {
 
     @Retryable(
             include = { HttpServerErrorException.class },
-            exclude = { HttpClientErrorException.class },
+            exclude = { HttpClientErrorException.class, ApplicationExceptions.HmrcUnauthorisedException.class},
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
@@ -233,15 +231,34 @@ public class HmrcClient {
 
     private String getIndividualLink(Individual individual, String accessToken, String matchUrl) {
         log.info("POST to {}", matchUrl);
+        Resource<String> resource = null;
+        List<String> candidateNames = NameMatchingCandidatesGenerator.generateCandidates(individual.getFirstName(), individual.getLastName());
 
-        Resource<String> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
+        int retries = 0;
+        boolean success = false;
+        while(!success && retries < candidateNames.size()) {
+            try {
+                String[] names = candidateNames.get(retries).split("\\s+");
+                individual.setFirstName(names[0]);
+                individual.setLastName(names[1]);
+                resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
+                success = true;
+            } catch (HttpClientErrorException ex) {
+                if (ex.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+                    retries++;
+                } else if (ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)) {
+                    throw new ApplicationExceptions.HmrcUnauthorisedException(ex.getMessage(), ex);
+                } else {
+                    throw ex;
+                }
+            }
+        }
         log.info("Individual Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);
         return asAbsolute(resource.getLink("individual").getHref());
     }
 
     private Resource<EmbeddedIndividual> getIndividualResource(Individual individual, String accessToken, String matchUrl) {
         log.info("GET from {}", matchUrl);
-
         Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
         log.info("Individual Response has been received for {}", ninoUtils.redact(individual.getNino()));
         return resource;

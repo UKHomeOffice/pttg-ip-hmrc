@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
@@ -71,6 +72,8 @@ public class IncomeSummaryServiceTest {
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
         when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate)).thenReturn(mockIncomeSummary);
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
         // when
         final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
@@ -99,6 +102,8 @@ public class IncomeSummaryServiceTest {
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
         when(mockHmrcClient.getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull(LocalDate.class))).thenReturn(mockIncomeSummary);
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
         // when
         final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, null);
@@ -163,8 +168,10 @@ public class IncomeSummaryServiceTest {
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
         when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
-                .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED))
+                .thenThrow(new ApplicationExceptions.HmrcUnauthorisedException("test"))
                 .thenReturn(mockIncomeSummary);
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
         // when
         final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
@@ -196,6 +203,8 @@ public class IncomeSummaryServiceTest {
         when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new IllegalArgumentException())
                 .thenReturn(mockIncomeSummary);
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
         // when
         try {
@@ -229,6 +238,8 @@ public class IncomeSummaryServiceTest {
         when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST))
                 .thenReturn(mockIncomeSummary);
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
         // when
         try {
@@ -262,6 +273,8 @@ public class IncomeSummaryServiceTest {
         when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR))
                 .thenReturn(mockIncomeSummary);
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
         // when
         try {

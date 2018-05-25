@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -408,6 +409,28 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody()).contains("HttpHostConnectException: Connect to /access refused");
     }
 
+    @Test
+    public void shouldRetryUntilMatchingNameFound() throws IOException {
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN));
+
+        buildAndExpectSuccessfulTraversal();
+
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Halford&nino=GH576240A&lastName=Laurie&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                IncomeSummary.class);
+
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
+        assertThat(responseEntity.getBody().getIndividual().getFirstName()).isEqualTo("Laurie");
+        assertThat(responseEntity.getBody().getIndividual().getLastName()).isEqualTo("Halford");
+
+    }
+
+
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -449,7 +472,6 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildSaSelfEmploymentResponse(), APPLICATION_JSON));
     }
-
 
     private String loadJsonFile(String filename) throws IOException {
         return IOUtils.toString(this.getClass().getResourceAsStream(String.format("/template/%s.json", filename)));
