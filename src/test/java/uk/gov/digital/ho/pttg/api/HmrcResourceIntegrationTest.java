@@ -416,16 +416,6 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN));
 
-        mockService
-                .expect(requestTo(containsString("/audit")))
-                .andExpect(method(POST))
-                .andRespond(withSuccess());
-
-        mockService
-                .expect(requestTo(containsString("/access")))
-                .andExpect(method(GET))
-                .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
-
         buildAndExpectSuccessfulTraversal();
 
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(

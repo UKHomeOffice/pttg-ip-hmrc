@@ -17,6 +17,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -71,7 +72,7 @@ public class HmrcClient {
 
     @Retryable(
             include = { HttpServerErrorException.class },
-            exclude = { HttpClientErrorException.class, ApplicationExceptions.HmrcForbiddenException.class, ApplicationExceptions.HmrcUnauthorisedException.class},
+            exclude = { HttpClientErrorException.class, ApplicationExceptions.HmrcUnauthorisedException.class},
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
@@ -230,20 +231,26 @@ public class HmrcClient {
 
     private String getIndividualLink(Individual individual, String accessToken, String matchUrl) {
         log.info("POST to {}", matchUrl);
-        Resource<String> resource;
+        Resource<String> resource = null;
+        List<String> candidateNames = NameMatchingCandidatesGenerator.generateCandidates(individual.getFirstName(), individual.getLastName());
 
-        try {
-            resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
-        }
-        catch(HttpClientErrorException ex) {
-            if(ex.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
-                throw new ApplicationExceptions.HmrcForbiddenException(ex.getMessage(), ex);
-            }
-            else if(ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)) {
-                throw new ApplicationExceptions.HmrcUnauthorisedException(ex.getMessage(), ex);
-            }
-            else {
-                throw ex;
+        int retries = 0;
+        boolean success = false;
+        while(!success && retries < candidateNames.size()) {
+            try {
+                String[] names = candidateNames.get(retries).split("\\s+");
+                individual.setFirstName(names[0]);
+                individual.setLastName(names[1]);
+                resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
+                success = true;
+            } catch (HttpClientErrorException ex) {
+                if (ex.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+                    retries++;
+                } else if (ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)) {
+                    throw new ApplicationExceptions.HmrcUnauthorisedException(ex.getMessage(), ex);
+                } else {
+                    throw ex;
+                }
             }
         }
         log.info("Individual Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);

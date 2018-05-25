@@ -70,7 +70,7 @@ public class NameMatchingCandidatesGenerator {
                 CANDIDATE_NAME_RULES
                         .get(allNames.size())
                         .stream()
-                        .map(l -> allNames.get(l.get(0)) + " " + allNames.get(l.get(1)))
+                        .map(nameSelectorRule -> allNames.get(nameSelectorRule.get(0)) + " " + allNames.get(nameSelectorRule.get(1)))
                         .collect(Collectors.toList())
         );
     }
