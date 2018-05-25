@@ -1,17 +1,26 @@
 package uk.gov.digital.ho.pttg.application;
 
 import org.junit.Test;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.dto.Address;
-import uk.gov.digital.ho.pttg.dto.Employer;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 
 public class HmrcClientTest {
 
@@ -263,6 +272,50 @@ public class HmrcClientTest {
         client.addPaymentFrequency(incomes, p);
 
         assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(somePayFrequency);
+    }
+
+    @Test(expected = RestClientException.class)
+    public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
+        NinoUtils anyNinoUtils = new NinoUtils();
+        String anyApiVersion = "any api version";
+
+        RestTemplate mockRestTemplate = mock(RestTemplate.class);
+
+        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
+                new RestClientResponseException(
+                        "",
+                        NOT_FOUND.value(),
+                        "",
+                        null,
+                        null,
+                        null));
+
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
+
+        LocalDate now = LocalDate.now();
+        hmrcClient.getIncome("some access token", new Individual("some first name", "some last name", "some nino", now), now, now);
+    }
+
+    @Test(expected = HmrcNotFoundException.class)
+    public void shouldThrowHmrcNotFoundException() {
+        NinoUtils anyNinoUtils = new NinoUtils();
+        String anyApiVersion = "any api version";
+
+        RestTemplate mockRestTemplate = mock(RestTemplate.class);
+
+        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
+                new RestClientResponseException(
+                        "",
+                        FORBIDDEN.value(),
+                        "",
+                        null,
+                        null,
+                        null));
+
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
+
+        LocalDate now = LocalDate.now();
+        hmrcClient.getIncome("some access token", new Individual("some first name", "some last name", "some nino", now), now, now);
     }
 
 }
