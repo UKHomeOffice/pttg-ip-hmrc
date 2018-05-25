@@ -71,7 +71,7 @@ public class HmrcClient {
 
     @Retryable(
             include = { HttpServerErrorException.class },
-            exclude = { HttpClientErrorException.class },
+            exclude = { HttpClientErrorException.class, ApplicationExceptions.HmrcForbiddenException.class, ApplicationExceptions.HmrcUnauthorisedException.class},
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
