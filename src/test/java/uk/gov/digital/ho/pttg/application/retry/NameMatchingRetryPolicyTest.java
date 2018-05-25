@@ -63,6 +63,7 @@ public class NameMatchingRetryPolicyTest {
     @Test
     public void retriesForEachCandidateName() {
         when(mockRetryContext.getLastThrowable()).thenReturn(new ApplicationExceptions.HmrcForbiddenException("test"));
+        when(mockRetryContext.getRetryCount()).thenReturn(0).thenReturn(1).thenReturn(2);
 
         candidateNames = ImmutableList.of("Arthur Bobbins", "Bobbins Arthur");
         individual = new Individual("Arthur", "Bobbins", "nino", LocalDate.now());
