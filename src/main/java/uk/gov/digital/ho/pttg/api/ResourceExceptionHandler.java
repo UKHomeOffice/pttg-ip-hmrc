@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.AuditDataException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 
 @ControllerAdvice
 @Slf4j
@@ -39,8 +39,8 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }
 
-    @ExceptionHandler(value = ApplicationExceptions.HmrcUnauthorisedException.class)
-    public ResponseEntity handle(ApplicationExceptions.HmrcUnauthorisedException e) {
+    @ExceptionHandler(value = HmrcUnauthorisedException.class)
+    public ResponseEntity handle(HmrcUnauthorisedException e) {
         log.error("HmrcUnauthorisedException: {}", e.getMessage());
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }

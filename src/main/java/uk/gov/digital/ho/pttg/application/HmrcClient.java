@@ -15,10 +15,8 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -34,13 +32,11 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
+import static uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator.generateCandidates;
 
 @Service
 @Slf4j
@@ -78,7 +74,7 @@ public class HmrcClient {
 
     @Retryable(
             include = { HttpServerErrorException.class },
-            exclude = { HttpClientErrorException.class, ApplicationExceptions.HmrcUnauthorisedException.class},
+            exclude = { HttpClientErrorException.class, HmrcUnauthorisedException.class},
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncome(String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
@@ -239,7 +235,7 @@ public class HmrcClient {
         log.info("POST to {}", matchUrl);
 
         Resource<String> resource = null;
-        List<String> candidateNames = NameMatchingCandidatesGenerator.generateCandidates(individual.getFirstName(), individual.getLastName());
+        List<String> candidateNames = generateCandidates(individual.getFirstName(), individual.getLastName());
 
         int retries = 0;
         boolean success = false;
@@ -255,7 +251,7 @@ public class HmrcClient {
                 if (ex.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
                     retries++;
                 } else if (ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)) {
-                    throw new ApplicationExceptions.HmrcUnauthorisedException(ex.getMessage(), ex);
+                    throw new HmrcUnauthorisedException(ex.getMessage(), ex);
                 } else {
                     throw ex;
                 }

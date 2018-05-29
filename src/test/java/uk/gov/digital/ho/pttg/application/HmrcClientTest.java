@@ -6,8 +6,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -23,6 +21,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
@@ -291,7 +294,7 @@ public class HmrcClientTest {
 
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, hmrcApiVersion, baseHmrcUrl);
 
-        when(mockRestTemplate.exchange(eq(uri), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+        when(mockRestTemplate.exchange(eq(uri), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
         assertThatThrownBy(() -> {
@@ -301,17 +304,15 @@ public class HmrcClientTest {
                     LocalDate.now(),
                     LocalDate.now()
             );
-        }).isInstanceOf(ApplicationExceptions.HmrcUnauthorisedException.class);
+        }).isInstanceOf(HmrcUnauthorisedException.class);
 
     }
 
 
-    @Test(expected = RestClientException.class)
+    @Test(expected = HttpClientErrorException.class)
     public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
         NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
-
-        RestTemplate mockRestTemplate = mock(RestTemplate.class);
 
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(NOT_FOUND));
@@ -319,7 +320,7 @@ public class HmrcClientTest {
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
-        hmrcClient.getIncome("some access token", new Individual("some first name", "some last name", "some nino", now), now, now);
+        hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
     }
 
     @Test(expected = HmrcNotFoundException.class)
@@ -327,15 +328,13 @@ public class HmrcClientTest {
         NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
 
-        RestTemplate mockRestTemplate = mock(RestTemplate.class);
-
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(FORBIDDEN));
 
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
-        hmrcClient.getIncome("some access token", new Individual("some first name", "some last name", "some nino", now), now, now);
+        hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
     }
 
 }
