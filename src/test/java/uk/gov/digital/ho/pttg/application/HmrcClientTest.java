@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.application;
 import org.junit.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -282,13 +283,7 @@ public class HmrcClientTest {
         RestTemplate mockRestTemplate = mock(RestTemplate.class);
 
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new RestClientResponseException(
-                        "",
-                        NOT_FOUND.value(),
-                        "",
-                        null,
-                        null,
-                        null));
+                new HttpClientErrorException(NOT_FOUND));
 
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
 
@@ -304,13 +299,7 @@ public class HmrcClientTest {
         RestTemplate mockRestTemplate = mock(RestTemplate.class);
 
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new RestClientResponseException(
-                        "",
-                        FORBIDDEN.value(),
-                        "",
-                        null,
-                        null,
-                        null));
+                new HttpClientErrorException(FORBIDDEN));
 
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
 

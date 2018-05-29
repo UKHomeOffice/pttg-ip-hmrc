@@ -17,7 +17,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -243,7 +242,7 @@ public class HmrcClient {
 
         try {
             resource = restTemplate.exchange(URI.create(matchUrl), POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
-        } catch (RestClientResponseException e) {
+        } catch (HttpClientErrorException e) {
             log.info("HMRC Individual link call failed for {}, {}", ninoUtils.redact(individual.getNino()), resource);
 
             if (e.getRawStatusCode() == FORBIDDEN.value()) {
