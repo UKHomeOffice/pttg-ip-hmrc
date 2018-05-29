@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -35,8 +38,8 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
-import static uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator.generateCandidates;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
 @Service
 @Slf4j
