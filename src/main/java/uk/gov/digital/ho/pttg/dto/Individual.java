@@ -3,7 +3,6 @@ package uk.gov.digital.ho.pttg.dto;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -11,7 +10,6 @@ import java.time.LocalDate;
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
-@ToString
 public class Individual implements Serializable {
     private String firstName;
     private String lastName;
