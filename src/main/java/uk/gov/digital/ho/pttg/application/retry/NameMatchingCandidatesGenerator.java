@@ -36,7 +36,7 @@ public class NameMatchingCandidatesGenerator {
     );
 
 
-    public static List<String> generateCandidates(String firstName, String lastName) {
+    public static List<String> generateCandidateNames(String firstName, String lastName) {
         validateName(firstName, lastName);
 
         List<String> candidates = new ArrayList<>();

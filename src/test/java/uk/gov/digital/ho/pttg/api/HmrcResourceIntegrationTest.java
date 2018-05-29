@@ -118,7 +118,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     @Test
-    public void anyHMRCErrorShouldBePercolatedThrough() {
+    public void anyHmrcErrorShouldBePercolatedThrough() {
 
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
