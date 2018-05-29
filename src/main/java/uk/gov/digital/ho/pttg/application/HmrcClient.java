@@ -35,11 +35,15 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
+import static uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator.generateCandidates;
 
 @Service
 @Slf4j
@@ -251,9 +255,9 @@ public class HmrcClient {
                 resource = restTemplate.exchange(URI.create(matchUrl), HttpMethod.POST, createEntity(individual, accessToken), linksResourceTypeRef).getBody();
                 success = true;
             } catch (HttpClientErrorException ex) {
-                if (ex.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+                if (ex.getStatusCode().equals(FORBIDDEN)) {
                     retries++;
-                } else if (ex.getStatusCode().equals(HttpStatus.UNAUTHORIZED)) {
+                } else if (ex.getStatusCode().equals(UNAUTHORIZED)) {
                     throw new HmrcUnauthorisedException(ex.getMessage(), ex);
                 } else {
                     throw ex;
