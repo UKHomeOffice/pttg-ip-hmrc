@@ -27,26 +27,31 @@ import java.util.Arrays;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-
 @Configuration
 @EnableRetry
 public class SpringConfiguration extends WebMvcConfigurerAdapter {
-
-   private final boolean useProxy;
+    private final boolean useProxy;
     private final String hmrcBaseUrl;
     private final String proxyHost;
-   private final Integer proxyPort;
+    private final Integer proxyPort;
+
+    private final int restTemplateReadTimeoutInMillis;
+    private final int restTemplateConnectTimeoutInMillis;
 
     public SpringConfiguration(ObjectMapper objectMapper,
-                                @Value("${proxy.enabled:false}") boolean useProxy,
-                                @Value("${hmrc.endpoint:}") String hmrcBaseUrl,
-                                @Value("${proxy.host:}") String proxyHost,
-                                @Value("${proxy.port}") Integer proxyPort) {
+                               @Value("${proxy.enabled:false}") boolean useProxy,
+                               @Value("${hmrc.endpoint:}") String hmrcBaseUrl,
+                               @Value("${proxy.host:}") String proxyHost,
+                               @Value("${proxy.port}") Integer proxyPort,
+                               @Value("${resttemplate.timeout.read:30000}") int restTemplateReadTimeoutInMillis,
+                               @Value("${resttemplate.timeout.connect:30000}") int restTemplateConnectTimeoutInMillis) {
 
-        this.useProxy =useProxy;
+        this.useProxy = useProxy;
         this.hmrcBaseUrl = hmrcBaseUrl;
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
+        this.restTemplateReadTimeoutInMillis = restTemplateReadTimeoutInMillis;
+        this.restTemplateConnectTimeoutInMillis = restTemplateConnectTimeoutInMillis;
         initialiseObjectMapper(objectMapper);
     }
 
@@ -59,20 +64,25 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public RestTemplate createRestTemplate(RestTemplateBuilder builder, ObjectMapper mapper) {
+    public RestTemplate createRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
 
         if (useProxy) {
-            builder = builder.additionalCustomizers(createProxyCustomiser());
+            restTemplateBuilder = restTemplateBuilder.additionalCustomizers(createProxyCustomizer());
         }
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(mapper);
         converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
 
-        return builder.requestFactory(createClientHttpRequestFactory()).additionalMessageConverters(converter).build();
+        return restTemplateBuilder
+                .requestFactory(createClientHttpRequestFactory())
+                .additionalMessageConverters(converter)
+                .setReadTimeout(restTemplateReadTimeoutInMillis)
+                .setConnectTimeout(restTemplateConnectTimeoutInMillis)
+                .build();
     }
 
-    private ProxyCustomizer createProxyCustomiser() {
+    private ProxyCustomizer createProxyCustomizer() {
         return new ProxyCustomizer(hmrcBaseUrl, proxyHost, proxyPort);
     }
 
