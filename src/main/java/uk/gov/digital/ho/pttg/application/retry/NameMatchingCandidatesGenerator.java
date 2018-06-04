@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class NameMatchingCandidatesGenerator {
 
@@ -37,7 +38,7 @@ public class NameMatchingCandidatesGenerator {
     );
 
 
-    public static List<String> generateCandidates(String firstName, String lastName) {
+    public static List<String> generateCandidateNames(String firstName, String lastName) {
         validateName(firstName, lastName);
 
         List<String> candidates = new ArrayList<>();
@@ -71,7 +72,7 @@ public class NameMatchingCandidatesGenerator {
                         .get(allNames.size())
                         .stream()
                         .map(nameSelectorRule -> allNames.get(nameSelectorRule.get(0)) + " " + allNames.get(nameSelectorRule.get(1)))
-                        .collect(Collectors.toList())
+                        .collect(toList())
         );
     }
 

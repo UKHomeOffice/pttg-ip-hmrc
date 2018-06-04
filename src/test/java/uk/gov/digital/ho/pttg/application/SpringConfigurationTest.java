@@ -2,41 +2,74 @@ package uk.gov.digital.ho.pttg.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@SpringBootConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@SuppressFBWarnings
+@RunWith(MockitoJUnitRunner.class)
+@SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_INFERRED")
 public class SpringConfigurationTest {
 
-     RestTemplateBuilder builder = Mockito.spy(new RestTemplateBuilder());
+    @Mock
+    private RestTemplateBuilder mockRestTemplateBuilder;
+
+    @Mock
+    private RestTemplate mockRestTemplate;
+
+    @Before
+    public void setUp() {
+        when(mockRestTemplateBuilder.requestFactory(any(ClientHttpRequestFactory.class))).thenReturn(mockRestTemplateBuilder);
+        when(mockRestTemplateBuilder.additionalCustomizers(any(ProxyCustomizer.class))).thenReturn(mockRestTemplateBuilder);
+        when(mockRestTemplateBuilder.additionalMessageConverters(any(HttpMessageConverter.class))).thenReturn(mockRestTemplateBuilder);
+        when(mockRestTemplateBuilder.setReadTimeout(anyInt())).thenReturn(mockRestTemplateBuilder);
+        when(mockRestTemplateBuilder.setConnectTimeout(anyInt())).thenReturn(mockRestTemplateBuilder);
+
+        when(mockRestTemplateBuilder.build()).thenReturn(mockRestTemplate);
+    }
 
     @Test
     public void shouldUseCustomizerWhenProxyEnabled() {
-
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                true,"","some-proxy-host", 1234);
-        config.createRestTemplate(builder, new ObjectMapper());
-        verify(builder).additionalCustomizers(any(ProxyCustomizer.class));
+                true, "", "some-proxy-host", 1234, 0, 0);
+        config.createRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
+        verify(mockRestTemplateBuilder).additionalCustomizers(any(ProxyCustomizer.class));
     }
 
     @Test
     public void shouldNotUseCustomizerByWhenProxyDisabled() {
-
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                false,null,null, null);
-        config.createRestTemplate(builder, new ObjectMapper());
-        verify(builder, never()).additionalCustomizers(any(ProxyCustomizer.class));
+                false, null, null, null, 0, 0);
+        config.createRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
+        verify(mockRestTemplateBuilder, never()).additionalCustomizers(any(ProxyCustomizer.class));
+    }
+
+    @Test
+    public void shouldSetTimeoutsOnRestTemplate() {
+        // given
+        int readTimeout = 1234;
+        int connectTimeout = 4321;
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, readTimeout, connectTimeout);
+
+        // when
+        RestTemplate restTemplate = springConfig.createRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
+
+        // then
+        verify(mockRestTemplateBuilder).setReadTimeout(readTimeout);
+        verify(mockRestTemplateBuilder).setConnectTimeout(connectTimeout);
+
+        assertThat(restTemplate).isEqualTo(mockRestTemplate);
     }
 }

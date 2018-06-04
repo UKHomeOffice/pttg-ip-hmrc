@@ -15,12 +15,12 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldErrorIfNoName() {
-        NameMatchingCandidatesGenerator.generateCandidates("", "");
+        NameMatchingCandidatesGenerator.generateCandidateNames("", "");
     }
 
     @Test
     public void shouldDuplicateSingleFirstName() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Mono", "");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Mono", "");
 
         assertThat("There should be a single name", names.size(), is(1));
         assertThat("The first name should be duplicated", names.get(0), is("Mono Mono"));
@@ -28,7 +28,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldDuplicateSingleLastName() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("", "Mono");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("", "Mono");
 
         assertThat("There should be a single name", names.size(), is(1));
         assertThat("The last name should be duplicated", names.get(0), is("Mono Mono"));
@@ -36,7 +36,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldSwitchSingleFirstAndLastName() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur", "Bobbins");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "Bobbins");
 
         assertThat("The number of generated names should be as expected", names.size(), is(2));
         assertThat("The names should be correctly generated in the defined order", names.get(0), is("Arthur Bobbins"));
@@ -45,7 +45,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldTryAllCombinationsOfTwoFirstNames() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur Brian", "Coates");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur Brian", "Coates");
 
         assertThat("The number of generated names should be as expected", names.size(), is(6));
         assertThat("The names should be correctly generated in the defined order",names.get(0), is("Arthur Coates"));
@@ -58,7 +58,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldTryAllCombinationsOfThreeFirstNames() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur Brian Chris", "Doom");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur Brian Chris", "Doom");
 
         assertThat("The number of generated names should be as expected", names.size(), is(12));
         assertThat("The names should be correctly generated in the defined order",names.get(0), is("Arthur Doom"));
@@ -77,7 +77,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldTryAllCombinationsOfFourFirstNames() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur Brian Chris Daniel", "Eccles");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur Brian Chris Daniel", "Eccles");
 
         assertThat("The number of generated names should be as expected", names.size(), is(20));
         assertThat("The names should be correctly generated in the defined order",names.get(0), is("Arthur Eccles"));
@@ -104,7 +104,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHanndleExtraWhitespace() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates(" Arthur   Brian   ", " Coates ");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames(" Arthur   Brian   ", " Coates ");
 
         assertThat("The number of generated names should be as expected", names.size(), is(6));
         assertThat("The names should be correctly generated in the defined order",names.get(0), is("Arthur Coates"));
@@ -117,7 +117,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleMultipleLastNames() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur", "Brian Coates");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "Brian Coates");
 
         assertThat("The number of generated names should be as expected", names.size(), is(6));
         assertThat("The names should be correctly generated in the defined order",names.get(0), is("Arthur Coates"));
@@ -131,7 +131,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleHyphenatedNames() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur-Brian", "Coates");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur-Brian", "Coates");
 
         assertThat("The number of generated names should be as expected", names.size(), is(8));
         assertThat("The names should be correctly generated in the defined order", names.get(0), is("ArthurBrian Coates"));
@@ -146,7 +146,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleApostrophedNames() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur", "O'Bobbins");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "O'Bobbins");
 
         assertThat("The number of generated names should be as expected", names.size(), is(8));
         assertThat("The names should be correctly generated in the defined order", names.get(0), is("Arthur OBobbins"));
@@ -161,7 +161,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleHyphensAndApostrophes() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Arthur-Brian", "O'Coates");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur-Brian", "O'Coates");
 
         assertThat("The number of generated names should be as expected", names.size(), is(14));
         assertThat("The names should be correctly generated in the defined order", names.get(0), is("ArthurBrian OCoates"));
@@ -184,7 +184,7 @@ public class NameMatchingCandidatesGeneratorTest {
     @Test
     @Ignore
     public void thatDiacriticsAreReplaced() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidates("Ibanez", "Higuaín");
+        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Ibanez", "Higuaín");
 
         assertThat("The number of generated names should be as expected", names.size(), is(2));
         assertThat("The names should have the diacritics removed", names.get(0), is("Ibanez Higuain"));
