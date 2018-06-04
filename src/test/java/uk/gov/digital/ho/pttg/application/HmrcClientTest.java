@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -36,10 +37,13 @@ public class HmrcClientTest {
     @Mock
     private NinoUtils mockNinoUtils;
 
+    @Mock
+    private NameNormalizer mockNameNormalizer;
+
     @Test
     public void shouldProduceEmptyMap() {
 
-        HmrcClient client = new HmrcClient(new RestTemplate(), new NinoUtils(),"any api version", "any url");
+        HmrcClient client = new HmrcClient(new RestTemplate(), new NinoUtils(), mockNameNormalizer, "any api version", "any url");
 
         Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
 
@@ -61,7 +65,7 @@ public class HmrcClientTest {
 
         String somePayeReference = "some ref";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                     somePayFrequency,
@@ -95,7 +99,7 @@ public class HmrcClientTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                     somePayFrequency,
@@ -137,7 +141,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Income> incomes = null;
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -168,7 +172,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Income> incomes = Collections.emptyList();
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -205,7 +209,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
 
         List<Employment> employments = Arrays.asList(
             new Employment(
@@ -255,7 +259,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -292,7 +296,7 @@ public class HmrcClientTest {
         final URI uri = URI.create(baseHmrcUrl + "/individuals/matching/");
         final String hmrcApiVersion = "1";
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, hmrcApiVersion, baseHmrcUrl);
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, mockNameNormalizer, hmrcApiVersion, baseHmrcUrl);
 
         when(mockRestTemplate.exchange(eq(uri), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
@@ -317,7 +321,7 @@ public class HmrcClientTest {
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(NOT_FOUND));
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
         hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
@@ -331,7 +335,7 @@ public class HmrcClientTest {
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(FORBIDDEN));
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyApiVersion, "some-resource");
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
         hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
