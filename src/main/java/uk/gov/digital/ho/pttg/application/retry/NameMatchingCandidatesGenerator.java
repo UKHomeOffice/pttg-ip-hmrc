@@ -103,8 +103,9 @@ public class NameMatchingCandidatesGenerator {
         return allNames;
     }
 
-    private static class NamePairRule {
-        private int firstNameIndex, lastNameIndex;
+    private static final class NamePairRule {
+        private final int firstNameIndex;
+        private final int lastNameIndex;
 
         private NamePairRule(int firstNameIndex, int lastNameIndex) {
             this.firstNameIndex = firstNameIndex;
