@@ -19,6 +19,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import uk.gov.digital.ho.pttg.api.RequestData;
+import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 
@@ -125,7 +127,11 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public NameNormalizer nameNormalizer() {
-        return new MaxLengthNameNormalizer(hmrcNameMaxLength);
+        NameNormalizer[] nameNormalizers = {
+                new MaxLengthNameNormalizer(hmrcNameMaxLength),
+                new DiacriticNameNormalizer()
+        };
+        return new CompositeNameNormalizer(nameNormalizers);
     }
 }
 
