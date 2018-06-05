@@ -19,6 +19,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import uk.gov.digital.ho.pttg.api.RequestData;
+import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 
 import java.text.SimpleDateFormat;
 import java.time.Clock;
@@ -38,13 +40,16 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
     private final int restTemplateReadTimeoutInMillis;
     private final int restTemplateConnectTimeoutInMillis;
 
+    private final int hmrcNameMaxLength;
+
     public SpringConfiguration(ObjectMapper objectMapper,
                                @Value("${proxy.enabled:false}") boolean useProxy,
                                @Value("${hmrc.endpoint:}") String hmrcBaseUrl,
                                @Value("${proxy.host:}") String proxyHost,
                                @Value("${proxy.port}") Integer proxyPort,
                                @Value("${resttemplate.timeout.read:30000}") int restTemplateReadTimeoutInMillis,
-                               @Value("${resttemplate.timeout.connect:30000}") int restTemplateConnectTimeoutInMillis) {
+                               @Value("${resttemplate.timeout.connect:30000}") int restTemplateConnectTimeoutInMillis,
+                               @Value("${hmrc.name.rules.length.max:35}") int hmrcNameMaxLength) {
 
         this.useProxy = useProxy;
         this.hmrcBaseUrl = hmrcBaseUrl;
@@ -52,6 +57,7 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         this.proxyPort = proxyPort;
         this.restTemplateReadTimeoutInMillis = restTemplateReadTimeoutInMillis;
         this.restTemplateConnectTimeoutInMillis = restTemplateConnectTimeoutInMillis;
+        this.hmrcNameMaxLength = hmrcNameMaxLength;
         initialiseObjectMapper(objectMapper);
     }
 
@@ -117,5 +123,9 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         registry.addInterceptor(createRequestData());
     }
 
+    @Bean
+    public NameNormalizer nameNormalizer() {
+        return new MaxLengthNameNormalizer(hmrcNameMaxLength);
+    }
 }
 

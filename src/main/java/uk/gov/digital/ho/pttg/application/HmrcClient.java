@@ -20,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -65,13 +66,16 @@ public class HmrcClient {
     private final String url;
     private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
+    private final NameNormalizer nameNormalizer;
 
     @Autowired
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,
+                      NameNormalizer nameNormalizer,
                       @Value("${hmrc.api.version}") String hmrcApiVersion,
                       @Value("${hmrc.endpoint}") String url) {
         this.restTemplate = restTemplate;
+        this.nameNormalizer = nameNormalizer;
         this.hmrcApiVersion = hmrcApiVersion;
         this.url = url;
         this.ninoUtils = ninoUtils;
@@ -284,11 +288,12 @@ public class HmrcClient {
         String[] names = candidateNames.split("\\s+");
 
         Individual individualToMatch = new Individual(names[0], names[1], nino, dateOfBirth);
+        Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
 
         return restTemplate.exchange(
                 URI.create(matchUrl),
                 HttpMethod.POST,
-                createEntity(individualToMatch, accessToken),
+                createEntity(normalizedIndividual, accessToken),
                 linksResourceTypeRef).getBody();
     }
 
