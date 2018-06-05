@@ -180,14 +180,4 @@ public class NameMatchingCandidatesGeneratorTest {
         assertThat("The names should be correctly generated in the defined order", names.get(12), is("Coates Brian"));
         assertThat("The names should be correctly generated in the defined order", names.get(13), is("Coates O"));
     }
-
-    @Test
-    @Ignore
-    public void thatDiacriticsAreReplaced() {
-        List<String> names = NameMatchingCandidatesGenerator.generateCandidateNames("Ibanez", "Higuaín");
-
-        assertThat("The number of generated names should be as expected", names.size(), is(2));
-        assertThat("The names should have the diacritics removed", names.get(0), is("Ibanez Higuain"));
-        assertThat("The names should have the diacritics removed", names.get(1), is("Higuain Ibanez"));
-    }
 }

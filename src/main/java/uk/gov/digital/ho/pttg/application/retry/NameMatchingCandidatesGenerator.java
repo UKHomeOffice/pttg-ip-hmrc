@@ -2,6 +2,7 @@ package uk.gov.digital.ho.pttg.application.retry;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,9 +55,8 @@ public class NameMatchingCandidatesGenerator {
     }
 
     private static boolean namesContainSplitters(String firstName, String lastName) {
-        long firstNameSplitters = Arrays.stream(NAME_SPLITTERS.split("")).filter(c -> firstName.contains(c)).count();
-        long lastNameSplitters = Arrays.stream(NAME_SPLITTERS.split("")).filter(c -> lastName.contains(c)).count();
-        return firstNameSplitters > 0 || lastNameSplitters > 0;
+        return StringUtils.containsAny(firstName, NAME_SPLITTERS)
+                || StringUtils.containsAny(lastName, NAME_SPLITTERS);
     }
 
     private static void generateCandidatesWithSplitters(List<String> candidates, String firstName, String lastName) {
