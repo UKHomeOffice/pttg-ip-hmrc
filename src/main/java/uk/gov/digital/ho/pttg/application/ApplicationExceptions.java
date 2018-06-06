@@ -50,4 +50,14 @@ public interface ApplicationExceptions {
 
     }
 
+    class TooManyNamesException extends RuntimeException {
+        public TooManyNamesException(final String s) {
+            super(s);
+        }
+        public TooManyNamesException(final String s, final Exception e) {
+            super(s, e);
+        }
+
+    }
+
 }

@@ -430,6 +430,16 @@ public class HmrcResourceIntegrationTest {
 
     }
 
+    @Test
+    public void shouldErrorIfTooManyNames() {
+
+        ResponseEntity responseEntity = restTemplate.getForEntity(
+                "/income?firstName=A B C D E&nino=GH576240A&lastName=F&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                String.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
+        assertThat(responseEntity.getBody()).isEqualTo("Too many names: maximum is 5");
+    }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         mockService

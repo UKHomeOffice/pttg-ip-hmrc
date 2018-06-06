@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.application.retry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 public class NameMatchingCandidatesGenerator {
 
     private static final String NAME_SPLITTERS = "-'";
+    private static final Integer MAX_NAMES = 5;
 
     // This maps the number of names to a list containing pairs of candidate names in the order defined by the requirements
     private static final Map<Integer, List<NamePairRule>> CANDIDATE_NAME_RULES = ImmutableMap.of(
@@ -67,6 +69,7 @@ public class NameMatchingCandidatesGenerator {
 
     private static void generateCandidates(List<String> candidates, String firstName, String lastName) {
         List<String> allNames = findAllNames(firstName, lastName);
+        validateAllNames(allNames);
         candidates.addAll(
                 CANDIDATE_NAME_RULES
                         .get(allNames.size())
@@ -79,6 +82,12 @@ public class NameMatchingCandidatesGenerator {
     private static void validateName(String firstName, String lastName) {
         if(isEmptyName(firstName) && isEmptyName(lastName)) {
             throw new IllegalArgumentException("At least one name is required");
+        }
+    }
+
+    private static void validateAllNames(List<String> allNames) {
+        if(allNames.size() > MAX_NAMES) {
+            throw new ApplicationExceptions.TooManyNamesException(String.format("Too many names: maximum is %d", MAX_NAMES));
         }
     }
 

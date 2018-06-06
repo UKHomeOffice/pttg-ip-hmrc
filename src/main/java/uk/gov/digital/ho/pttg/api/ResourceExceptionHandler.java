@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.AuditDataException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @ControllerAdvice
@@ -70,6 +72,12 @@ public class ResourceExceptionHandler {
     public ResponseEntity handle(HmrcNotFoundException e) {
         log.info("HmrcNotFoundException: {}", e);
         return new ResponseEntity<>(e.getMessage(), NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = ApplicationExceptions.TooManyNamesException.class)
+    public ResponseEntity handle(ApplicationExceptions.TooManyNamesException e) {
+        log.info("TooManyNamesException: {}", e);
+        return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
     }
 
 }
