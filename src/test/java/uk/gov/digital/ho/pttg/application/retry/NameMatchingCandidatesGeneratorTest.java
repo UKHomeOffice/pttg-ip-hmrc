@@ -1,9 +1,9 @@
 package uk.gov.digital.ho.pttg.application.retry;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import java.util.List;
 
@@ -179,5 +179,10 @@ public class NameMatchingCandidatesGeneratorTest {
         assertThat("The names should be correctly generated in the defined order", names.get(11), is("O Brian"));
         assertThat("The names should be correctly generated in the defined order", names.get(12), is("Coates Brian"));
         assertThat("The names should be correctly generated in the defined order", names.get(13), is("Coates O"));
+    }
+
+    @Test(expected = ApplicationExceptions.TooManyNamesException.class)
+    public void shouldErrorIfMoreThanFiveNames() {
+        NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F");
     }
 }
