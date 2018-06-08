@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
 
-class UnicodeMapping {
+final class UnicodeMapping {
     private final Map<Character, String> mappedCharacters;
 
     private UnicodeMapping(File file) {
