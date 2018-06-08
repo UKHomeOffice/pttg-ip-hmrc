@@ -10,14 +10,13 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
 
-public class UnicodeMapping {
+class UnicodeMapping {
     private final Map<Character, String> mappedCharacters;
 
     private UnicodeMapping(File file) {
         try {
-            List<Entry> expectedUnicodeMapping = getExpectedUnicodeMapping(file);
-            mappedCharacters = expectedUnicodeMapping.stream()
-                    .collect(toMap(Entry::getKey, Entry::getValue));
+            List<Entry> expectedUnicodeMapping = getUnicodeMappings(file);
+            mappedCharacters = expectedUnicodeMapping.stream().collect(toMap(Entry::getKey, Entry::getValue));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -27,13 +26,12 @@ public class UnicodeMapping {
         return new UnicodeMapping(file);
     }
 
-    private static List<Entry> getExpectedUnicodeMapping(File file) throws IOException {
+    private static List<Entry> getUnicodeMappings(File file) throws IOException {
         MappingIterator<Entry> mappingIterator = new CsvMapper()
                 .readerWithTypedSchemaFor(Entry.class)
                 .readValues(file);
 
-        return mappingIterator
-                .readAll();
+        return mappingIterator.readAll();
     }
 
     boolean contains(char key) {
