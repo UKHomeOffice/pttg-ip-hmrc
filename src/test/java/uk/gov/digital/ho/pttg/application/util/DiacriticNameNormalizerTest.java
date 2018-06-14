@@ -17,45 +17,48 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DiacriticNameNormalizerTest {
     private static final String[] UNMAPPED_CHARACTERS = {
-            "Þ",
-            "ß",
-            "þ",
-            "ſ",
-            "Ɔ",
-            "ƍ",
+            "ǝ",
+            "Ʌ",
+            "Ɑ",
+            "Ɒ",
+            "ⱱ",
+            "Ⱳ",
+            "ⱳ",
+            "ⱴ",
+            "ⱸ",
+            "ⱺ",
+            "ⱻ",
+            "ⱼ",
+            "ⱽ",
+            "Ȿ",
+            "Ɀ",
+            "ẜ",
+            "ẝ",
+            "Ỻ",
+            "ỻ",
+            "Ỿ",
             "Ə",
-            "Ɣ",
-            "ƛ",
-            "Ʃ",
-            "Ʊ",
-            "Ʒ",
-            "Ƹ",
-            "ƹ",
-            "ƺ",
             "ƻ",
             "Ƽ",
             "ƽ",
-            "ƾ",
             "ǀ",
             "ǁ",
             "ǂ",
             "ǃ",
-            "Ǯ",
-            "ǯ",
-            "Ȝ",
-            "ȝ",
-            "Ȣ",
-            "ȣ",
             "Ɂ",
             "ɂ",
             "Ⱶ",
             "ⱶ",
             "ⱷ",
             "ⱹ",
-            "ẞ",
             "ẟ",
             "Ỽ",
-            "ỽ"
+            "ỽ",
+            "Ƅ",
+            "ƅ",
+            "Ǝ",
+            "Ƨ",
+            "ƨ"
     };
 
     private static final String UNICODE_MAPPING_CSV_FILENAME = "expected_unicode_replacements.csv";
@@ -87,7 +90,7 @@ public class DiacriticNameNormalizerTest {
     public void shouldLeaveLatinBasicCharactersAsTheyWereInputted() {
         // given
         String firstName = "Querty";
-        String lastName = "Smith";
+        String lastName = "null";
         Individual individual = new Individual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
@@ -95,7 +98,7 @@ public class DiacriticNameNormalizerTest {
 
         // then
         assertThat(normalizedIndividual.getFirstName()).isEqualTo("Querty");
-        assertThat(normalizedIndividual.getLastName()).isEqualTo("Smith");
+        assertThat(normalizedIndividual.getLastName()).isEqualTo("null");
 
         assertThat(normalizedIndividual.getNino()).isEqualTo(TEST_NINO);
         assertThat(normalizedIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
@@ -113,7 +116,7 @@ public class DiacriticNameNormalizerTest {
             Individual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
 
             // then
-            assertThat(normalizedIndividual.getFirstName()).isEqualTo("");
+            assertThat(normalizedIndividual.getFirstName()).withFailMessage("Expected `%s` to map to `%s` but was `%s`", firstName, "", normalizedIndividual.getFirstName()).isEqualTo("");
             assertThat(normalizedIndividual.getLastName()).isEqualTo("Smith");
 
             assertThat(normalizedIndividual.getNino()).isEqualTo(TEST_NINO);
