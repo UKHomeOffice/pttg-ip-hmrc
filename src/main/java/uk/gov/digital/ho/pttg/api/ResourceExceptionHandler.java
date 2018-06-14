@@ -14,9 +14,7 @@ import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @ControllerAdvice
 @Slf4j
@@ -80,6 +78,9 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = ApplicationExceptions.ProxyUnauthorizedException.class)
+    public ResponseEntity handle(ApplicationExceptions.ProxyUnauthorizedException e) {
+        log.error("Received 403 Unauthorized from a request to HMRC. This was from the proxy and not HMRC itself.", e);
+        return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
+    }
 }
-
-

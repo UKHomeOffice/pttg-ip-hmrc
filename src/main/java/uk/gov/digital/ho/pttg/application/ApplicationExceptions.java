@@ -60,4 +60,9 @@ public interface ApplicationExceptions {
 
     }
 
+    class ProxyUnauthorizedException extends RuntimeException {
+        public ProxyUnauthorizedException(String s) {
+            super(s);
+        }
+    }
 }
