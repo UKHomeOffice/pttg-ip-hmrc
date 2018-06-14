@@ -271,7 +271,7 @@ public class HmrcClient {
                 if (isHmrcMatchFailedError(ex)) {
                     retries++;
                 } else if (statusCode.equals(FORBIDDEN)) {
-                    throw new ProxyUnauthorizedException("Received a 403 Unauthorized response from proxy");
+                    throw new ProxyForbiddenException("Received a 403 Forbidden response from proxy");
                 } else if (statusCode.equals(UNAUTHORIZED)) {
                     throw new HmrcUnauthorisedException(ex.getMessage(), ex);
                 } else {

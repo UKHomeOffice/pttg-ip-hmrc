@@ -78,9 +78,9 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = ApplicationExceptions.ProxyUnauthorizedException.class)
-    public ResponseEntity handle(ApplicationExceptions.ProxyUnauthorizedException e) {
-        log.error("Received 403 Unauthorized from a request to HMRC. This was from the proxy and not HMRC itself.", e);
+    @ExceptionHandler(value = ApplicationExceptions.ProxyForbiddenException.class)
+    public ResponseEntity handle(ApplicationExceptions.ProxyForbiddenException e) {
+        log.error("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 }
