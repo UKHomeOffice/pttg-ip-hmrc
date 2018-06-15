@@ -414,7 +414,7 @@ public class HmrcResourceIntegrationTest {
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
                 .andExpect(method(POST))
-                .andRespond(withStatus(HttpStatus.FORBIDDEN));
+                .andRespond(withStatus(HttpStatus.FORBIDDEN).body("{\"code\" : \"MATCHING_FAILED\", \"message\" : \"There is no match for the information provided\"}"));
 
         buildAndExpectSuccessfulTraversal();
 
@@ -428,6 +428,23 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody().getIndividual().getFirstName()).isEqualTo("Laurie");
         assertThat(responseEntity.getBody().getIndividual().getLastName()).isEqualTo("Halford");
 
+    }
+
+    @Test
+    public void shouldReturnInternalServerErrorIfNonHmrcForbiddenReceived() throws IOException {
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN));
+
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Halford&nino=GH576240A&lastName=Laurie&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                String.class);
+
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
+        assertThat(responseEntity.getBody()).isEqualTo("Received a 403 Forbidden response from proxy");
     }
 
     @Test

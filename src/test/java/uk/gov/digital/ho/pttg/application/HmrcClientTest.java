@@ -14,6 +14,7 @@ import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -328,12 +329,14 @@ public class HmrcClientTest {
     }
 
     @Test(expected = HmrcNotFoundException.class)
-    public void shouldThrowHmrcNotFoundException() {
+    public void shouldThrowHmrcNotFoundExceptionWhenForbiddenFromHmrc() {
         NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
 
-        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(FORBIDDEN));
+        String responseBody = "{\"code\" : \"MATCHING_FAILED\", \"message\" : \"There is no match for the information provided\"}";
+        Charset defaultCharset = Charset.defaultCharset();
+        HttpClientErrorException exception = new HttpClientErrorException(FORBIDDEN, "", responseBody.getBytes(defaultCharset), defaultCharset);
+        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(exception);
 
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
@@ -341,4 +344,18 @@ public class HmrcClientTest {
         hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
     }
 
+    @Test
+    public void shouldThrowProxyForbiddenExceptionWhenForbiddenFromProxy() {
+        // given
+        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(new HttpClientErrorException(FORBIDDEN));
+
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
+
+        LocalDate now = LocalDate.now();
+        Individual testIndividual = new Individual("somefirstname", "somelastname", "some nino", now);
+
+        // when
+        assertThatThrownBy(() -> hmrcClient.getIncome("some access token", testIndividual, now, now))
+                .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
+    }
 }
