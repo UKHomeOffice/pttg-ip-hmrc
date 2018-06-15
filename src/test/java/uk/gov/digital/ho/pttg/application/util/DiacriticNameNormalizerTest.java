@@ -90,7 +90,7 @@ public class DiacriticNameNormalizerTest {
     public void shouldLeaveLatinBasicCharactersAsTheyWereInputted() {
         // given
         String firstName = "Querty";
-        String lastName = "null";
+        String lastName = "Smith";
         Individual individual = new Individual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
@@ -98,7 +98,7 @@ public class DiacriticNameNormalizerTest {
 
         // then
         assertThat(normalizedIndividual.getFirstName()).isEqualTo("Querty");
-        assertThat(normalizedIndividual.getLastName()).isEqualTo("null");
+        assertThat(normalizedIndividual.getLastName()).isEqualTo("Smith");
 
         assertThat(normalizedIndividual.getNino()).isEqualTo(TEST_NINO);
         assertThat(normalizedIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
@@ -175,6 +175,24 @@ public class DiacriticNameNormalizerTest {
             assertThat(actualValue).withFailMessage("Expected `%s` to map to `%s` but was `%s`", unicodeCharacter, expectedReplacement, actualValue)
                     .isEqualTo(expectedReplacement);
         }
+    }
+
+    @Test
+    public void shouldCorrectlyHandleNullStringLiterals() {
+        // given
+        String firstName = "nủll";
+        String lastName = "null";
+        Individual individual = new Individual(firstName, lastName, TEST_NINO, TEST_DOB);
+
+        // when
+        Individual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
+
+        // then
+        assertThat(normalizedIndividual.getFirstName()).isEqualTo("null");
+        assertThat(normalizedIndividual.getLastName()).isEqualTo("null");
+
+        assertThat(normalizedIndividual.getNino()).isEqualTo(TEST_NINO);
+        assertThat(normalizedIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
     }
 
     private List<UnicodeMapEntry> getExpectedUnicodeMapping() throws IOException {
