@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -270,10 +267,12 @@ public class HmrcClient {
                 return performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), suppliedIndividual.getNino(), suppliedIndividual.getDateOfBirth());
 
             } catch (HttpClientErrorException ex) {
-
-                if (ex.getStatusCode().equals(FORBIDDEN)) {
+                HttpStatus statusCode = ex.getStatusCode();
+                if (isHmrcMatchFailedError(ex)) {
                     retries++;
-                } else if (ex.getStatusCode().equals(UNAUTHORIZED)) {
+                } else if (statusCode.equals(FORBIDDEN)) {
+                    throw new ProxyForbiddenException("Received a 403 Forbidden response from proxy");
+                } else if (statusCode.equals(UNAUTHORIZED)) {
                     throw new HmrcUnauthorisedException(ex.getMessage(), ex);
                 } else {
                     throw ex;
@@ -282,6 +281,14 @@ public class HmrcClient {
         }
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", suppliedIndividual));
+    }
+
+    private boolean isHmrcMatchFailedError(HttpClientErrorException exception) {
+        HttpStatus statusCode = exception.getStatusCode();
+        if (!statusCode.equals(FORBIDDEN)) {
+            return  false;
+        }
+        return exception.getResponseBodyAsString().contains("MATCHING_FAILED");
     }
 
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, String candidateNames, String nino, LocalDate dateOfBirth) {
