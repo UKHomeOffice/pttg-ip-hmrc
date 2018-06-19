@@ -99,7 +99,7 @@ public class HmrcClient {
         Resource<String> incomeResource = getIncomeResource(matchedIndividual, accessToken, incomeLink);
 
         // income paye response
-        List<Income> payeIncomes = DataCleanser.clean(matchedIndividual, getIncome(fromDate, toDate, accessToken, incomeResource));
+        List<Income> payeIncomes = DataCleanser.clean(getIncome(fromDate, toDate, accessToken, incomeResource));
 
         // employments response with paye href
         String employmentLink = asAbsolute(individualResource.getLink("employments").getHref());

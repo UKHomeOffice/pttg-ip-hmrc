@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -25,8 +25,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 
@@ -101,7 +101,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull(LocalDate.class))).thenReturn(mockIncomeSummary);
+        when(mockHmrcClient.getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull())).thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
@@ -113,7 +113,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull(LocalDate.class));
+        verify(mockHmrcClient).getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull());
 
         // verify output matches value from HMRC call
         assertThat(mockIncomeSummary).isEqualTo(incomeSummary);

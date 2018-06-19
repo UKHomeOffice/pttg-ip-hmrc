@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import uk.gov.digital.ho.pttg.api.HmrcResource;
 import uk.gov.digital.ho.pttg.api.IncomeSummaryService;
@@ -20,9 +20,9 @@ import java.time.LocalDate;
 import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -61,7 +61,7 @@ public class HmrcResourceTest {
     @Test
     public void shouldHandleOptionalToDate() {
         // given
-        when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), isNull(LocalDate.class))).thenReturn(mockIncomeSummary);
+        when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), isNull())).thenReturn(mockIncomeSummary);
 
         // when
         final IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, null);

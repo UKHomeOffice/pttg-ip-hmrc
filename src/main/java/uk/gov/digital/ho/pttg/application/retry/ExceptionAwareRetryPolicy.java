@@ -6,10 +6,13 @@ import org.springframework.retry.context.RetryContextSupport;
 
 public abstract class ExceptionAwareRetryPolicy implements RetryPolicy {
 
-    private Class<? extends Exception> supportedException;
+    private final Class<? extends Exception> supportedException;
 
-    protected ExceptionAwareRetryPolicy(Class<? extends Exception> supportedException) {
+    private final int maxAttempts;
+
+    protected ExceptionAwareRetryPolicy(Class<? extends Exception> supportedException, int maxAttempts) {
         this.supportedException = supportedException;
+        this.maxAttempts = maxAttempts;
     }
 
     protected boolean supportsThrowable(Throwable throwable) {
@@ -20,13 +23,11 @@ public abstract class ExceptionAwareRetryPolicy implements RetryPolicy {
     public void registerThrowable(RetryContext context, Throwable throwable) {
         Class<RetryContextSupport> contextClass = RetryContextSupport.class;
 
-        final boolean isContextIncorrectType = !contextClass.isInstance(context);
-        if (isContextIncorrectType) {
+        if (!contextClass.isInstance(context)) {
             throw new IllegalArgumentException("Context is not the correct type. This should never happen.");
         }
 
-        final RetryContextSupport retryContextSupport = contextClass.cast(context);
-        retryContextSupport.registerThrowable(throwable);
+        contextClass.cast(context).registerThrowable(throwable);
     }
 
     @Override
@@ -40,11 +41,11 @@ public abstract class ExceptionAwareRetryPolicy implements RetryPolicy {
 
     @Override
     public final boolean canRetry(RetryContext context) {
+
         if (!supportsThrowable(context.getLastThrowable())) {
             return false;
         }
-        return checkAndConfigureRetry(context);
-    }
 
-    protected abstract boolean checkAndConfigureRetry(RetryContext context);
+        return maxAttempts >= context.getRetryCount();
+    }
 }
