@@ -17,7 +17,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.digital.ho.pttg.api.RequestData;
 import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
@@ -33,7 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Configuration
 @EnableRetry
-public class SpringConfiguration extends WebMvcConfigurerAdapter {
+public class SpringConfiguration implements WebMvcConfigurer {
     private final boolean useProxy;
     private final String hmrcBaseUrl;
     private final String proxyHost;
@@ -82,8 +82,10 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
         converter.setObjectMapper(mapper);
         converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
 
+        ClientHttpRequestFactory clientHttpRequestFactory = createClientHttpRequestFactory();
+
         return restTemplateBuilder
-                .requestFactory(createClientHttpRequestFactory())
+                .requestFactory(() -> clientHttpRequestFactory)
                 .additionalMessageConverters(converter)
                 .setReadTimeout(restTemplateReadTimeoutInMillis)
                 .setConnectTimeout(restTemplateConnectTimeoutInMillis)
@@ -96,15 +98,15 @@ public class SpringConfiguration extends WebMvcConfigurerAdapter {
 
     @Bean
     public ClientHttpRequestFactory createClientHttpRequestFactory() {
-        HttpComponentsClientHttpRequestFactory factory =
-                new HttpComponentsClientHttpRequestFactory();
 
-        /* HttpClient - By default, only GET requests resulting in a redirect are automatically followed
-           need to alter the default redirect strategy for redirect on post
+        /*
+         * HttpClient - By default, only GET requests resulting in a redirect are automatically followed
+         * need to alter the default redirect strategy for redirect on post
          */
 
         HttpClientBuilder builder = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy());
 
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
         factory.setHttpClient(builder.build());
 
         return factory;

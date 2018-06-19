@@ -2,7 +2,7 @@ package uk.gov.digital.ho.pttg.application.retry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import java.util.List;

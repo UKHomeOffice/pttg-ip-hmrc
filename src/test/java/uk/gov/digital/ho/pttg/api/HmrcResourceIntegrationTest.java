@@ -23,6 +23,7 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.time.LocalDate;
 
@@ -92,8 +93,15 @@ public class HmrcResourceIntegrationTest {
         mockService.verify();
 
         assertThat(responseEntity.getBody().getPaye().size()).isEqualTo(7);
+        assertThat(responseEntity.getBody().getPaye().get(0).getWeekPayNumber()).isEqualTo(49);
+        assertThat(responseEntity.getBody().getEmployments().size()).isEqualTo(2);
+        assertThat(responseEntity.getBody().getEmployments().get(0).getEmployer().getName()).isEqualTo("Acme Inc");
+        assertThat(responseEntity.getBody().getEmployments().get(1).getEmployer().getName()).isEqualTo("Disney Inc");
         assertThat(responseEntity.getBody().getSelfAssessment().size()).isEqualTo(2);
-        assertThat(responseEntity.getBody().getSelfAssessment().size()).isEqualTo(2);
+        assertThat(responseEntity.getBody().getSelfAssessment().get(0).getSelfEmploymentProfit()).isEqualTo(BigDecimal.ZERO);
+        assertThat(responseEntity.getBody().getSelfAssessment().get(0).getTaxYear()).isEqualTo("2014-15");
+        assertThat(responseEntity.getBody().getSelfAssessment().get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("10500"));
+        assertThat(responseEntity.getBody().getSelfAssessment().get(1).getTaxYear()).isEqualTo("2013-14");
         assertThat(responseEntity.getBody().getIndividual().getFirstName()).isEqualTo("Laurie");
         assertThat(responseEntity.getBody().getIndividual().getLastName()).isEqualTo("Halford");
         assertThat(responseEntity.getBody().getIndividual().getNino()).isEqualTo("GH576240A");
@@ -132,6 +140,25 @@ public class HmrcResourceIntegrationTest {
         mockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(I_AM_A_TEAPOT);
+    }
+
+    @Test
+    public void accessCodeServiceUnavailable() {
+
+        mockService.reset();
+
+        mockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
+
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
+                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
+                String.class);
+
+        mockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -273,7 +300,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     @Test
-    public void HMRCreturnsErrorDuringLinkTraversal() throws IOException {
+    public void hmrcReturnsErrorDuringLinkTraversal() throws IOException {
 
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -431,7 +458,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     @Test
-    public void shouldReturnInternalServerErrorIfNonHmrcForbiddenReceived() throws IOException {
+    public void shouldReturnInternalServerErrorIfNonHmrcForbiddenReceived() {
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
                 .andExpect(method(POST))
