@@ -8,13 +8,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.AuditDataException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
 import static org.springframework.http.HttpStatus.*;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.ProxyForbiddenException;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.TooManyNamesException;
 
 @ControllerAdvice
 @Slf4j
@@ -59,10 +60,10 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
+
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity handle(Exception e) {
-        log.error("Error: {}", e.getMessage());
-        log.error("Exception: ", e);
+        log.error("Fault Detected: ", e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
@@ -72,14 +73,14 @@ public class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), NOT_FOUND);
     }
 
-    @ExceptionHandler(value = ApplicationExceptions.TooManyNamesException.class)
-    public ResponseEntity handle(ApplicationExceptions.TooManyNamesException e) {
+    @ExceptionHandler(value = TooManyNamesException.class)
+    public ResponseEntity handle(TooManyNamesException e) {
         log.info("TooManyNamesException: {}", e);
         return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = ApplicationExceptions.ProxyForbiddenException.class)
-    public ResponseEntity handle(ApplicationExceptions.ProxyForbiddenException e) {
+    @ExceptionHandler(value = ProxyForbiddenException.class)
+    public ResponseEntity handle(ProxyForbiddenException e) {
         log.error("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }

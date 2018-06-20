@@ -6,6 +6,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.http.*;
@@ -59,23 +60,37 @@ public class HmrcClient {
 
     private static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
 
+    /*
+        Hypermedia paths and links
+    */
+    private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
+    private static final String INDIVIDUAL = "individual";
+    private static final String INCOME = "income";
+    private static final String EMPLOYMENTS = "employments";
+    private static final String SELF_ASSESSMENT = "selfAssessment";
+    private static final String PAYE_INCOME = "paye";
+    private static final String PAYE_EMPLOYMENT = "paye";
+    private static final String SELF_EMPLOYMENTS = "selfEmployments";
+
     private final String hmrcApiVersion;
-    private final String url;
+    private final String hmrcUrl;
     private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
     private final NameNormalizer nameNormalizer;
+    private final String matchUrl;
 
     @Autowired
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,
                       NameNormalizer nameNormalizer,
                       @Value("${hmrc.api.version}") String hmrcApiVersion,
-                      @Value("${hmrc.endpoint}") String url) {
+                      @Value("${hmrc.endpoint}") String hmrcUrl) {
         this.restTemplate = restTemplate;
         this.nameNormalizer = nameNormalizer;
         this.hmrcApiVersion = hmrcApiVersion;
-        this.url = url;
+        this.hmrcUrl = hmrcUrl;
         this.ninoUtils = ninoUtils;
+        this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
     @Retryable(
@@ -83,39 +98,27 @@ public class HmrcClient {
             exclude = {HttpClientErrorException.class, HmrcUnauthorisedException.class, HmrcNotFoundException.class},
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
-    public IncomeSummary getIncome(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate) {
+    public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate) {
 
-        log.info("Commence the attempt to retrieve HMRC data for {}", ninoUtils.redact(suppliedIndividual.getNino()));
+        String redactedNino = ninoUtils.redact(suppliedIndividual.getNino());
 
-        Resource<String> matchedIndividualResource = getMatchedIndividualResource(suppliedIndividual, accessToken, url + "/individuals/matching/");
+        log.info("Attempt to retrieve HMRC data for {}", redactedNino);
 
-        String individualLink = asAbsolute(matchedIndividualResource.getLink("individual").getHref());
-        Resource<EmbeddedIndividual> individualResource = getIndividualResource(suppliedIndividual, accessToken, individualLink);
+        Resource<String> matchResource = getMatchResource(suppliedIndividual, accessToken, matchUrl);
+        Resource<EmbeddedIndividual> individualResource = getIndividualResource(redactedNino, accessToken, matchResource.getLink(INDIVIDUAL));
+        Resource<String> incomeResource = getIncomeResource(redactedNino, accessToken, individualResource.getLink(INCOME));
+        Resource<String> employmentResource = getEmploymentResource(redactedNino, accessToken, individualResource.getLink(EMPLOYMENTS));
+        Resource<String> selfAssessmentResource = getSelfAssessmentResource(redactedNino, accessToken, fromDate, toDate, incomeResource.getLink(SELF_ASSESSMENT));
 
-        Individual matchedIndividual = individualResource.getContent().getIndividual();
+        List<Income> payeIncome = getPayeIncome(fromDate, toDate, accessToken, incomeResource.getLink(PAYE_INCOME));
+        List<Employment> employments = getEmployments(fromDate, toDate, accessToken, employmentResource.getLink(PAYE_EMPLOYMENT));
+        List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome = getSelfAssessmentIncome(accessToken, selfAssessmentResource.getLink(SELF_EMPLOYMENTS));
 
-        // income response with paye and SA hrefs
-        String incomeLink = asAbsolute(individualResource.getLink("income").getHref());
-        Resource<String> incomeResource = getIncomeResource(matchedIndividual, accessToken, incomeLink);
+        enrichIncomeData(payeIncome, employments);
 
-        // income paye response
-        List<Income> payeIncomes = DataCleanser.clean(getIncome(fromDate, toDate, accessToken, incomeResource));
+        log.info("Successfully retrieved HMRC data for {}", redactedNino);
 
-        // employments response with paye href
-        String employmentLink = asAbsolute(individualResource.getLink("employments").getHref());
-        Resource<String> employmentResource = getEmploymentResource(matchedIndividual, accessToken, employmentLink);
-
-        // employment paye response
-        List<Employment> employments = getEmployments(fromDate, toDate, accessToken, employmentResource);
-
-        enrichIncomeData(payeIncomes, employments);
-
-        // income SA response
-        List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmployment = getSelfAssessmentSelfEmployment(fromDate, toDate, accessToken, incomeResource);
-
-        log.info("Completed successfully the attempt to retrieve HMRC data for {}", ninoUtils.redact(suppliedIndividual.getNino()));
-
-        return new IncomeSummary(payeIncomes, selfAssessmentSelfEmployment, employments, individualResource.getContent().getIndividual());
+        return new IncomeSummary(payeIncome, selfAssessmentIncome, employments, individualResource.getContent().getIndividual());
     }
 
     private void enrichIncomeData(List<Income> incomes, List<Employment> employments) {
@@ -128,10 +131,10 @@ public class HmrcClient {
             return;
         }
 
-        incomes
-                .forEach(income -> income.setPaymentFrequency(employerPaymentRefMap.get(income.getEmployerPayeReference())));
+        incomes.forEach(income -> income.setPaymentFrequency(employerPaymentRefMap.get(income.getEmployerPayeReference())));
     }
 
+    // TODO: could use a stream here
     Map<String, String> createEmployerPaymentRefMap(List<Employment> employments) {
         Map<String, String> paymentFrequency = new HashMap<>();
 
@@ -168,22 +171,28 @@ public class HmrcClient {
         throw (e);
     }
 
-    private List<Income> getIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
+    private List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
-        final Resource<PayeIncome> incomeResource =
-                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("paye").getHref())), accessToken)
+        Resource<PayeIncome> incomeResource =
+                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken)
                         .toObject(payeIncomesResourceTypeRef);
-        return incomeResource.getContent().getPaye().getIncome();
+
+        return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
 
-    private List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSelfEmployment(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
+    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
-        String selfEmploymentsLink = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("selfAssessment").getHref()));
+        Resource<Employments> employmentsResource =
+                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken)
+                        .toObject(employmentsResourceTypeRef);
 
-        Resource<String> selfAssessmentResource = getSelfAssessmentResource(accessToken, selfEmploymentsLink);
+        return employmentsResource.getContent().getEmployments();
+    }
+
+    private List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
 
         Resource<SelfEmployments> selfEmploymentsResource =
-                followTraverson(asAbsolute(selfAssessmentResource.getLink("selfEmployments").getHref()), accessToken)
+                followTraverson(asAbsolute(link.getHref()), accessToken)
                         .toObject(selfEmploymentsResourceTypeRef);
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
@@ -245,16 +254,9 @@ public class HmrcClient {
         return href.replaceFirst("\\{&.*\\}", "");
     }
 
-    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Resource<String> linksResource) {
-        final Resource<Employments> employmentsResource =
-                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(linksResource.getLink("paye").getHref())), accessToken)
-                        .toObject(employmentsResourceTypeRef);
-        return employmentsResource.getContent().getEmployments();
-    }
+    private Resource<String> getMatchResource(Individual suppliedIndividual, String accessToken, String matchUrl) {
 
-    private Resource<String> getMatchedIndividualResource(Individual suppliedIndividual, String accessToken, String matchUrl) {
-
-        log.info("POST to {}", matchUrl);
+        log.info("Match Individual via a POST to {}", matchUrl);
 
         List<String> candidateNames = generateCandidateNames(suppliedIndividual.getFirstName(), suppliedIndividual.getLastName());
 
@@ -304,34 +306,46 @@ public class HmrcClient {
                 linksResourceTypeRef).getBody();
     }
 
-    private Resource<EmbeddedIndividual> getIndividualResource(Individual individual, String accessToken, String matchUrl) {
-        log.info("GET from {}", matchUrl);
-        Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(matchUrl), GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
-        log.info("Individual Response has been received for {}", ninoUtils.redact(individual.getNino()));
+    private Resource<EmbeddedIndividual> getIndividualResource(String nino, String accessToken, Link link) {
+
+        String url = asAbsolute(link.getHref());
+        log.info("GET Individual Resource for {} from {}", nino, url);
+        Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
+        log.info("Individual Response has been received for {} from {}", nino, url);
+
         return resource;
     }
 
-    private Resource<String> getIncomeResource(Individual individual, String accessToken, String incomeLink) {
-        log.info("GET from {}", incomeLink);
+    private Resource<String> getIncomeResource(String nino, String accessToken, Link link) {
 
-        Resource<String> resource = restTemplate.exchange(URI.create(incomeLink), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Income Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);
+        String url = asAbsolute(link.getHref());
+        log.info("GET Income Resource for {} from {}", nino, url);
+        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        log.info("Income Response has been received for {} from {}", nino, url);
+
         return resource;
     }
 
-    private Resource<String> getSelfAssessmentResource(String accessToken, String selfEmploymentsLink) {
-        log.info("GET from {}", selfEmploymentsLink);
+    private Resource<String> getEmploymentResource(String nino, String accessToken, Link link) {
 
-        Resource<String> resource = restTemplate.exchange(URI.create(selfEmploymentsLink), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Self Employment Response has been received for {}", resource);
+        String url = asAbsolute(link.getHref());
+        log.info("GET Employment Resource for {} from {}", nino, url);
+        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        log.info("Employment Response has been received for {} from {}", nino, url);
+
         return resource;
     }
 
-    private Resource<String> getEmploymentResource(Individual individual, String accessToken, String employmentLink) {
-        log.info("GET from {}", employmentLink);
+    private Resource<String> getSelfAssessmentResource(String nino, String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
 
-        Resource<String> resource = restTemplate.exchange(URI.create(employmentLink), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Employment Response has been received for {}, {}", ninoUtils.redact(individual.getNino()), resource);
+        String baseUrl = asAbsolute(link.getHref());
+        String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
+
+        log.info("GET SA Resource for {} from {}", nino, url);
+
+        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        log.info("SA Response has been received for {} from {}", nino, url);
+
         return resource;
     }
 
@@ -339,7 +353,7 @@ public class HmrcClient {
         if (uri.startsWith("http")) {
             return uri;
         }
-        return url + uri;
+        return hmrcUrl + uri;
     }
 
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {

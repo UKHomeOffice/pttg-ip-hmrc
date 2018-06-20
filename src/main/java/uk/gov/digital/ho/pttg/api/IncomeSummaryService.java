@@ -59,7 +59,7 @@ public class IncomeSummaryService {
         auditRequestToHmrc(individual);
 
         final String accessCode = requestAccessCode();
-        return hmrcClient.getIncome(accessCode, individual, fromDate, toDate);
+        return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate);
     }
 
     private String requestAccessCode() {
