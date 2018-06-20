@@ -109,6 +109,49 @@ public class HmrcResourceIntegrationTest {
     }
 
     @Test
+    public void shouldMakeAllServiceCallsWhenNoSelfAssessmentData() throws IOException {
+
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess(buildMatchResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/matching/" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildMatchedIndividualResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/income/?matchId=" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildIncomeWithoutSaResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/employments/?matchId=" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildEmploymentsResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/employments/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildEmploymentsPayeResponse(), APPLICATION_JSON));
+
+        mockService
+                .expect(requestTo(containsString("/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01")))
+                .andExpect(method(GET))
+                .andRespond(withSuccess(buildPayeIncomeResponse(), APPLICATION_JSON));
+
+
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", IncomeSummary.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
+
+        mockService.verify();
+
+        assertThat(responseEntity.getBody().getSelfAssessment().size()).isEqualTo(0);
+    }
+
+    @Test
     public void shouldHandleBadHMRCServiceRequest() {
 
         mockService
@@ -540,7 +583,12 @@ public class HmrcResourceIntegrationTest {
 
     private String buildIncomeResponse() throws IOException {
         return loadJsonFile("incomeResponse")
-                .replace("${matchId}", MATCH_ID);
+                       .replace("${matchId}", MATCH_ID);
+    }
+
+    private String buildIncomeWithoutSaResponse() throws IOException {
+        return loadJsonFile("incomeResponseNoSa")
+                       .replace("${matchId}", MATCH_ID);
     }
 
     private String buildEmploymentsResponse() throws IOException {

@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -191,6 +192,10 @@ public class HmrcClient {
 
     private List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
 
+        if (link == null) {
+            return emptyList();
+        }
+
         Resource<SelfEmployments> selfEmploymentsResource =
                 followTraverson(asAbsolute(link.getHref()), accessToken)
                         .toObject(selfEmploymentsResourceTypeRef);
@@ -254,11 +259,11 @@ public class HmrcClient {
         return href.replaceFirst("\\{&.*\\}", "");
     }
 
-    private Resource<String> getMatchResource(Individual suppliedIndividual, String accessToken, String matchUrl) {
+    private Resource<String> getMatchResource(Individual individual, String accessToken, String matchUrl) {
 
-        log.info("Match Individual via a POST to {}", matchUrl);
+        log.info("Match Individual {} via a POST to {}", ninoUtils.redact(individual.getNino()), matchUrl);
 
-        List<String> candidateNames = generateCandidateNames(suppliedIndividual.getFirstName(), suppliedIndividual.getLastName());
+        List<String> candidateNames = generateCandidateNames(individual.getFirstName(), individual.getLastName());
 
         int retries = 0;
 
@@ -266,7 +271,7 @@ public class HmrcClient {
 
             try {
 
-                return performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), suppliedIndividual.getNino(), suppliedIndividual.getDateOfBirth());
+                return performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
 
             } catch (HttpClientErrorException ex) {
                 HttpStatus statusCode = ex.getStatusCode();
@@ -282,7 +287,7 @@ public class HmrcClient {
             }
         }
 
-        throw new HmrcNotFoundException(String.format("Unable to match: %s", suppliedIndividual));
+        throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
 
     private boolean isHmrcMatchFailedError(HttpClientErrorException exception) {
@@ -337,6 +342,11 @@ public class HmrcClient {
     }
 
     private Resource<String> getSelfAssessmentResource(String nino, String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
+
+        if (link == null) {
+            log.info("No SA Resource for {}", nino);
+            return new Resource<>("", emptyList());
+        }
 
         String baseUrl = asAbsolute(link.getHref());
         String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
