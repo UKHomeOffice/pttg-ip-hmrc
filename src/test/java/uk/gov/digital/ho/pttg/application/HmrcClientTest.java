@@ -303,7 +303,7 @@ public class HmrcClientTest {
                 .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
 
         assertThatThrownBy(() -> {
-            hmrcClient.getIncome(
+            hmrcClient.getIncomeSummary(
                     "ACCESS_TOKEN",
                     new Individual("first", "last", "nino", LocalDate.now()),
                     LocalDate.now(),
@@ -325,7 +325,7 @@ public class HmrcClientTest {
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
-        hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
+        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
     }
 
     @Test(expected = HmrcNotFoundException.class)
@@ -341,7 +341,7 @@ public class HmrcClientTest {
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
-        hmrcClient.getIncome("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
+        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
     }
 
     @Test
@@ -355,7 +355,49 @@ public class HmrcClientTest {
         Individual testIndividual = new Individual("somefirstname", "somelastname", "some nino", now);
 
         // when
-        assertThatThrownBy(() -> hmrcClient.getIncome("some access token", testIndividual, now, now))
+        assertThatThrownBy(() -> hmrcClient.getIncomeSummary("some access token", testIndividual, now, now))
                 .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
+    }
+
+    @Test
+    public void shouldRethrowOnHmrcNotFoundExceptionRecovery() {
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
+
+        HmrcNotFoundException exception = new HmrcNotFoundException("some message");
+        String someAccessToken = "some access token";
+        LocalDate now = LocalDate.now();
+        Individual someIndividual = new Individual("","","", now);
+
+        assertThatThrownBy(() -> hmrcClient.getIncomeRetryFailureRecovery(exception, someAccessToken, someIndividual, now, now))
+                .isInstanceOf(HmrcNotFoundException.class)
+                .isEqualTo(exception);
+    }
+
+    @Test
+    public void shouldRethrowOnHmrcUnauthorisedExceptionRecovery() {
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
+
+        HmrcUnauthorisedException exception = new HmrcUnauthorisedException("some message");
+        String someAccessToken = "some access token";
+        LocalDate now = LocalDate.now();
+        Individual someIndividual = new Individual("","","", now);
+
+        assertThatThrownBy(() -> hmrcClient.getIncomeRetryFailureRecovery(exception, someAccessToken, someIndividual, now, now))
+                .isInstanceOf(HmrcUnauthorisedException.class)
+                .isEqualTo(exception);
+    }
+
+    @Test
+    public void shouldRethrowOnRuntimeExceptionRecovery() {
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
+
+        RuntimeException exception = new RuntimeException("some message");
+        String someAccessToken = "some access token";
+        LocalDate now = LocalDate.now();
+        Individual someIndividual = new Individual("","","", now);
+
+        assertThatThrownBy(() -> hmrcClient.getIncomeRetryFailureRecovery(exception, someAccessToken, someIndividual, now, now))
+                .isInstanceOf(RuntimeException.class)
+                .isEqualTo(exception);
     }
 }

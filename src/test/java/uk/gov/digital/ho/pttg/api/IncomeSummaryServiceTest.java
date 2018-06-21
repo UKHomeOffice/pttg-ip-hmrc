@@ -71,7 +71,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate)).thenReturn(mockIncomeSummary);
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate)).thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
@@ -83,7 +83,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+        verify(mockHmrcClient).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         // verify output matches value from HMRC call
         assertThat(mockIncomeSummary).isEqualTo(incomeSummary);
@@ -101,7 +101,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull())).thenReturn(mockIncomeSummary);
+        when(mockHmrcClient.getIncomeSummary(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull())).thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
@@ -113,7 +113,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncome(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull());
+        verify(mockHmrcClient).getIncomeSummary(eq(TEST_ACCESS_CODE), eq(mockIndividual), eq(fromDate), isNull());
 
         // verify output matches value from HMRC call
         assertThat(mockIncomeSummary).isEqualTo(incomeSummary);
@@ -139,7 +139,7 @@ public class IncomeSummaryServiceTest {
         final Individual individual = new Individual(firstName, lastName, nino, dateOfBirth);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, individual, fromDate, null)).thenReturn(mockIncomeSummary);
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, individual, fromDate, null)).thenReturn(mockIncomeSummary);
 
         // when
         incomeSummaryService.getIncomeSummary(individual, fromDate, null);
@@ -167,7 +167,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new ApplicationExceptions.HmrcUnauthorisedException("test"))
                 .thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
@@ -181,7 +181,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient, times(2)).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient, times(2)).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+        verify(mockHmrcClient, times(2)).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         // verify an audit call is made
         verify(mockAuditClient, times(2)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -200,7 +200,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new IllegalArgumentException())
                 .thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
@@ -219,7 +219,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+        verify(mockHmrcClient).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -235,7 +235,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST))
                 .thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
@@ -254,7 +254,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+        verify(mockHmrcClient).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -270,7 +270,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
-        when(mockHmrcClient.getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR))
                 .thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
@@ -289,7 +289,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncome(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+        verify(mockHmrcClient).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));

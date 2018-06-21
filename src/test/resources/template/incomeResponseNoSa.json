@@ -1,0 +1,11 @@
+{
+  "_links": {
+    "paye": {
+      "href": "/individuals/income/paye?matchId=${matchId}{&fromDate,toDate}",
+      "title": "View individual's income per employment"
+    },
+    "self": {
+      "href": "/individuals/income/?matchId=${matchId}"
+    }
+  }
+}

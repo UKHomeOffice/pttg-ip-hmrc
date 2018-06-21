@@ -70,7 +70,6 @@ repositories {
 
     compile group: 'org.springframework.boot',  name: 'spring-boot-starter-jetty'
     compile group: 'org.springframework.boot',  name: 'spring-boot-starter-actuator'
-    compile group: 'org.springframework.boot',  name: 'spring-boot-devtools'
     compile group: 'org.springframework.boot',  name: 'spring-boot-starter-hateoas'
     compile group: 'org.springframework',       name: 'spring-aspects'
     compile group: 'org.springframework.retry', name: 'spring-retry'
@@ -85,6 +84,7 @@ repositories {
 
     compile group: 'me.xuender', name: 'unidecode', version: '0.0.7'
 
+    compileOnly group: 'org.springframework.boot',  name: 'spring-boot-devtools'
     compileOnly 'org.projectlombok:lombok:1.16.12'
 
     testCompile group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.1u2'
