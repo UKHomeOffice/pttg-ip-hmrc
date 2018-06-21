@@ -135,7 +135,6 @@ public class HmrcClient {
         incomes.forEach(income -> income.setPaymentFrequency(employerPaymentRefMap.get(income.getEmployerPayeReference())));
     }
 
-    // TODO: could use a stream here
     Map<String, String> createEmployerPaymentRefMap(List<Employment> employments) {
         Map<String, String> paymentFrequency = new HashMap<>();
 
