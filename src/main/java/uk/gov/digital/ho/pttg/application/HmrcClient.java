@@ -315,7 +315,7 @@ public class HmrcClient {
         String url = asAbsolute(link.getHref());
         log.info("GET Individual Resource for {} from {}", nino, url);
         Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
-        log.info("Individual Response has been received for {} from {}", nino, url);
+        log.info("Individual Response has been received for {}", nino);
 
         return resource;
     }
@@ -325,7 +325,7 @@ public class HmrcClient {
         String url = asAbsolute(link.getHref());
         log.info("GET Income Resource for {} from {}", nino, url);
         Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Income Response has been received for {} from {}", nino, url);
+        log.info("Income Response has been received for {}", nino);
 
         return resource;
     }
@@ -335,7 +335,7 @@ public class HmrcClient {
         String url = asAbsolute(link.getHref());
         log.info("GET Employment Resource for {} from {}", nino, url);
         Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("Employment Response has been received for {} from {}", nino, url);
+        log.info("Employment Response has been received for {}", nino);
 
         return resource;
     }
@@ -353,7 +353,7 @@ public class HmrcClient {
         log.info("GET SA Resource for {} from {}", nino, url);
 
         Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
-        log.info("SA Response has been received for {} from {}", nino, url);
+        log.info("SA Response has been received for {}", nino);
 
         return resource;
     }
