@@ -510,17 +510,6 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody()).isEqualTo("Received a 403 Forbidden response from proxy");
     }
 
-    @Test
-    public void shouldErrorIfTooManyNames() {
-
-        ResponseEntity responseEntity = restTemplate.getForEntity(
-                "/income?firstName=A B C D E&nino=GH576240A&lastName=F&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
-
-        assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
-        assertThat(responseEntity.getBody()).isEqualTo("Too many names: maximum is 5");
-    }
-
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         mockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -620,6 +609,5 @@ public class HmrcResourceIntegrationTest {
         return loadJsonFile("incomeSASelfEmploymentsResponse")
                 .replace("${matchId}", MATCH_ID);
     }
-
 }
 

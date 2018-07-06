@@ -102,8 +102,16 @@ repositories {
     testCompile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
     testCompile group: 'cglib', name: 'cglib-nodep', version: '3.2.5'
     testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.3'
+
+    testCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: '1.9.5'
+    testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: '1.9.12'
+    testCompile group: 'info.cukes', name:'gherkin', version: '2.12.2'
+
+    testCompile "com.jayway.restassured:json-schema-validator:2.9.0"
+    testCompile ("com.jayway.restassured:rest-assured:2.9.0") {
+      exclude group: "org.codehaus.groovy", module: "groovy"
+    }
   }
 }
-
 
 gradle.startParameter.continueOnFailure = false

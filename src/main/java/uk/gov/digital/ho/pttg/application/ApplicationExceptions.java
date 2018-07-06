@@ -17,7 +17,6 @@ public interface ApplicationExceptions {
     }
 
     class HmrcException extends RuntimeException {
-
         public HmrcException(String message) {
             super(message);
         }
@@ -44,20 +43,10 @@ public interface ApplicationExceptions {
         public HmrcUnauthorisedException(final String s) {
             super(s);
         }
+
         public HmrcUnauthorisedException(final String s, final Exception e) {
             super(s, e);
         }
-
-    }
-
-    class TooManyNamesException extends RuntimeException {
-        public TooManyNamesException(final String s) {
-            super(s);
-        }
-        public TooManyNamesException(final String s, final Exception e) {
-            super(s, e);
-        }
-
     }
 
     class ProxyForbiddenException extends RuntimeException {

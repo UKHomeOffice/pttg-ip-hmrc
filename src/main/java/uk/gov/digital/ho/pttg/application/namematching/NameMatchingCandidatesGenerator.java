@@ -1,20 +1,21 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.apache.commons.lang3.StringUtils;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class NameMatchingCandidatesGenerator {
     private static final String NAME_SPLITTERS = "-'";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
-    private static final Integer MAX_NAMES = NamePairRules.getMaxNameCount();
+    private static final Integer MAX_NAMES = 7;
 
     public static List<String> generateCandidateNames(String firstName, String lastName) {
         validateNames(firstName, lastName);
@@ -30,6 +31,12 @@ public class NameMatchingCandidatesGenerator {
         return Collections.unmodifiableList(candidates);
     }
 
+    private static void validateNames(String firstName, String lastName) {
+        if (isBlank(firstName) && isBlank(lastName)) {
+            throw new IllegalArgumentException("At least one name is required");
+        }
+    }
+
     private static boolean namesContainSplitters(String firstName, String lastName) {
         return StringUtils.containsAny(firstName, NAME_SPLITTERS) || StringUtils.containsAny(lastName, NAME_SPLITTERS);
     }
@@ -38,7 +45,7 @@ public class NameMatchingCandidatesGenerator {
         List<String> candidateNames = new ArrayList<>();
 
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
-        candidateNames.addAll(generateCandidates(nameWithSplittersAsSpaces(firstName), nameWithSplittersAsSpaces(lastName)));
+        candidateNames.addAll(generateCandidates(nameWithSplittersReplacedWithSpaces(firstName), nameWithSplittersReplacedWithSpaces(lastName)));
 
         return candidateNames;
     }
@@ -47,38 +54,41 @@ public class NameMatchingCandidatesGenerator {
         return name.replaceAll(NAME_SPLITTER_REGEX, "");
     }
 
-    private static String nameWithSplittersAsSpaces(String name) {
+    private static String nameWithSplittersReplacedWithSpaces(String name) {
         return name.replaceAll(NAME_SPLITTER_REGEX, " ");
     }
 
     private static List<String> generateCandidates(String firstName, String lastName) {
-        List<String> allNames = findAllNames(firstName, lastName);
-        validateSplitNames(allNames);
-        return NamePairRules.forNameCount(allNames.size())
+        List<String> fullListOfNames = splitIntoDistinctNames(firstName, lastName);
+        List<String> namesToUse = removeAdditionalNamesIfOverMax(fullListOfNames);
+
+        int numberOfNames = namesToUse.size();
+        return NamePairRules.forNameCount(numberOfNames)
                 .stream()
-                .map(namePairRule -> namePairRule.calculateName(allNames))
+                .map(namePairRule -> namePairRule.calculateName(namesToUse))
                 .collect(toList());
     }
 
-    private static void validateNames(String firstName, String lastName) {
-        if (isBlank(firstName) && isBlank(lastName)) {
-            throw new IllegalArgumentException("At least one name is required");
+    private static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {
+        int numberOfNames = incomingNames.size();
+
+        if (numberOfNames <= MAX_NAMES) {
+            return incomingNames;
         }
+
+        List<String> firstFourNames = incomingNames.subList(0, 4);
+        List<String> lastThreeNames = incomingNames.subList(numberOfNames - 3, numberOfNames);
+
+        return newArrayList(concat(firstFourNames, lastThreeNames));
     }
 
-    private static void validateSplitNames(List<String> allNames) {
-        if (allNames.size() > MAX_NAMES) {
-            throw new ApplicationExceptions.TooManyNamesException(String.format("Too many names: maximum is %d", MAX_NAMES));
-        }
-    }
+    private static List<String> splitIntoDistinctNames(String firstName, String lastName) {
+        List<String> names = new ArrayList<>();
 
-    private static List<String> findAllNames(String firstName, String lastName) {
-        List<String> allNames = new ArrayList<>();
+        names.addAll(splitIntoDistinctNames(firstName));
+        names.addAll(splitIntoDistinctNames(lastName));
 
-        allNames.addAll(splitIntoDistinctNames(firstName));
-        allNames.addAll(splitIntoDistinctNames(lastName));
-
-        return Collections.unmodifiableList(allNames);
+        return Collections.unmodifiableList(names);
     }
 
     private static List<String> splitIntoDistinctNames(String name) {

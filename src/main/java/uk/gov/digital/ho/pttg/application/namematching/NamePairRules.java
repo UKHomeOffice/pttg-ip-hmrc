@@ -60,12 +60,17 @@ public enum NamePairRules {
     }
 
     static List<NamePair> forNameCount(int nameCount) {
+        validateNameCount(nameCount);
+
         NamePairRules namePairRules = values()[nameCount - 1];
         return namePairRules.getNamePairs();
     }
 
-    static int getMaxNameCount() {
-        return values().length;
+    private static void validateNameCount(int nameCount) {
+        boolean isInvalidNameCount = (nameCount <= 0) || (nameCount > values().length);
+        if (isInvalidNameCount) {
+            throw new IllegalArgumentException(String.format("There are no name rules for `%d` number of names", nameCount));
+        }
     }
 
     List<NamePair> getNamePairs() {

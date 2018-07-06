@@ -3,7 +3,6 @@ package uk.gov.digital.ho.pttg.application.retry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator;
 
 import java.util.List;
@@ -182,8 +181,14 @@ public class NameMatchingCandidatesGeneratorTest {
         assertThat("The names should be correctly generated in the defined order", names.get(13), is("Coates O"));
     }
 
-    @Test(expected = ApplicationExceptions.TooManyNamesException.class)
-    public void shouldErrorIfMoreThanSevenNames() {
-        NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
+    @Test
+    public void shouldUseFirstFourAndLastThreeNamesIfOverSevenProvided() {
+        List<String> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
+
+        assertThat(candidateNames.size(), is(42));
+
+        for (String name : candidateNames) {
+            assertThat(name.contains("E"), is(false));
+        }
     }
 }
