@@ -14,6 +14,7 @@ import cucumber.api.java.en.And
 import cucumber.api.java.en.Given
 import cucumber.api.java.en.Then
 import cucumber.api.java.en.When
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import groovy.json.JsonOutput
 import net.serenitybdd.core.Serenity
 import org.apache.commons.io.IOUtils
@@ -40,6 +41,9 @@ import static java.time.format.DateTimeFormatter.ISO_DATE
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
 import static org.junit.Assert.*
 
+@SuppressFBWarnings([
+        "SE_NO_SERIALVERSIONID",
+        "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"])
 @ContextConfiguration
 @SpringBootTest(classes = ServiceRunner.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
