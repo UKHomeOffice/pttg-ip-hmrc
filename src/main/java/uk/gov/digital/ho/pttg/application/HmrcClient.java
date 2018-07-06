@@ -41,7 +41,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
-import static uk.gov.digital.ho.pttg.application.retry.NameMatchingCandidatesGenerator.generateCandidateNames;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator.generateCandidateNames;
 
 @Service
 @Slf4j

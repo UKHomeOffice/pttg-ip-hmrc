@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
+import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator;
 
 import java.util.List;
 
@@ -182,7 +183,7 @@ public class NameMatchingCandidatesGeneratorTest {
     }
 
     @Test(expected = ApplicationExceptions.TooManyNamesException.class)
-    public void shouldErrorIfMoreThanFiveNames() {
-        NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F");
+    public void shouldErrorIfMoreThanSevenNames() {
+        NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
     }
 }
