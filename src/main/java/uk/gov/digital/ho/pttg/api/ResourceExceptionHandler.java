@@ -13,9 +13,9 @@ import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.ProxyForbiddenException;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.TooManyNamesException;
 
 @ControllerAdvice
 @Slf4j
@@ -71,12 +71,6 @@ public class ResourceExceptionHandler {
     public ResponseEntity handle(HmrcNotFoundException e) {
         log.info("HmrcNotFoundException: {}", e);
         return new ResponseEntity<>(e.getMessage(), NOT_FOUND);
-    }
-
-    @ExceptionHandler(value = TooManyNamesException.class)
-    public ResponseEntity handle(TooManyNamesException e) {
-        log.info("TooManyNamesException: {}", e);
-        return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
     }
 
     @ExceptionHandler(value = ProxyForbiddenException.class)
