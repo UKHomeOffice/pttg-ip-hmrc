@@ -18,15 +18,11 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import groovy.json.JsonOutput
 import net.serenitybdd.core.Serenity
 import org.apache.commons.io.IOUtils
-import org.springframework.beans.BeansException
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
-import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationContextAware
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.web.servlet.DispatcherServlet
 import uk.gov.digital.ho.pttg.ServiceRunner
 import uk.gov.digital.ho.pttg.dto.Individual
 
@@ -52,7 +48,7 @@ import static org.junit.Assert.*
                 "base.hmrc.url=http://localhost:2222",
                 "base.hmrc.access.code.url=http://localhost:3333"
         ])
-class NameMatchingSteps implements ApplicationContextAware {
+class NameMatchingSteps {
     private static final RESPONSE_SESSION_KEY = "IndividualMatchingResponse"
     private static final IGNORE_JSON_ARRAY_ORDER = true
     private static final IGNORE_EXTRA_ELEMENTS = true
@@ -104,12 +100,6 @@ class NameMatchingSteps implements ApplicationContextAware {
                 .withStatus(200)))
     }
 
-    @Override
-    void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        DispatcherServlet dispatcherServlet = applicationContext.getBean("dispatcherServlet") as DispatcherServlet
-        dispatcherServlet.setThrowExceptionIfNoHandlerFound(true)
-    }
-
     @Given('^HMRC has the following individual records$')
     void hmrc_has_the_following_individual_records(DataTable dataTable) {
 
@@ -149,7 +139,6 @@ class NameMatchingSteps implements ApplicationContextAware {
         def response = given()
                 .basePath("/income")
                 .queryParameters(requestBody)
-                .log().all()
                 .get()
 
         def session = Serenity.getCurrentSession()
@@ -163,14 +152,14 @@ class NameMatchingSteps implements ApplicationContextAware {
 
         def matchingRequestsInOrder = getIndividualMatchingRequestsInOrder()
 
+        def numberOfExpectedRequests = individuals.size()
+        def numberOfActualRequests = matchingRequestsInOrder.size()
+        assertEquals("Unexpected number of requests to HMRC Individual Matching", numberOfExpectedRequests, numberOfActualRequests)
+
         matchingRequestsInOrder.eachWithIndex { request, index ->
             def expectedIndividual = individuals.get(index)
             verifyRequestContainsExpectedNames(request, expectedIndividual)
         }
-
-        def numberOfExpectedRequests = individuals.size()
-        def numberOfActualRequests = matchingRequestsInOrder.size()
-        assertEquals("", numberOfExpectedRequests, numberOfActualRequests)
     }
 
     private static void verifyRequestContainsExpectedNames(LoggedRequest loggedRequest, Individual expectedIndividual) {

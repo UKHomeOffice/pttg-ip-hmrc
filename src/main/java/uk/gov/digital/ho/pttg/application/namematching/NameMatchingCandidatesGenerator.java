@@ -45,7 +45,7 @@ public class NameMatchingCandidatesGenerator {
         List<String> candidateNames = new ArrayList<>();
 
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
-        candidateNames.addAll(generateCandidates(nameWithSplittersReplacedWithSpaces(firstName), nameWithSplittersReplacedWithSpaces(lastName)));
+        candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 
         return candidateNames;
     }
@@ -54,7 +54,7 @@ public class NameMatchingCandidatesGenerator {
         return name.replaceAll(NAME_SPLITTER_REGEX, "");
     }
 
-    private static String nameWithSplittersReplacedWithSpaces(String name) {
+    private static String nameWithSplittersReplacedBySpaces(String name) {
         return name.replaceAll(NAME_SPLITTER_REGEX, " ");
     }
 
@@ -96,8 +96,7 @@ public class NameMatchingCandidatesGenerator {
             return Collections.emptyList();
         }
 
-        String trimmedFirstName = name.trim();
-        String[] splitNames = trimmedFirstName.split("\\s+");
+        String[] splitNames = name.trim().split("\\s+");
 
         return Arrays.asList(splitNames);
     }
