@@ -44,11 +44,11 @@ public enum NamePairRules {
     )),
 
     SEVEN(ImmutableList.of(
-            NamePair.of(0, 6), NamePair.of(1, 6), NamePair.of(2, 6), NamePair.of(4, 6), NamePair.of(5, 6), NamePair.of(0, 1),
-            NamePair.of(0, 2), NamePair.of(0, 3), NamePair.of(0, 4), NamePair.of(0, 5), NamePair.of(1, 0), NamePair.of(1, 2),
-            NamePair.of(1, 3), NamePair.of(1, 4), NamePair.of(1, 5), NamePair.of(2, 0), NamePair.of(2, 1), NamePair.of(2, 3),
-            NamePair.of(2, 4), NamePair.of(2, 5), NamePair.of(3, 0), NamePair.of(3, 1), NamePair.of(3, 2), NamePair.of(3, 4),
-            NamePair.of(3, 5), NamePair.of(3, 6), NamePair.of(4, 0), NamePair.of(4, 1), NamePair.of(4, 2), NamePair.of(4, 3),
+            NamePair.of(0, 6), NamePair.of(1, 6), NamePair.of(2, 6), NamePair.of(3, 6), NamePair.of(4, 6), NamePair.of(5, 6),
+            NamePair.of(0, 1), NamePair.of(0, 2), NamePair.of(0, 3), NamePair.of(0, 4), NamePair.of(0, 5), NamePair.of(1, 0),
+            NamePair.of(1, 2), NamePair.of(1, 3), NamePair.of(1, 4), NamePair.of(1, 5), NamePair.of(2, 0), NamePair.of(2, 1),
+            NamePair.of(2, 3), NamePair.of(2, 4), NamePair.of(2, 5), NamePair.of(3, 0), NamePair.of(3, 1), NamePair.of(3, 2),
+            NamePair.of(3, 4), NamePair.of(3, 5), NamePair.of(4, 0), NamePair.of(4, 1), NamePair.of(4, 2), NamePair.of(4, 3),
             NamePair.of(4, 5), NamePair.of(5, 0), NamePair.of(5, 1), NamePair.of(5, 2), NamePair.of(5, 3), NamePair.of(5, 4),
             NamePair.of(6, 0), NamePair.of(6, 1), NamePair.of(6, 2), NamePair.of(6, 3), NamePair.of(6, 4), NamePair.of(6, 5)
     ));

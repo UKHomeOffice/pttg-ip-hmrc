@@ -16,6 +16,7 @@ Feature: Name matching with 7 name strings
       | Aaa        | Ggg       | 1987-12-10    | SE 123456 B |
       | Bbb        | Ggg       | 1987-12-10    | SE 123456 B |
       | Ccc        | Ggg       | 1987-12-10    | SE 123456 B |
+      | Ddd        | Ggg       | 1987-12-10    | SE 123456 B |
       | Eee        | Ggg       | 1987-12-10    | SE 123456 B |
       | Fff        | Ggg       | 1987-12-10    | SE 123456 B |
       | Aaa        | Bbb       | 1987-12-10    | SE 123456 B |
@@ -38,7 +39,6 @@ Feature: Name matching with 7 name strings
       | Ddd        | Ccc       | 1987-12-10    | SE 123456 B |
       | Ddd        | Eee       | 1987-12-10    | SE 123456 B |
       | Ddd        | Fff       | 1987-12-10    | SE 123456 B |
-      | Ddd        | Ggg       | 1987-12-10    | SE 123456 B |
       | Eee        | Aaa       | 1987-12-10    | SE 123456 B |
       | Eee        | Bbb       | 1987-12-10    | SE 123456 B |
       | Eee        | Ccc       | 1987-12-10    | SE 123456 B |
@@ -100,7 +100,7 @@ Feature: Name matching with 7 name strings
       | nino          | SE 123456 B                       |
 
     Then a Matched response will be returned from the service
-    And HMRC was called 5 times
+    And HMRC was called 6 times
 
 
   Scenario: applicant with a hyphenated name is matched on the concatenated version of the name
