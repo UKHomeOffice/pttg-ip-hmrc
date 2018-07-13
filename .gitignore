@@ -10,3 +10,4 @@ build
 version.properties
 classes
 out/
+*.iml
