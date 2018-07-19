@@ -47,7 +47,7 @@ public class AuditClient {
 
     public void add(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) {
 
-        log.info("POST data for {} to audit service");
+        log.info("POST data for {} to audit service", eventId);
 
         try {
             AuditableData auditableData = generateAuditableData(eventType, eventId, auditData);
