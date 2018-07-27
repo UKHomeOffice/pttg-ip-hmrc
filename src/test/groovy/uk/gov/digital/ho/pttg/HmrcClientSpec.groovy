@@ -1,13 +1,11 @@
 package uk.gov.digital.ho.pttg
 
-import org.springframework.http.HttpStatus
-import org.springframework.web.client.HttpServerErrorException
+
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import uk.gov.digital.ho.pttg.application.HmrcClient
 import uk.gov.digital.ho.pttg.application.NinoUtils
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer
-import uk.gov.digital.ho.pttg.dto.Individual
 
 import java.time.LocalDate
 
@@ -68,62 +66,6 @@ class HmrcClientSpec extends Specification {
             def link = client.buildLinkWithDateRangeQueryParams(FROM_DATE, null, ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS)
         then:
             link == HMRC_BASE_URL + '/individuals?fromDate=2016-06-21'
-    }
-
-    def "should rethrow exception when 500 response"() {
-
-        when:
-        client.getIncomeRetryFailureRecovery(
-                new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "test"),
-                "access token",
-                new Individual("some first name", "some surname", "some nino", LocalDate.now()),
-                null,
-                null)
-        then:
-        HttpServerErrorException e = thrown()
-        e.message == "502 test"
-    }
-
-    def "should rethrow exception when 400 response"() {
-
-        when:
-        client.getIncomeRetryFailureRecovery(
-                new HttpServerErrorException(HttpStatus.BAD_REQUEST, "test"),
-                "access token",
-                new Individual("some first name", "some surname", "some nino", LocalDate.now()),
-                null,
-                null)
-        then:
-        HttpServerErrorException e = thrown()
-        e.message == "400 test"
-    }
-
-    def "should rethrow exception when Unauthorised response (401)"() {
-
-        when:
-        client.getIncomeRetryFailureRecovery(
-                new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "test"),
-                "access token",
-                new Individual("some first name", "some surname", "some nino", LocalDate.now()),
-                null,
-                null)
-        then:
-        HttpServerErrorException e = thrown()
-        e.message == "401 test"
-    }
-
-    def "should rethrow exception when Not Found response (404)"() {
-
-        when:
-        client.getIncomeRetryFailureRecovery(
-                new HttpServerErrorException(HttpStatus.NOT_FOUND, "test"),
-                "access token",
-                new Individual("some first name", "some surname", "some nino", LocalDate.now()),
-                null,
-                null)
-        then:
-        HttpServerErrorException e = thrown()
-        e.message == "404 test"
     }
 
     def 'should return tax Year from Date'() {
