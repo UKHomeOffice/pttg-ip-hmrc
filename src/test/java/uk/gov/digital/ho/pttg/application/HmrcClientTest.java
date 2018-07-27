@@ -313,7 +313,6 @@ public class HmrcClientTest {
 
     }
 
-
     @Test(expected = HttpClientErrorException.class)
     public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
         NinoUtils anyNinoUtils = new NinoUtils();
@@ -346,7 +345,6 @@ public class HmrcClientTest {
 
     @Test
     public void shouldThrowProxyForbiddenExceptionWhenForbiddenFromProxy() {
-        // given
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(new HttpClientErrorException(FORBIDDEN));
 
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
@@ -354,50 +352,8 @@ public class HmrcClientTest {
         LocalDate now = LocalDate.now();
         Individual testIndividual = new Individual("somefirstname", "somelastname", "some nino", now);
 
-        // when
         assertThatThrownBy(() -> hmrcClient.getIncomeSummary("some access token", testIndividual, now, now))
                 .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
     }
 
-    @Test
-    public void shouldRethrowOnHmrcNotFoundExceptionRecovery() {
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
-
-        HmrcNotFoundException exception = new HmrcNotFoundException("some message");
-        String someAccessToken = "some access token";
-        LocalDate now = LocalDate.now();
-        Individual someIndividual = new Individual("","","", now);
-
-        assertThatThrownBy(() -> hmrcClient.getIncomeRetryFailureRecovery(exception, someAccessToken, someIndividual, now, now))
-                .isInstanceOf(HmrcNotFoundException.class)
-                .isEqualTo(exception);
-    }
-
-    @Test
-    public void shouldRethrowOnHmrcUnauthorisedExceptionRecovery() {
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
-
-        HmrcUnauthorisedException exception = new HmrcUnauthorisedException("some message");
-        String someAccessToken = "some access token";
-        LocalDate now = LocalDate.now();
-        Individual someIndividual = new Individual("","","", now);
-
-        assertThatThrownBy(() -> hmrcClient.getIncomeRetryFailureRecovery(exception, someAccessToken, someIndividual, now, now))
-                .isInstanceOf(HmrcUnauthorisedException.class)
-                .isEqualTo(exception);
-    }
-
-    @Test
-    public void shouldRethrowOnRuntimeExceptionRecovery() {
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
-
-        RuntimeException exception = new RuntimeException("some message");
-        String someAccessToken = "some access token";
-        LocalDate now = LocalDate.now();
-        Individual someIndividual = new Individual("","","", now);
-
-        assertThatThrownBy(() -> hmrcClient.getIncomeRetryFailureRecovery(exception, someAccessToken, someIndividual, now, now))
-                .isInstanceOf(RuntimeException.class)
-                .isEqualTo(exception);
-    }
 }

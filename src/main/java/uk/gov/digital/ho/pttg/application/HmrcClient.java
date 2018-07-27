@@ -9,9 +9,11 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.client.Traverson;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -96,7 +99,6 @@ public class HmrcClient {
 
     @Retryable(
             include = {HttpServerErrorException.class},
-            exclude = {HttpClientErrorException.class, HmrcUnauthorisedException.class, HmrcNotFoundException.class},
             maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
             backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate) {
@@ -153,24 +155,6 @@ public class HmrcClient {
         return paymentFrequency;
     }
 
-    @Recover
-    IncomeSummary getIncomeRetryFailureRecovery(HmrcNotFoundException e, String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
-        log.error("Failed to retrieve HMRC data for {} - not matched", ninoUtils.redact(individual.getNino()));
-        throw (e);
-    }
-
-    @Recover
-    IncomeSummary getIncomeRetryFailureRecovery(HmrcUnauthorisedException e, String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
-        log.error("Failed to retrieve HMRC data for {} - not authorised", ninoUtils.redact(individual.getNino()));
-        throw (e);
-    }
-
-    @Recover
-    IncomeSummary getIncomeRetryFailureRecovery(RuntimeException e, String accessToken, Individual individual, LocalDate fromDate, LocalDate toDate) {
-        log.error("Failed to retrieve HMRC data for {} - {}", ninoUtils.redact(individual.getNino()), e.getMessage());
-        throw (e);
-    }
-
     private List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         Resource<PayeIncome> incomeResource =
@@ -218,8 +202,8 @@ public class HmrcClient {
 
     private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_DATE, fromDate.format(DateTimeFormatter.ISO_DATE));
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
+        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_DATE, fromDate.format(DateTimeFormatter.ISO_DATE));
         if (toDate != null) {
             uri = withFromDate.queryParam(QUERY_PARAM_TO_DATE, toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
         } else {
@@ -230,8 +214,8 @@ public class HmrcClient {
 
     private String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
-        final UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        final UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
+        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
         if (toDate != null) {
             uri = withFromDate.queryParam(QUERY_PARAM_TO_TAX_YEAR, getTaxYear(toDate)).build().toUriString();
         } else {
@@ -290,10 +274,13 @@ public class HmrcClient {
     }
 
     private boolean isHmrcMatchFailedError(HttpClientErrorException exception) {
+
         HttpStatus statusCode = exception.getStatusCode();
+
         if (!statusCode.equals(FORBIDDEN)) {
             return  false;
         }
+
         return exception.getResponseBodyAsString().contains("MATCHING_FAILED");
     }
 
@@ -314,7 +301,7 @@ public class HmrcClient {
 
         String url = asAbsolute(link.getHref());
         log.info("GET Individual Resource for {} from {}", nino, url);
-        Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), individualResourceTypeRef).getBody();
+        Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), individualResourceTypeRef).getBody();
         log.info("Individual Response has been received for {}", nino);
 
         return resource;
@@ -324,7 +311,7 @@ public class HmrcClient {
 
         String url = asAbsolute(link.getHref());
         log.info("GET Income Resource for {} from {}", nino, url);
-        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("Income Response has been received for {}", nino);
 
         return resource;
@@ -334,7 +321,7 @@ public class HmrcClient {
 
         String url = asAbsolute(link.getHref());
         log.info("GET Employment Resource for {} from {}", nino, url);
-        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("Employment Response has been received for {}", nino);
 
         return resource;
@@ -352,31 +339,32 @@ public class HmrcClient {
 
         log.info("GET SA Resource for {} from {}", nino, url);
 
-        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createHeadersEntity(accessToken), linksResourceTypeRef).getBody();
+        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("SA Response has been received for {}", nino);
 
         return resource;
     }
 
     private String asAbsolute(String uri) {
+
         if (uri.startsWith("http")) {
             return uri;
         }
+
         return hmrcUrl + uri;
     }
 
+    // TODO: Can this method produce an entity with CORRELATION_ID header? If so, can combine createEntityWithHeadersWithoutBody
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, hmrcApiVersion);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
+        headers.add(ACCEPT, hmrcApiVersion);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity<>(individual, headers);
     }
 
-    private HttpEntity createHeadersEntity(String accessToken) {
+    private HttpEntity createEntityWithHeadersWithoutBody(String accessToken) {
         HttpHeaders headers = generateHeaders();
-        headers.add(HttpHeaders.ACCEPT, hmrcApiVersion);
-        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("Authorization", format("Bearer %s", accessToken));
         return new HttpEntity<>(null, headers);
     }
@@ -389,8 +377,8 @@ public class HmrcClient {
 
     private HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ACCEPT, hmrcApiVersion);
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        headers.setContentType(APPLICATION_JSON);
+        headers.add(ACCEPT, hmrcApiVersion);
         headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
         headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
         return headers;

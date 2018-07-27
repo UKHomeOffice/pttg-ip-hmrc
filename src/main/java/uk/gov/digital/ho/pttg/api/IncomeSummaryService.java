@@ -31,10 +31,11 @@ public class IncomeSummaryService {
 
     @Autowired
     public IncomeSummaryService(
-            final HmrcClient hmrcClient,
-            final HmrcAccessCodeClient accessCodeClient,
-            final AuditClient auditClient,
-            @Value("${hmrc.retry.unauthorized.attempts}") final int hmrcUnauthorizedRetryAttempts) {
+            HmrcClient hmrcClient,
+            HmrcAccessCodeClient accessCodeClient,
+            AuditClient auditClient,
+            @Value("${hmrc.retry.unauthorized.attempts}") int hmrcUnauthorizedRetryAttempts) {
+
         this.hmrcClient = hmrcClient;
         this.accessCodeClient = accessCodeClient;
         this.auditClient = auditClient;
@@ -43,22 +44,25 @@ public class IncomeSummaryService {
         this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
     }
 
-    public IncomeSummary getIncomeSummary(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
+    public IncomeSummary getIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
         return requestIncomeSummaryWithRetries(individual, fromDate, toDate);
     }
 
-    private IncomeSummary requestIncomeSummaryWithRetries(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
+    private IncomeSummary requestIncomeSummaryWithRetries(Individual individual, LocalDate fromDate, LocalDate toDate) {
+
+        // TODO: this changes the state of the singleton - should initialise the bean with this retry policy
         retryTemplate.setRetryPolicy(new UnauthorizedHttpClientErrorExceptionRetryPolicy(hmrcUnauthorizedRetryAttempts));
+
         return retryTemplate.execute(context -> {
             log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
             return requestIncomeSummary(individual, fromDate, toDate);
         });
     }
 
-    private IncomeSummary requestIncomeSummary(final Individual individual, final LocalDate fromDate, final LocalDate toDate) {
+    private IncomeSummary requestIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
         auditRequestToHmrc(individual);
 
-        final String accessCode = requestAccessCode();
+        String accessCode = requestAccessCode();
         return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate);
     }
 
@@ -66,7 +70,7 @@ public class IncomeSummaryService {
         return accessCodeClient.getAccessCode();
     }
 
-    private void auditRequestToHmrc(final Individual individual) {
+    private void auditRequestToHmrc(Individual individual) {
         final UUID eventId = UUID.randomUUID();
         final AuditIndividualData auditIndividualData = new AuditIndividualData(GET_HMRC_DATA_METHOD, individual);
 
