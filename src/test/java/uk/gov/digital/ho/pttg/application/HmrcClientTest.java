@@ -1,12 +1,22 @@
 package uk.gov.digital.ho.pttg.application;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
@@ -21,8 +31,9 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -40,6 +51,18 @@ public class HmrcClientTest {
 
     @Mock
     private NameNormalizer mockNameNormalizer;
+    @Mock
+    private Appender<ILoggingEvent> mockAppender;
+    @Mock
+    private ResponseEntity mockResponse;
+    private Individual individual = new Individual("John", "Smith", "12345677", LocalDate.of(2018, 7, 30));
+
+    @Before
+    public void setup() {
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcClient.class);
+        rootLogger.setLevel(Level.INFO);
+        rootLogger.addAppender(mockAppender);
+    }
 
     @Test
     public void shouldProduceEmptyMap() {
@@ -49,6 +72,87 @@ public class HmrcClientTest {
         Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
 
         assertThat(p).isEmpty();
+    }
+
+    @Test
+    public void shouldLogInfoBeforeMatchingRequestSent() {
+        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+
+        client.getMatchResource(individual, "", "testurl");
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Match Individual 12345*** via a POST to testurl") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoAfterMatchingRequestSent() {
+        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+
+        client.getMatchResource(individual, "", "testurl");
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Successfully matched individual 12345***") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+        }));
+    }
+    @Test
+    public void shouldLogInfoAfterMatchingFailure() {
+        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
+                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(), null)
+        );
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+
+        try {
+            client.getMatchResource(individual, "", "testurl");
+        }
+        catch (HmrcNotFoundException e) {
+            // Swallowed as not of interest for this test.
+        }
+
+        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Failed to match individual 12345***") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoForEveryMatchingAttempt() {
+        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
+                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(), null)
+        );
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+
+
+        try {
+            client.getMatchResource(individual, "", "testurl");
+        }
+        catch (HmrcNotFoundException e) {
+            // Swallowed as not of interest for this test.
+        }
+
+        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Match attempt 1 of 2") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+        }));
+
+        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Match attempt 2 of 2") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+        }));
     }
 
     @Test
