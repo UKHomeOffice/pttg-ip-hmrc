@@ -307,7 +307,8 @@ public class HmrcClientTest {
                     "ACCESS_TOKEN",
                     new Individual("first", "last", "nino", LocalDate.now()),
                     LocalDate.now(),
-                    LocalDate.now()
+                    LocalDate.now(),
+                    new IncomeSummaryContext()
             );
         }).isInstanceOf(HmrcUnauthorisedException.class);
 
@@ -324,7 +325,7 @@ public class HmrcClientTest {
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
-        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
+        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now, new IncomeSummaryContext());
     }
 
     @Test(expected = HmrcNotFoundException.class)
@@ -340,7 +341,7 @@ public class HmrcClientTest {
         HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
-        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now);
+        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now, new IncomeSummaryContext());
     }
 
     @Test
@@ -352,7 +353,7 @@ public class HmrcClientTest {
         LocalDate now = LocalDate.now();
         Individual testIndividual = new Individual("somefirstname", "somelastname", "some nino", now);
 
-        assertThatThrownBy(() -> hmrcClient.getIncomeSummary("some access token", testIndividual, now, now))
+        assertThatThrownBy(() -> hmrcClient.getIncomeSummary("some access token", testIndividual, now, now, new IncomeSummaryContext()))
                 .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
     }
 
