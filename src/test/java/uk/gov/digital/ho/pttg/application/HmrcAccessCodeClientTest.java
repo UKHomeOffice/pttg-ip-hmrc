@@ -1,5 +1,11 @@
 package uk.gov.digital.ho.pttg.application;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.HttpHostConnectException;
 import org.junit.Before;
@@ -9,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -32,7 +39,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcAccessCodeClientTest {
     private static final String ACCESS_CODE_URL = "https://localhost:9876";
-    private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final int MAX_RETRY_ATTEMPTS = 5;
     private static final long RETRY_DELAY_IN_MILLIS = 0L;
     private static final String TEST_ACCESS_CODE = "Test Access Code";
 
@@ -44,6 +51,9 @@ public class HmrcAccessCodeClientTest {
 
     @Mock
     private AccessCode mockAccessCode;
+
+    @Mock
+    private Appender<ILoggingEvent> mockAppender;
 
     @Captor
     private ArgumentCaptor<HttpEntity> httpEntityCaptor;
@@ -168,6 +178,28 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
+    public void shouldLogRetryOnServerError() {
+        final String exceptionMessage = "ExceptionMessage";
+        when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
+                .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR, exceptionMessage));
+
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcAccessCodeClient.class);
+        rootLogger.setLevel(Level.INFO);
+        rootLogger.addAppender(mockAppender);
+
+        try {
+            accessCodeClient.getAccessCode();
+        } catch (final HttpServerErrorException e) {
+            // Ignore expected exception
+        }
+
+        verifyHmrcAccessCodeCallMessage("Attempting to fetch the latest access code. Attempt number 1 of 5");
+        verifyHmrcAccessCodeCallMessage("Attempting to fetch the latest access code. Attempt number 2 of 5");
+        verifyHmrcAccessCodeCallMessage("Attempting to fetch the latest access code. Attempt number 3 of 5");
+        verifyHmrcAccessCodeCallMessage("Attempting to fetch the latest access code. Attempt number 4 of 5");
+        verifyHmrcAccessCodeCallMessage("Attempting to fetch the latest access code. Attempt number 5 of 5");
+    }
+    @Test
     public void shouldSucceedAfterHttpServerErrorExceptionRetryAttempt() {
         // given
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
@@ -232,5 +264,14 @@ public class HmrcAccessCodeClientTest {
 
     private ResponseEntity<AccessCode> okResponse() {
         return new ResponseEntity<>(mockAccessCode, HttpStatus.OK);
+    }
+
+    private void verifyHmrcAccessCodeCallMessage(String message) {
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals(message) &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+        }));
     }
 }

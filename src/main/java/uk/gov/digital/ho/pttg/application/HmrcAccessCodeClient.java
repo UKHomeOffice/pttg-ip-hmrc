@@ -17,10 +17,13 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 import java.net.URI;
 
 import static java.util.Objects.isNull;
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_API_CALL_ATTEMPT;
 
 @Component
 @Slf4j
@@ -31,6 +34,7 @@ public class HmrcAccessCodeClient {
     private final URI accessUri;
     private final RequestData requestData;
     private final RetryTemplate retryTemplate;
+    private final int maxRetryAttempts;
 
     public HmrcAccessCodeClient(final RestTemplate restTemplate,
                                 final RequestData requestData,
@@ -41,7 +45,8 @@ public class HmrcAccessCodeClient {
         this.accessUri = URI.create(baseAccessCodeUrl).resolve(ACCESS_ENDPOINT_PATH);
         this.requestData = requestData;
 
-        this.retryTemplate = new RetryTemplateBuilder(maxRetryAttempts)
+        this.maxRetryAttempts = maxRetryAttempts;
+        this.retryTemplate = new RetryTemplateBuilder(this.maxRetryAttempts)
                 .retryHttpServerErrors()
                 .retryConnectionRefusedErrors()
                 .withBackOffPeriod(retryDelayInMillis)
@@ -55,7 +60,8 @@ public class HmrcAccessCodeClient {
 
     private String getAccessCodeWithRetries() {
         return this.retryTemplate.execute(context -> {
-            log.info("Attempting to fetch the latest access code. Attempt number #{}", context.getRetryCount() + 1);
+            log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,
+                    value(EVENT, HMRC_API_CALL_ATTEMPT));
 
             return requestAccessCode().getCode();
         });
