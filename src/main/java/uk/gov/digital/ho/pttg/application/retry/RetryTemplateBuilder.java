@@ -4,10 +4,13 @@ import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.retry.RetryListener;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.backoff.NoBackOffPolicy;
+import org.springframework.retry.backoff.StatelessBackOffPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +22,14 @@ public class RetryTemplateBuilder {
     private final int maxAttempts;
     private final List<RetryPolicy> retryPolicyList;
     private final List<RetryListener> retryListenerList;
-    private FixedBackOffPolicy backOffPolicy;
+    private StatelessBackOffPolicy backOffPolicy;
 
     public RetryTemplateBuilder(final int maxAttempts) {
         this.maxAttempts = maxAttempts;
         this.retryPolicyList = new ArrayList<>();
         this.retryListenerList = new ArrayList<>();
+
+        backOffPolicy = new NoBackOffPolicy();
     }
 
     public RetryTemplateBuilder retryHttpServerErrors() {
@@ -42,8 +47,9 @@ public class RetryTemplateBuilder {
     }
 
     public RetryTemplateBuilder withBackOffPeriod(final long retryDelayInMillis) {
-        backOffPolicy = new FixedBackOffPolicy();
-        backOffPolicy.setBackOffPeriod(retryDelayInMillis);
+        FixedBackOffPolicy fixedBackoffPolicy = new FixedBackOffPolicy();
+        fixedBackoffPolicy.setBackOffPeriod(retryDelayInMillis);
+        this.backOffPolicy = fixedBackoffPolicy;
 
         return this;
     }
@@ -79,5 +85,11 @@ public class RetryTemplateBuilder {
 
     private RetryPolicy[] getRetryPolicies() {
         return this.retryPolicyList.toArray(new RetryPolicy[0]);
+    }
+
+    public RetryTemplateBuilder retryHmrcUnauthorisedException() {
+        final SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxAttempts, singletonMap(ApplicationExceptions.HmrcUnauthorisedException.class, TRUE));
+        retryPolicyList.add(retryPolicy);
+        return this;
     }
 }

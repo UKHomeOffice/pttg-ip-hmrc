@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
-import uk.gov.digital.ho.pttg.application.retry.UnauthorizedHttpClientErrorExceptionRetryPolicy;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
@@ -48,13 +47,16 @@ public class IncomeSummaryService {
         this.accessCodeClient = accessCodeClient;
         this.auditClient = auditClient;
 
-        this.reauthorisingRetryTemplate = new RetryTemplate();
         this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
+        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
+
+        this.reauthorisingRetryTemplate = new RetryTemplateBuilder(this.hmrcUnauthorizedRetryAttempts)
+                .retryHmrcUnauthorisedException()
+                .build();
         this.apiFailureRetryTemplate = new RetryTemplateBuilder(this.hmrcApiFailureRetryAttempts)
                 .withBackOffPeriod(retryDelay)
                 .retryHttpServerErrors()
                 .build();
-        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
     }
 
     public IncomeSummary getIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
@@ -62,9 +64,6 @@ public class IncomeSummaryService {
     }
 
     private IncomeSummary requestIncomeSummaryWithRetries(Individual individual, LocalDate fromDate, LocalDate toDate) {
-
-        // TODO: this changes the state of the singleton - should initialise the bean with this retry policy
-        reauthorisingRetryTemplate.setRetryPolicy(new UnauthorizedHttpClientErrorExceptionRetryPolicy(hmrcUnauthorizedRetryAttempts));
 
         return reauthorisingRetryTemplate.execute(context -> {
             log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
