@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -26,6 +27,8 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 
 import java.net.ConnectException;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -41,16 +44,14 @@ public class HmrcAccessCodeClientTest {
     private static final String ACCESS_CODE_URL = "https://localhost:9876";
     private static final int MAX_RETRY_ATTEMPTS = 5;
     private static final long RETRY_DELAY_IN_MILLIS = 0L;
-    private static final String TEST_ACCESS_CODE = "Test Access Code";
+    private static final String SOME_ACCESS_CODE = "Some Access Code";
+    private static final AccessCode someAccessCode = new AccessCode(SOME_ACCESS_CODE, LocalDateTime.MAX);
 
     @Mock
     private RestTemplate mockRestTemplate;
 
     @Mock
     private RequestData mockRequestData;
-
-    @Mock
-    private AccessCode mockAccessCode;
 
     @Mock
     private Appender<ILoggingEvent> mockAppender;
@@ -94,8 +95,6 @@ public class HmrcAccessCodeClientTest {
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
                 .thenReturn(okResponse());
 
-        when(mockAccessCode.getCode()).thenReturn(TEST_ACCESS_CODE);
-
         // when
         final String actualAccessCode = accessCodeClient.getAccessCode();
 
@@ -103,7 +102,7 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         verifyNoMoreInteractions(mockRestTemplate);
 
-        assertThat(actualAccessCode).isEqualTo(TEST_ACCESS_CODE);
+        assertThat(actualAccessCode).isEqualTo(SOME_ACCESS_CODE);
     }
 
     @Test
@@ -206,8 +205,6 @@ public class HmrcAccessCodeClientTest {
                 .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR, "ExceptionMessage"))
                 .thenReturn(okResponse());
 
-        when(mockAccessCode.getCode()).thenReturn(TEST_ACCESS_CODE);
-
         // when
         final String accessCode = accessCodeClient.getAccessCode();
 
@@ -215,7 +212,7 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate, times(2)).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         verifyNoMoreInteractions(mockRestTemplate);
 
-        assertThat(accessCode).isEqualTo(TEST_ACCESS_CODE);
+        assertThat(accessCode).isEqualTo(SOME_ACCESS_CODE);
     }
 
     @Test
@@ -245,8 +242,6 @@ public class HmrcAccessCodeClientTest {
                 .thenThrow(connectionRefusedException("ExceptionMessage"))
                 .thenReturn(okResponse());
 
-        when(mockAccessCode.getCode()).thenReturn(TEST_ACCESS_CODE);
-
         // when
         final String accessCode = accessCodeClient.getAccessCode();
 
@@ -254,7 +249,60 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate, times(2)).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         verifyNoMoreInteractions(mockRestTemplate);
 
-        assertThat(accessCode).isEqualTo(TEST_ACCESS_CODE);
+        assertThat(accessCode).isEqualTo(SOME_ACCESS_CODE);
+    }
+
+    @Test
+    public void shouldUseCachedAccessCode() {
+        final AccessCode cachedAccessCode = new AccessCode("cachedAccessCode", LocalDateTime.MAX);
+        ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(cachedAccessCode));
+
+        String actualAccessCode = accessCodeClient.getAccessCode();
+
+        verifyZeroInteractions(mockRestTemplate);
+        assertThat(actualAccessCode).isEqualTo(cachedAccessCode.getCode());
+    }
+
+    @Test
+    public void shouldGenerateNewAccessCodeIfNotCached() {
+        final AccessCode generatedAccessCode = new AccessCode("generatedAccessCode", LocalDateTime.MAX);
+        when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
+                .thenReturn(okResponse(generatedAccessCode));
+
+        String actualAccessCode = accessCodeClient.getAccessCode();
+
+        verify(mockRestTemplate).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
+        assertThat(actualAccessCode).isEqualTo(generatedAccessCode.getCode());
+    }
+
+    @Test
+    public void shouldRegenerateExpiredAccessCode() {
+        final AccessCode cachedAccessCode = new AccessCode("cachedAccessCode", LocalDateTime.now().minusSeconds(1));
+        ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(cachedAccessCode));
+        final AccessCode generatedAccessCode = new AccessCode("generatedAccessCode", LocalDateTime.MAX);
+        when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
+                .thenReturn(okResponse(generatedAccessCode));
+
+        String actualAccessCode = accessCodeClient.getAccessCode();
+
+        verify(mockRestTemplate).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
+        assertThat(actualAccessCode).isEqualTo(generatedAccessCode.getCode());
+    }
+
+    @Test
+    public void shouldCacheAccessCodeAfterRegeneration() {
+        final AccessCode cachedAccessCode = new AccessCode("cachedAccessCode", LocalDateTime.now().minusSeconds(1));
+        ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(cachedAccessCode));
+        final AccessCode generatedAccessCode = new AccessCode("generatedAccessCode", LocalDateTime.MAX);
+        when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
+                .thenReturn(okResponse(generatedAccessCode));
+
+        String actualAccessCode = accessCodeClient.getAccessCode();
+        String actualAccessCode2 = accessCodeClient.getAccessCode();
+
+        verify(mockRestTemplate).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
+        assertThat(actualAccessCode).isEqualTo(generatedAccessCode.getCode());
+        assertThat(actualAccessCode2).isEqualTo(generatedAccessCode.getCode());
     }
 
     private ResourceAccessException connectionRefusedException(final String exceptionMessage) {
@@ -263,7 +311,11 @@ public class HmrcAccessCodeClientTest {
     }
 
     private ResponseEntity<AccessCode> okResponse() {
-        return new ResponseEntity<>(mockAccessCode, HttpStatus.OK);
+        return okResponse(someAccessCode);
+    }
+
+    private ResponseEntity<AccessCode> okResponse(AccessCode accessCode) {
+        return new ResponseEntity<>(accessCode, HttpStatus.OK);
     }
 
     private void verifyHmrcAccessCodeCallMessage(String message) {
