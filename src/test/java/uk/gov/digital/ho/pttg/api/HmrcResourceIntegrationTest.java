@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -557,7 +558,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     private String buildOauthResponse() throws JsonProcessingException {
-        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, null));
+        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, LocalDateTime.MAX));
     }
 
     private String buildMatchResponse() throws IOException {
