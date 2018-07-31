@@ -13,11 +13,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
@@ -99,10 +96,6 @@ public class HmrcClient {
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
-    @Retryable(
-            include = {HttpServerErrorException.class},
-            maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
-            backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate) {
 
         String redactedNino = ninoUtils.redact(suppliedIndividual.getNino());

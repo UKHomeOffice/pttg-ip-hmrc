@@ -16,26 +16,26 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonMap;
 
 public class RetryTemplateBuilder {
-    private final int maxRetryAttempts;
+    private final int maxAttempts;
     private final List<RetryPolicy> retryPolicyList;
     private final List<RetryListener> retryListenerList;
     private FixedBackOffPolicy backOffPolicy;
 
-    public RetryTemplateBuilder(final int maxRetryAttempts) {
-        this.maxRetryAttempts = maxRetryAttempts;
+    public RetryTemplateBuilder(final int maxAttempts) {
+        this.maxAttempts = maxAttempts;
         this.retryPolicyList = new ArrayList<>();
         this.retryListenerList = new ArrayList<>();
     }
 
     public RetryTemplateBuilder retryHttpServerErrors() {
-        final SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(maxRetryAttempts, singletonMap(HttpServerErrorException.class, TRUE));
+        final SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(maxAttempts, singletonMap(HttpServerErrorException.class, TRUE));
         retryPolicyList.add(simpleRetryPolicy);
 
         return this;
     }
 
     public RetryTemplateBuilder retryConnectionRefusedErrors() {
-        final SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(maxRetryAttempts, singletonMap(HttpHostConnectException.class, TRUE), true);
+        final SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(maxAttempts, singletonMap(HttpHostConnectException.class, TRUE), true);
         retryPolicyList.add(simpleRetryPolicy);
 
         return this;
