@@ -14,7 +14,6 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
@@ -31,7 +30,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 
 @RunWith(SpringRunner.class)
@@ -68,25 +68,7 @@ public class HmrcClientRetryTest {
     private HmrcClient hmrcClient;
 
     @Test
-    public void shouldNotRetryHttpClientErrorException() {
-
-        String someAccessToken = "some access token";
-        LocalDate dob = LocalDate.of(1990,1,1);
-        Individual someIndividual = new Individual("first", "last", "nino", dob);
-        LocalDate from = LocalDate.of(2018, 4, 4);
-        LocalDate to = LocalDate.of(2018, 6, 30);
-
-        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-            .willThrow((new HttpClientErrorException(BAD_GATEWAY)));
-
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
-                .isInstanceOf(HttpClientErrorException.class);
-
-        verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
-    }
-
-    @Test
-    public void shouldNotRetryHttpClientErrorException_403_Not_MATCHING_FAILED() {
+    public void shouldThrowProxyForbiddenExceptionOn_403_Not_MATCHING_FAILED() {
 
         String someAccessToken = "some access token";
         LocalDate dob = LocalDate.of(1990,1,1);
@@ -104,7 +86,7 @@ public class HmrcClientRetryTest {
     }
 
     @Test
-    public void shouldNotRetryHttpClientErrorException_403_MATCHING_FAILED() {
+    public void shouldThrowHmrcNotFoundExceptionOn_403_MATCHING_FAILED() {
 
         String someAccessToken = "some access token";
         LocalDate dob = LocalDate.of(1990,1,1);
@@ -124,7 +106,7 @@ public class HmrcClientRetryTest {
     }
 
     @Test
-    public void shouldNotRetryHttpClientErrorException_401() {
+    public void shouldThrowHmrcUnauthorisedExceptionOn_HttpClientErrorException401() {
 
         String someAccessToken = "some access token";
         LocalDate dob = LocalDate.of(1990,1,1);
@@ -139,60 +121,6 @@ public class HmrcClientRetryTest {
                 .isInstanceOf(HmrcUnauthorisedException.class);
 
         verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
-    }
-
-    @Test
-    public void shouldNotRetryHmrcUnauthorisedException() {
-
-        String someAccessToken = "some access token";
-        LocalDate dob = LocalDate.of(1990,1,1);
-        Individual someIndividual = new Individual("first", "last", "nino", dob);
-        LocalDate from = LocalDate.of(2018, 4, 4);
-        LocalDate to = LocalDate.of(2018, 6, 30);
-
-        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-            .willThrow(HmrcUnauthorisedException.class);
-
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
-                .isInstanceOf(HmrcUnauthorisedException.class);
-
-        verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
-    }
-
-    @Test
-    public void shouldNotRetryHmrcNotFoundException() {
-
-        String someAccessToken = "some access token";
-        LocalDate dob = LocalDate.of(1990,1,1);
-        Individual someIndividual = new Individual("first", "last", "nino", dob);
-        LocalDate from = LocalDate.of(2018, 4, 4);
-        LocalDate to = LocalDate.of(2018, 6, 30);
-
-        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .willThrow(HmrcNotFoundException.class);
-
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
-                .isInstanceOf(HmrcNotFoundException.class);
-
-        verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
-    }
-
-    @Test
-    public void shouldRetryHttpServerErrorException() {
-
-        String someAccessToken = "some access token";
-        LocalDate dob = LocalDate.of(1990,1,1);
-        Individual someIndividual = new Individual("first", "last", "nino", dob);
-        LocalDate from = LocalDate.of(2018, 4, 4);
-        LocalDate to = LocalDate.of(2018, 6, 30);
-
-        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .willThrow(HttpServerErrorException.class);
-
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
-                .isInstanceOf(HttpServerErrorException.class);
-
-        verify(mockRestTemplate, times(3)).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
     }
 
 }

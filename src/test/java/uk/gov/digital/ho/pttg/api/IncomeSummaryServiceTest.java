@@ -17,7 +17,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.ProxyForbiddenException;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
@@ -181,7 +183,7 @@ public class IncomeSummaryServiceTest {
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
         when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
-                .thenThrow(new ApplicationExceptions.HmrcUnauthorisedException("test"))
+                .thenThrow(new HmrcUnauthorisedException("test"))
                 .thenReturn(mockIncomeSummary);
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
@@ -310,6 +312,58 @@ public class IncomeSummaryServiceTest {
         }
         // Verify api retry
         verify(mockHmrcClient, times(MAX_API_CALL_ATTEMPTS)).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+
+        verify(mockAccessCodeClient).getAccessCode();
+        verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
+        verifyNoMoreInteractions(mockAccessCodeClient, mockAuditClient, mockHmrcClient, mockIncomeSummary);
+    }
+
+    @Test
+    public void shouldNotRetryApiCallOnHmrcNotFoundException() {
+        // given
+        final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
+        final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
+
+        when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
+                .thenThrow(new HmrcNotFoundException("message"));
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
+
+        // when
+        try {
+            incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+        } catch (HmrcNotFoundException e) {
+            // Ignore expected exception
+        }
+        // Verify api retry
+        verify(mockHmrcClient, times(1)).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
+
+        verify(mockAccessCodeClient).getAccessCode();
+        verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
+        verifyNoMoreInteractions(mockAccessCodeClient, mockAuditClient, mockHmrcClient, mockIncomeSummary);
+    }
+
+    @Test
+    public void shouldNotRetryApiCallOnHmrcProxyForbiddenException() {
+        // given
+        final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
+        final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
+
+        when(mockAccessCodeClient.getAccessCode()).thenReturn(TEST_ACCESS_CODE);
+        when(mockHmrcClient.getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate))
+                .thenThrow(new ProxyForbiddenException("message"));
+        when(mockIndividual.getFirstName()).thenReturn("Arthur");
+        when(mockIndividual.getLastName()).thenReturn("Bobbins");
+
+        // when
+        try {
+            incomeSummaryService.getIncomeSummary(mockIndividual, fromDate, toDate);
+        } catch (ProxyForbiddenException e) {
+            // Ignore expected exception
+        }
+        // Verify api retry
+        verify(mockHmrcClient, times(1)).getIncomeSummary(TEST_ACCESS_CODE, mockIndividual, fromDate, toDate);
 
         verify(mockAccessCodeClient).getAccessCode();
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));

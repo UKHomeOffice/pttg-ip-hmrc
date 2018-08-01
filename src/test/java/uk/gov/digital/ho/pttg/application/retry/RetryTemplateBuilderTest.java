@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.pttg.application.retry;
 
-import lombok.Getter;
 import org.junit.Test;
 import org.springframework.retry.support.RetryTemplate;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
@@ -29,11 +28,14 @@ public class RetryTemplateBuilderTest {
         assertThat(testHelper.getCount()).isGreaterThan(1);
     }
 
-    @Getter
     private class TestHelper {
         private int count = 0;
         public void call() {
             count++;
+        }
+
+        public int getCount() {
+            return count;
         }
     }
 
