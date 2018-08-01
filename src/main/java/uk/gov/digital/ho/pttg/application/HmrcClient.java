@@ -12,11 +12,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
@@ -35,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -43,6 +41,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator.generateCandidateNames;
 
 @Service
@@ -95,10 +94,6 @@ public class HmrcClient {
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
-    @Retryable(
-            include = {HttpServerErrorException.class},
-            maxAttemptsExpression = "#{${hmrc.retry.attempts}}",
-            backoff = @Backoff(delayExpression = "#{${hmrc.retry.delay}}"))
     public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
 
         String redactedNino = ninoUtils.redact(suppliedIndividual.getNino());
@@ -270,23 +265,26 @@ public class HmrcClient {
         }
     }
 
-    private Resource<String> getMatchResource(Individual individual, String accessToken, String matchUrl) {
+    Resource<String> getMatchResource(Individual individual, String accessToken, String matchUrl) {
 
-        log.info("Match Individual {} via a POST to {}", ninoUtils.redact(individual.getNino()), matchUrl);
+        log.info("Match Individual {} via a POST to {}", ninoUtils.redact(individual.getNino()), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
         List<String> candidateNames = generateCandidateNames(individual.getFirstName(), individual.getLastName());
 
         int retries = 0;
 
         while (retries < candidateNames.size()) {
+            log.info("Match attempt {} of {}", retries + 1, candidateNames.size(), value(EVENT, HMRC_MATCHING_ATTEMPTS));
 
             try {
-
-                return performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
+                final Resource<String> matchedIndividual = performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
+                log.info("Successfully matched individual {}", ninoUtils.redact(individual.getNino()), value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+                return matchedIndividual;
 
             } catch (HttpClientErrorException ex) {
                 HttpStatus statusCode = ex.getStatusCode();
                 if (isHmrcMatchFailedError(ex)) {
+                    log.info("Failed to match individual {}", ninoUtils.redact(individual.getNino()), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
                     retries++;
                 } else if (statusCode.equals(FORBIDDEN)) {
                     throw new ProxyForbiddenException("Received a 403 Forbidden response from proxy");

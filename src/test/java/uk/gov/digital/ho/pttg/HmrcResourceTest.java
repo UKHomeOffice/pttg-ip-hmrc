@@ -18,6 +18,7 @@ import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -86,12 +87,19 @@ public class HmrcResourceTest {
 
         // then
         final ArgumentCaptor<ILoggingEvent> logCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
-        verify(mockAppender).doAppend(logCaptor.capture());
+        verify(mockAppender, times(2)).doAppend(logCaptor.capture());
 
         // verify formatted log message only contains redacted nino
-        final ILoggingEvent logEvent = logCaptor.getValue();
-        final String formattedLogMessage = logEvent.getFormattedMessage();
+        final List<ILoggingEvent> logEvents = logCaptor.getAllValues();
+
+        final ILoggingEvent logEventWithRedactedNino = logEvents.get(0);
+        String formattedLogMessage = logEventWithRedactedNino.getFormattedMessage();
         assertThat(formattedLogMessage).contains(redactedNino);
+        assertThat(formattedLogMessage).doesNotContain(NINO);
+
+        final ILoggingEvent otherLog = logEvents.get(1);
+        formattedLogMessage = otherLog.getFormattedMessage();
+        assertThat(formattedLogMessage).doesNotContain(redactedNino);
         assertThat(formattedLogMessage).doesNotContain(NINO);
     }
 }

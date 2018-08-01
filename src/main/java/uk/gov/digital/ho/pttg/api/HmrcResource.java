@@ -12,6 +12,9 @@ import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
+
 @Slf4j
 @RestController
 public class HmrcResource {
@@ -34,12 +37,15 @@ public class HmrcResource {
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
         final String redactedNino = ninoUtils.redact(nino);
-        log.info("Hmrc service invoked for nino {} with date range {} to {}", redactedNino, fromDate, toDate);
+        log.info("Hmrc service invoked for nino {} with date range {} to {}", redactedNino, fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
 
         final String sanitisedNino = ninoUtils.sanitise(nino);
         ninoUtils.validate(sanitisedNino);
 
         final Individual individual = new Individual(firstName, lastName, sanitisedNino, dob);
-        return incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
+        final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
+
+        log.info("Income summary successfully retrieved from HMRC", value(EVENT, HMRC_SERVICE_RESPONSE_SUCCESS));
+        return incomeSummary;
     }
 }
