@@ -106,7 +106,7 @@ public class HmrcClientTest {
     @Test
     public void shouldLogInfoAfterMatchingFailure() {
         when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(), null)
+                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(Charset.defaultCharset()), null)
         );
         HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
 
@@ -128,7 +128,7 @@ public class HmrcClientTest {
     @Test
     public void shouldLogInfoForEveryMatchingAttempt() {
         when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(), null)
+                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(Charset.defaultCharset()), null)
         );
         HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
 

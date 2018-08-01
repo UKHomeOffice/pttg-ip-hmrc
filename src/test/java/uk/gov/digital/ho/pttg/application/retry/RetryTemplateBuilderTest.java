@@ -28,7 +28,7 @@ public class RetryTemplateBuilderTest {
         assertThat(testHelper.getCount()).isGreaterThan(1);
     }
 
-    private class TestHelper {
+    static private class TestHelper {
         private int count = 0;
         public void call() {
             count++;
