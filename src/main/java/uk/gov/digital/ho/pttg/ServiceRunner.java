@@ -15,6 +15,6 @@ public class ServiceRunner {
 	public static void main(String[] args) {
 		SpringApplication.run(ServiceRunner.class, args);
 
-		log.info("RPS Service Started", value(EVENT, HMRC_SERVICE_STARTED));
+		log.info("HMRC Service Started", value(EVENT, HMRC_SERVICE_STARTED));
 	}
 }
