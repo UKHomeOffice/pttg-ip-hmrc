@@ -7,6 +7,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.application.IncomeSummaryContext;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
@@ -73,11 +74,10 @@ public class IncomeSummaryService {
 
     private IncomeSummary requestIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
         auditRequestToHmrc(individual);
-
         String accessCode = requestAccessCode();
         return apiFailureRetryTemplate.execute(context -> {
             log.info("HMRC call attempt {} of {}", context.getRetryCount() + 1, hmrcApiFailureRetryAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
-            return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate);
+            return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate, new IncomeSummaryContext());
         });
     }
 
@@ -86,8 +86,8 @@ public class IncomeSummaryService {
     }
 
     private void auditRequestToHmrc(Individual individual) {
-        final UUID eventId = UUID.randomUUID();
-        final AuditIndividualData auditIndividualData = new AuditIndividualData(GET_HMRC_DATA_METHOD, individual);
+        UUID eventId = UUID.randomUUID();
+        AuditIndividualData auditIndividualData = new AuditIndividualData(GET_HMRC_DATA_METHOD, individual);
 
         auditClient.add(HMRC_INCOME_REQUEST, eventId, auditIndividualData);
     }

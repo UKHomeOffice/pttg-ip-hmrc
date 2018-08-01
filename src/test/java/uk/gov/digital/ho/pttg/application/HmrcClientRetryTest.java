@@ -8,8 +8,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -19,26 +23,30 @@ import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.net.URI;
 import java.time.LocalDate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
+import static uk.gov.digital.ho.pttg.application.HmrcClient.*;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource(properties = {
-        "hmrc.api.version=someApiVersion",
-        "hmrc.endpoint=someEndpoint",
-        "hmrc.retry.attempts=3",
+        "hmrc.api.version=application/vnd.hmrc.P1.0+json",
+        "hmrc.endpoint=http://test.com",
+        "hmrc.retry.attempts=4",
         "hmrc.retry.delay=10"
 })
 public class HmrcClientRetryTest {
@@ -79,7 +87,7 @@ public class HmrcClientRetryTest {
         given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .willThrow(new HttpClientErrorException(FORBIDDEN));
 
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
+        assertThatThrownBy(() -> hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to, new IncomeSummaryContext()))
                 .isInstanceOf(ProxyForbiddenException.class);
 
         verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
@@ -99,7 +107,7 @@ public class HmrcClientRetryTest {
         given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .willThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
+        assertThatThrownBy(() -> hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to, new IncomeSummaryContext()))
                 .isInstanceOf(HmrcNotFoundException.class);
 
         verify(mockRestTemplate, times(2)).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
@@ -117,7 +125,7 @@ public class HmrcClientRetryTest {
         given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .willThrow(new HttpClientErrorException(UNAUTHORIZED));
 
-        assertThatThrownBy(() ->hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to))
+        assertThatThrownBy(() -> hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to, new IncomeSummaryContext()))
                 .isInstanceOf(HmrcUnauthorisedException.class);
 
         verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));

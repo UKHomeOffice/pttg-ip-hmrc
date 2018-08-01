@@ -3,7 +3,6 @@ package uk.gov.digital.ho.pttg.application;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
@@ -67,13 +66,13 @@ public class HmrcClient {
         Hypermedia paths and links
     */
     private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
-    private static final String INDIVIDUAL = "individual";
-    private static final String INCOME = "income";
-    private static final String EMPLOYMENTS = "employments";
-    private static final String SELF_ASSESSMENT = "selfAssessment";
-    private static final String PAYE_INCOME = "paye";
-    private static final String PAYE_EMPLOYMENT = "paye";
-    private static final String SELF_EMPLOYMENTS = "selfEmployments";
+    static final String INDIVIDUAL = "individual";
+    static final String INCOME = "income";
+    static final String EMPLOYMENTS = "employments";
+    static final String SELF_ASSESSMENT = "selfAssessment";
+    static final String PAYE_INCOME = "paye";
+    static final String PAYE_EMPLOYMENT = "paye";
+    static final String SELF_EMPLOYMENTS = "selfEmployments";
 
     private final String hmrcApiVersion;
     private final String hmrcUrl;
@@ -82,7 +81,6 @@ public class HmrcClient {
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
 
-    @Autowired
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,
                       NameNormalizer nameNormalizer,
@@ -96,27 +94,32 @@ public class HmrcClient {
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
-    public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate) {
+    public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
 
         String redactedNino = ninoUtils.redact(suppliedIndividual.getNino());
 
         log.info("Attempt to retrieve HMRC data for {}", redactedNino);
 
-        Resource<String> matchResource = getMatchResource(suppliedIndividual, accessToken, matchUrl);
-        Resource<EmbeddedIndividual> individualResource = getIndividualResource(redactedNino, accessToken, matchResource.getLink(INDIVIDUAL));
-        Resource<String> incomeResource = getIncomeResource(redactedNino, accessToken, individualResource.getLink(INCOME));
-        Resource<String> employmentResource = getEmploymentResource(redactedNino, accessToken, individualResource.getLink(EMPLOYMENTS));
-        Resource<String> selfAssessmentResource = getSelfAssessmentResource(redactedNino, accessToken, fromDate, toDate, incomeResource.getLink(SELF_ASSESSMENT));
+        storeMatchResource(suppliedIndividual, accessToken, matchUrl, context);
 
-        List<Income> payeIncome = getPayeIncome(fromDate, toDate, accessToken, incomeResource.getLink(PAYE_INCOME));
-        List<Employment> employments = getEmployments(fromDate, toDate, accessToken, employmentResource.getLink(PAYE_EMPLOYMENT));
-        List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome = getSelfAssessmentIncome(accessToken, selfAssessmentResource.getLink(SELF_EMPLOYMENTS));
+        storeIndividualResource(redactedNino, accessToken, context);
+        storeIncomeResource(redactedNino, accessToken, context);
+        storeEmploymentResource(redactedNino, accessToken, context);
+        storeSelfAssessmentResource(redactedNino, accessToken, fromDate, toDate, context);
 
-        enrichIncomeData(payeIncome, employments);
+        storePayeIncome(fromDate, toDate, accessToken, context);
+        storeEmployments(fromDate, toDate, accessToken, context);
+        storeSelfAssessmentIncome(accessToken, context);
+
+        enrichIncomeData(context.payeIncome(), context.employments());
 
         log.info("Successfully retrieved HMRC data for {}", redactedNino);
 
-        return new IncomeSummary(payeIncome, selfAssessmentIncome, employments, individualResource.getContent().getIndividual());
+        return new IncomeSummary(
+                context.payeIncome(),
+                context.selfAssessmentIncome(),
+                context.employments(),
+                context.individualResource().getContent().getIndividual());
     }
 
     private void enrichIncomeData(List<Income> incomes, List<Employment> employments) {
@@ -150,6 +153,12 @@ public class HmrcClient {
         return paymentFrequency;
     }
 
+    private void storePayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
+        if (context.needsPayeIncome()) {
+            context.setPayeIncome(getPayeIncome(fromDate, toDate, accessToken, context.incomeResource().getLink(PAYE_INCOME)));
+        }
+    }
+
     private List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         Resource<PayeIncome> incomeResource =
@@ -159,6 +168,13 @@ public class HmrcClient {
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
 
+
+    private void storeEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
+        if (context.needsEmployments()) {
+            context.setEmployments(getEmployments(fromDate, toDate, accessToken, context.employmentResource().getLink(PAYE_EMPLOYMENT)));
+        }
+    }
+
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         Resource<Employments> employmentsResource =
@@ -166,6 +182,12 @@ public class HmrcClient {
                         .toObject(employmentsResourceTypeRef);
 
         return employmentsResource.getContent().getEmployments();
+    }
+
+    private void storeSelfAssessmentIncome(String accessToken, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentIncome()) {
+            context.setSelfAssessmentIncome(getSelfAssessmentIncome(accessToken, context.selfAssessmentResource().getLink(SELF_EMPLOYMENTS)));
+        }
     }
 
     private List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
@@ -237,6 +259,12 @@ public class HmrcClient {
         return href.replaceFirst("\\{&.*\\}", "");
     }
 
+    private void storeMatchResource(Individual individual, String accessToken, String matchUrl, IncomeSummaryContext context) {
+        if (context.needsMatchResource()) {
+            context.setMatchResource(getMatchResource(individual, accessToken, matchUrl));
+        }
+    }
+
     Resource<String> getMatchResource(Individual individual, String accessToken, String matchUrl) {
 
         log.info("Match Individual {} via a POST to {}", ninoUtils.redact(individual.getNino()), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
@@ -295,6 +323,12 @@ public class HmrcClient {
                 linksResourceTypeRef).getBody();
     }
 
+    private void storeIndividualResource(String nino, String accessToken, IncomeSummaryContext context) {
+        if (context.needsIndividualResource()) {
+            context.setIndividualResource(getIndividualResource(nino, accessToken, context.matchResource().getLink(INDIVIDUAL)));
+        }
+    }
+
     private Resource<EmbeddedIndividual> getIndividualResource(String nino, String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
@@ -303,6 +337,12 @@ public class HmrcClient {
         log.info("Individual Response has been received for {}", nino);
 
         return resource;
+    }
+
+    private void storeIncomeResource(String nino, String accessToken, IncomeSummaryContext context) {
+        if (context.needsIncomeResource()) {
+            context.setIncomeResource(getIncomeResource(nino, accessToken, context.individualResource().getLink(INCOME)));
+        }
     }
 
     private Resource<String> getIncomeResource(String nino, String accessToken, Link link) {
@@ -315,6 +355,12 @@ public class HmrcClient {
         return resource;
     }
 
+    private void storeEmploymentResource(String nino, String accessToken, IncomeSummaryContext context) {
+        if (context.needsEmploymentResource()) {
+            context.setEmploymentResource(getEmploymentResource(nino, accessToken, context.individualResource().getLink(EMPLOYMENTS)));
+        }
+    }
+
     private Resource<String> getEmploymentResource(String nino, String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
@@ -323,6 +369,12 @@ public class HmrcClient {
         log.info("Employment Response has been received for {}", nino);
 
         return resource;
+    }
+
+    private void storeSelfAssessmentResource(String nino, String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentResource()) {
+            context.setSelfAssessmentResource(getSelfAssessmentResource(nino, accessToken, fromDate, toDate, context.incomeResource().getLink(SELF_ASSESSMENT)));
+        }
     }
 
     private Resource<String> getSelfAssessmentResource(String nino, String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
