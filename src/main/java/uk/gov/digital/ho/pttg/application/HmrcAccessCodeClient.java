@@ -58,23 +58,32 @@ public class HmrcAccessCodeClient {
     }
 
     public String getAccessCode() {
-        if(accessCode.isPresent() && LocalDateTime.now().isBefore(accessCode.get().getExpiry())) {
-            return accessCode.get().getCode();
+        if(isAccessCodeStale()) {
+            refreshAccessCode();
         }
-        return getAccessCodeWithRetries();
+        return accessCode.get().getCode();
     }
 
-    public void invalidateAccessCode() {
-        accessCode = Optional.ofNullable(null);
+    public void refreshAccessCode() {
+        getAccessCodeWithRetries();
     }
 
-    private String getAccessCodeWithRetries() {
-        return this.retryTemplate.execute(context -> {
+    private boolean isAccessCodeStale() {
+        if (!accessCode.isPresent()) {
+            return true;
+        }
+        if (!LocalDateTime.now().isBefore(accessCode.get().getExpiry())) {
+            return true;
+        }
+        return false;
+    }
+
+    private synchronized void getAccessCodeWithRetries() {
+        accessCode = Optional.of(this.retryTemplate.execute(context -> {
             log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,
                     value(EVENT, HMRC_API_CALL_ATTEMPT));
-            accessCode = Optional.of(requestAccessCode());
-            return accessCode.get().getCode();
-        });
+            return requestAccessCode();
+        }));
     }
 
     private AccessCode requestAccessCode() {

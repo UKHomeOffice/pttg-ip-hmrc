@@ -69,7 +69,7 @@ public class IncomeSummaryService {
         return reauthorisingRetryTemplate.execute(context -> {
             log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
             if (context.getRetryCount() > 0) {
-                accessCodeClient.invalidateAccessCode();
+                accessCodeClient.refreshAccessCode();
             }
             return requestIncomeSummary(individual, fromDate, toDate);
         });

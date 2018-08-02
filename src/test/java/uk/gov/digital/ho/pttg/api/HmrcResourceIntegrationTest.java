@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -85,7 +87,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
 
-        hmrcAccessCodeClient.invalidateAccessCode();
+        ReflectionTestUtils.setField(hmrcAccessCodeClient, "accessCode", Optional.ofNullable(null));
     }
 
     @Test
