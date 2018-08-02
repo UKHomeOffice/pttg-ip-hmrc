@@ -64,6 +64,10 @@ public class HmrcAccessCodeClient {
         return getAccessCodeWithRetries();
     }
 
+    public void invalidateAccessCode() {
+        accessCode = Optional.ofNullable(null);
+    }
+
     private String getAccessCodeWithRetries() {
         return this.retryTemplate.execute(context -> {
             log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,

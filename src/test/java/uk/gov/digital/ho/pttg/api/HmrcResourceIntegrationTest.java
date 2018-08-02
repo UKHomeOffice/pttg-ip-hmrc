@@ -19,6 +19,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.ServiceRunner;
+import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 
@@ -65,6 +66,9 @@ public class HmrcResourceIntegrationTest {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private HmrcAccessCodeClient hmrcAccessCodeClient;
+
     @Before
     public void setup() throws JsonProcessingException {
         MockRestServiceServerBuilder builder = bindTo(mockRestTemplate);
@@ -80,6 +84,8 @@ public class HmrcResourceIntegrationTest {
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
+
+        hmrcAccessCodeClient.invalidateAccessCode();
     }
 
     @Test
