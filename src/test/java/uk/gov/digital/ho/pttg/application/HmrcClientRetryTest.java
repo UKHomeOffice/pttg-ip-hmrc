@@ -8,12 +8,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -26,18 +22,14 @@ import java.net.URI;
 import java.time.LocalDate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
-import static uk.gov.digital.ho.pttg.application.HmrcClient.*;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource(properties = {
@@ -60,8 +52,8 @@ public class HmrcClientRetryTest {
             return new NinoUtils();
         }
         @Bean
-        public TraversonUtils createTraversonUtils() {
-            return new TraversonUtils();
+        public TraversonFollower createTraversonUtils() {
+            return new TraversonFollower();
         }
         @Bean
         public NameNormalizer createNameNormalizer() {

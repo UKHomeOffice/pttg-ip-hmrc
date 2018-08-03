@@ -21,7 +21,7 @@ import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 
 @Slf4j
 @Component
-public class TraversonUtils {
+public class TraversonFollower {
 
     public <T> Resource<T> followTraverson(String link, String accessToken, String apiVersion, RestTemplate restTemplate, ParameterizedTypeReference<Resource<T>> resourceTypeRef) {
         log.info("following traverson for {}", link);

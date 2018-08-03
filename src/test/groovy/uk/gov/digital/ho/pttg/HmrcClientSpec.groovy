@@ -6,7 +6,7 @@ import spock.lang.Specification
 import uk.gov.digital.ho.pttg.application.HmrcClient
 import uk.gov.digital.ho.pttg.application.NinoUtils
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer
-import uk.gov.digital.ho.pttg.application.util.TraversonUtils
+import uk.gov.digital.ho.pttg.application.util.TraversonFollower
 
 import java.time.LocalDate
 
@@ -27,7 +27,7 @@ class HmrcClientSpec extends Specification {
     public RestTemplate mockRestTemplate = Mock(RestTemplate.class)
     public NameNormalizer mockNameNormalizer = Mock(NameNormalizer.class)
     private NinoUtils ninoUtils = new NinoUtils()
-    private TraversonUtils traversonUtils = new TraversonUtils()
+    private TraversonFollower traversonUtils = new TraversonFollower()
 
     public HmrcClient client
 

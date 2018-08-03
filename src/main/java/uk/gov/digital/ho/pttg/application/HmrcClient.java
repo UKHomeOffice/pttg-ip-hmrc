@@ -16,7 +16,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.TraversonUtils;
+import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -77,13 +77,13 @@ public class HmrcClient {
     private final String hmrcUrl;
     private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
-    private final TraversonUtils traversonUtils;
+    private final TraversonFollower traversonFollower;
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
 
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,
-                      TraversonUtils traversonUtils,
+                      TraversonFollower traversonFollower,
                       NameNormalizer nameNormalizer,
                       @Value("${hmrc.api.version}") String hmrcApiVersion,
                       @Value("${hmrc.endpoint}") String hmrcUrl) {
@@ -92,7 +92,7 @@ public class HmrcClient {
         this.hmrcApiVersion = hmrcApiVersion;
         this.hmrcUrl = hmrcUrl;
         this.ninoUtils = ninoUtils;
-        this.traversonUtils = traversonUtils;
+        this.traversonFollower = traversonFollower;
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
@@ -165,7 +165,7 @@ public class HmrcClient {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
-        Resource<PayeIncome> incomeResource = traversonUtils.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, payeIncomesResourceTypeRef);
+        Resource<PayeIncome> incomeResource = traversonFollower.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, payeIncomesResourceTypeRef);
         log.info("PAYE response received from HMRC", value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
 
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
@@ -180,9 +180,10 @@ public class HmrcClient {
 
     List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
+        final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
+
         log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        Resource<Employments> employmentsResource =
-                traversonUtils.followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken, hmrcApiVersion, restTemplate, employmentsResourceTypeRef);
+        Resource<Employments> employmentsResource = traversonFollower.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, employmentsResourceTypeRef);
         log.info("Employments response received from HMRC", value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
         return employmentsResource.getContent().getEmployments();
     }
@@ -201,7 +202,7 @@ public class HmrcClient {
 
         log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmployments> selfEmploymentsResource =
-                traversonUtils.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
+                traversonFollower.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
         log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_REQUEST_RECEIVED));
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
