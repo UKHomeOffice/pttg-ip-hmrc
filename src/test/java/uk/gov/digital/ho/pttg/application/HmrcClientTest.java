@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.TraversonUtils;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -33,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -48,6 +52,8 @@ public class HmrcClientTest {
 
     @Mock
     private NinoUtils mockNinoUtils;
+    @Mock
+    private TraversonUtils mockTraversonUtils;
 
     @Mock
     private NameNormalizer mockNameNormalizer;
@@ -67,7 +73,7 @@ public class HmrcClientTest {
     @Test
     public void shouldProduceEmptyMap() {
 
-        HmrcClient client = new HmrcClient(new RestTemplate(), new NinoUtils(), mockNameNormalizer, "any api version", "any url");
+        HmrcClient client = new HmrcClient(new RestTemplate(), new NinoUtils(), new TraversonUtils(), mockNameNormalizer, "any api version", "any url");
 
         Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
 
@@ -77,7 +83,7 @@ public class HmrcClientTest {
     @Test
     public void shouldLogInfoBeforeMatchingRequestSent() {
         when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
 
         client.getMatchResource(individual, "", "testurl");
 
@@ -92,7 +98,7 @@ public class HmrcClientTest {
     @Test
     public void shouldLogInfoAfterMatchingRequestSent() {
         when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
 
         client.getMatchResource(individual, "", "testurl");
 
@@ -103,17 +109,17 @@ public class HmrcClientTest {
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
         }));
     }
+
     @Test
     public void shouldLogInfoAfterMatchingFailure() {
         when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(Charset.defaultCharset()), null)
         );
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
 
         try {
             client.getMatchResource(individual, "", "testurl");
-        }
-        catch (HmrcNotFoundException e) {
+        } catch (HmrcNotFoundException e) {
             // Swallowed as not of interest for this test.
         }
 
@@ -130,13 +136,12 @@ public class HmrcClientTest {
         when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(Charset.defaultCharset()), null)
         );
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonUtils(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
 
 
         try {
             client.getMatchResource(individual, "", "testurl");
-        }
-        catch (HmrcNotFoundException e) {
+        } catch (HmrcNotFoundException e) {
             // Swallowed as not of interest for this test.
         }
 
@@ -160,6 +165,7 @@ public class HmrcClientTest {
 
         RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -170,16 +176,16 @@ public class HmrcClientTest {
 
         String somePayeReference = "some ref";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Employment> employments = Arrays.asList(
                 new Employment(
-                    somePayFrequency,
-                    anyStartDate.toString(),
-                    anyEndDate.toString(),
-                    new Employer(
-                            somePayeReference,
-                            anyEmployer,
-                            anyEmployerAddress)));
+                        somePayFrequency,
+                        anyStartDate.toString(),
+                        anyEndDate.toString(),
+                        new Employer(
+                                somePayeReference,
+                                anyEmployer,
+                                anyEmployerAddress)));
 
         Map<String, String> p = client.createEmployerPaymentRefMap(employments);
 
@@ -193,6 +199,7 @@ public class HmrcClientTest {
 
         RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -204,24 +211,24 @@ public class HmrcClientTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Employment> employments = Arrays.asList(
                 new Employment(
-                    somePayFrequency,
-                    anyStartDate.toString(),
-                    anyEndDate.toString(),
-                    new Employer(
-                            somePayeReference,
-                            anyEmployer,
-                            anyEmployerAddress)),
+                        somePayFrequency,
+                        anyStartDate.toString(),
+                        anyEndDate.toString(),
+                        new Employer(
+                                somePayeReference,
+                                anyEmployer,
+                                anyEmployerAddress)),
                 new Employment(
-                    anotherPayFrequency,
-                    anyStartDate.toString(),
-                    anyEndDate.toString(),
-                    new Employer(
-                            anotherPayeReference,
-                            anyEmployer,
-                            anyEmployerAddress)));
+                        anotherPayFrequency,
+                        anyStartDate.toString(),
+                        anyEndDate.toString(),
+                        new Employer(
+                                anotherPayeReference,
+                                anyEmployer,
+                                anyEmployerAddress)));
 
         Map<String, String> p = client.createEmployerPaymentRefMap(employments);
 
@@ -237,6 +244,7 @@ public class HmrcClientTest {
 
         RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         String somePayeReference = "some ref";
@@ -246,17 +254,17 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Income> incomes = null;
         List<Employment> employments = Arrays.asList(
                 new Employment(
-                    somePayFrequency,
-                    anyStartDate.toString(),
-                    anyEndDate.toString(),
-                    new Employer(
-                            somePayeReference,
-                            anyEmployer,
-                            anyEmployerAddress)));
+                        somePayFrequency,
+                        anyStartDate.toString(),
+                        anyEndDate.toString(),
+                        new Employer(
+                                somePayeReference,
+                                anyEmployer,
+                                anyEmployerAddress)));
 
         Map<String, String> p = client.createEmployerPaymentRefMap(employments);
 
@@ -268,6 +276,7 @@ public class HmrcClientTest {
 
         RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         String somePayeReference = "some ref";
@@ -277,17 +286,17 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, anyUrl);
         List<Income> incomes = Collections.emptyList();
         List<Employment> employments = Arrays.asList(
                 new Employment(
-                    somePayFrequency,
-                    anyStartDate.toString(),
-                    anyEndDate.toString(),
-                    new Employer(
-                            somePayeReference,
-                            anyEmployer,
-                            anyEmployerAddress)));
+                        somePayFrequency,
+                        anyStartDate.toString(),
+                        anyEndDate.toString(),
+                        new Employer(
+                                somePayeReference,
+                                anyEmployer,
+                                anyEmployerAddress)));
 
         Map<String, String> p = client.createEmployerPaymentRefMap(employments);
 
@@ -301,6 +310,7 @@ public class HmrcClientTest {
 
         RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
@@ -314,27 +324,27 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, anyUrl);
 
         List<Employment> employments = Arrays.asList(
-            new Employment(
-                null,
-                anyStartDate.toString(),
-                anyEndDate.toString(),
-                new Employer(
-                        somePayeReference,
-                        anyEmployer,
-                        anyEmployerAddress)));
+                new Employment(
+                        null,
+                        anyStartDate.toString(),
+                        anyEndDate.toString(),
+                        new Employer(
+                                somePayeReference,
+                                anyEmployer,
+                                anyEmployerAddress)));
 
         List<Income> incomes = Arrays.asList(
-            new Income(
-                somePayeReference,
-                anyTaxablePayment,
-                anyNonTaxablePayment,
-                anyPaymentDate.toString(),
-                anyWeekPayNumber,
-                anyMonthPayNumber,
-                null));
+                new Income(
+                        somePayeReference,
+                        anyTaxablePayment,
+                        anyNonTaxablePayment,
+                        anyPaymentDate.toString(),
+                        anyWeekPayNumber,
+                        anyMonthPayNumber,
+                        null));
 
         Map<String, String> p = client.createEmployerPaymentRefMap(employments);
 
@@ -350,6 +360,7 @@ public class HmrcClientTest {
 
         RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
         String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
@@ -364,7 +375,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, anyUrl);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -401,7 +412,7 @@ public class HmrcClientTest {
         final URI uri = URI.create(baseHmrcUrl + "/individuals/matching/");
         final String hmrcApiVersion = "1";
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, mockNameNormalizer, hmrcApiVersion, baseHmrcUrl);
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, mockTraversonUtils, mockNameNormalizer, hmrcApiVersion, baseHmrcUrl);
 
         when(mockRestTemplate.exchange(eq(uri), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
@@ -421,12 +432,13 @@ public class HmrcClientTest {
     @Test(expected = HttpClientErrorException.class)
     public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
 
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(NOT_FOUND));
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
         hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now, new IncomeSummaryContext());
@@ -435,6 +447,7 @@ public class HmrcClientTest {
     @Test(expected = HmrcNotFoundException.class)
     public void shouldThrowHmrcNotFoundExceptionWhenForbiddenFromHmrc() {
         NinoUtils anyNinoUtils = new NinoUtils();
+        TraversonUtils anyTraversonUtils = new TraversonUtils();
         String anyApiVersion = "any api version";
 
         String responseBody = "{\"code\" : \"MATCHING_FAILED\", \"message\" : \"There is no match for the information provided\"}";
@@ -442,7 +455,7 @@ public class HmrcClientTest {
         HttpClientErrorException exception = new HttpClientErrorException(FORBIDDEN, "", responseBody.getBytes(defaultCharset), defaultCharset);
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(exception);
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, mockNameNormalizer, anyApiVersion, "some-resource");
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyTraversonUtils, mockNameNormalizer, anyApiVersion, "some-resource");
 
         LocalDate now = LocalDate.now();
         hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now, new IncomeSummaryContext());
@@ -452,7 +465,7 @@ public class HmrcClientTest {
     public void shouldThrowProxyForbiddenExceptionWhenForbiddenFromProxy() {
         when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(new HttpClientErrorException(FORBIDDEN));
 
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), mockNameNormalizer, "", "some-resource");
+        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonUtils(), mockNameNormalizer, "", "some-resource");
 
         LocalDate now = LocalDate.now();
         Individual testIndividual = new Individual("somefirstname", "somelastname", "some nino", now);
@@ -461,4 +474,43 @@ public class HmrcClientTest {
                 .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
     }
 
+    @Test
+    public void shouldLogInfoBeforePayeRequestSent() {
+        // given
+        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<Income>())), new Link("http://www.foo.com/bar"));
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
+
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
+
+        // when
+        client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Sending PAYE request to HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoAfterPayeResponseReceived() {
+        // given
+        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<Income>())), new Link("http://www.foo.com/bar"));
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
+
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
+
+        // when
+        client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("PAYE response received from HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
 }
