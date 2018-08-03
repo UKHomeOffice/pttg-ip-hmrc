@@ -477,7 +477,7 @@ public class HmrcClientTest {
     @Test
     public void shouldLogInfoBeforePayeRequestSent() {
         // given
-        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<Income>())), new Link("http://www.foo.com/bar"));
+        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
 
         HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
@@ -497,7 +497,7 @@ public class HmrcClientTest {
     @Test
     public void shouldLogInfoAfterPayeResponseReceived() {
         // given
-        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<Income>())), new Link("http://www.foo.com/bar"));
+        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
 
         HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
@@ -510,6 +510,86 @@ public class HmrcClientTest {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals("PAYE response received from HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoBeforeSelfAssessmentRequestSent() {
+        // given
+        Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(saResource);
+
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
+
+        // when
+        client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Sending Self Assessment request to HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoAfterSelfAssessmentResponseReceived() {
+        // given
+        Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(saResource);
+
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
+
+        // when
+        client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Self Assessment response received from HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoBeforeEmploymentsRequestSent() {
+        // given
+        Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(employmentsResource);
+
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
+
+        // when
+        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Sending Employments request to HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoAfterEmploymentsResponseReceived() {
+        // given
+        Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(employmentsResource);
+
+        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
+
+        // when
+        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Employments response received from HMRC") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
         }));
     }

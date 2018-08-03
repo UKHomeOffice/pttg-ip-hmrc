@@ -178,11 +178,12 @@ public class HmrcClient {
         }
     }
 
-    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
+    List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
+        log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
         Resource<Employments> employmentsResource =
                 traversonUtils.followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken, hmrcApiVersion, restTemplate, employmentsResourceTypeRef);
-
+        log.info("Employments response received from HMRC", value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
         return employmentsResource.getContent().getEmployments();
     }
 
@@ -192,14 +193,16 @@ public class HmrcClient {
         }
     }
 
-    private List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
+    List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
 
         if (link == null) {
             return emptyList();
         }
 
+        log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmployments> selfEmploymentsResource =
                 traversonUtils.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
+        log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_REQUEST_RECEIVED));
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 
