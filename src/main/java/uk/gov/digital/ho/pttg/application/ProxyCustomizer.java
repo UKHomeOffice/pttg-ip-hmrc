@@ -12,7 +12,7 @@ import java.net.URI;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_STARTED;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_PROXY_ENABLED;
 
 @Slf4j
 public class ProxyCustomizer implements RestTemplateCustomizer {
@@ -30,7 +30,7 @@ public class ProxyCustomizer implements RestTemplateCustomizer {
     @Override
     public void customize(RestTemplate restTemplate)  {
 
-        log.info("Using proxy {}:{} for {}", proxyHost, proxyPort, hostToProxy, value(EVENT, HMRC_SERVICE_STARTED));
+        log.info("Using proxy {}:{} for {}", proxyHost, proxyPort, hostToProxy, value(EVENT, HMRC_PROXY_ENABLED));
 
         HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
         HttpClient httpClient = HttpClientBuilder.create().setRoutePlanner(new HMRCProxyRoutePlanner(proxy, hostToProxy)).build();

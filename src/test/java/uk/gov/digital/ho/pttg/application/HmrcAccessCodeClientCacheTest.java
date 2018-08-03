@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -45,6 +46,7 @@ public class HmrcAccessCodeClientCacheTest {
      * 2nd thread, which could mean that the 1st thread's stale access code overwrites the 2nd thread's valid access code.
      */
     @Test
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public void shouldNotRefreshAccessCodeWhileGeneratingNewAccessCode() throws JsonProcessingException, InterruptedException, ExecutionException {
         WireMockServer accessCodeServer1 = new WireMockServer(8181);
         WireMockServer accessCodeServer2 = new WireMockServer(8282);
@@ -135,10 +137,9 @@ public class HmrcAccessCodeClientCacheTest {
             try {
                 Thread.sleep(500);
                 ReflectionTestUtils.setField(client, "accessUri", new URI(accessCodeServiceUrl));
-            } catch (URISyntaxException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                return "error";
             }
             client.refreshAccessCode();
             return "finished refresh access code";
