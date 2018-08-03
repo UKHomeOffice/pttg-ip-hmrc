@@ -25,7 +25,9 @@ public class TraversonUtils {
 
     public <T> Resource<T> followTraverson(String link, String accessToken, String apiVersion, RestTemplate restTemplate, ParameterizedTypeReference<Resource<T>> resourceTypeRef) {
         log.info("following traverson for {}", link);
-        return traversonFor(link, restTemplate).follow().withHeaders(generateHeaders(apiVersion, accessToken)).toObject(resourceTypeRef);
+        final HttpHeaders headers = generateHeaders(apiVersion, accessToken);
+
+        return traversonFor(link, restTemplate).follow().withHeaders(headers).toObject(resourceTypeRef);
     }
 
     private Traverson traversonFor(String link, RestTemplate restTemplate) {
@@ -37,13 +39,8 @@ public class TraversonUtils {
     }
 
     private HttpHeaders generateHeaders(final String apiVersion, final String accessToken) {
-        final HttpHeaders headers = generateHeaders(apiVersion);
+        final HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", format("Bearer %s", accessToken));
-        return headers;
-    }
-
-    private HttpHeaders generateHeaders(final String apiVersion) {
-        HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_JSON);
         headers.add(ACCEPT, apiVersion);
         headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
