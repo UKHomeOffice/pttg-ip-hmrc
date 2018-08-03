@@ -77,9 +77,9 @@ public class HmrcClient {
     private final String hmrcUrl;
     private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
+    private final TraversonUtils traversonUtils;
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
-    private final TraversonUtils traversonUtils;
 
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,
@@ -165,7 +165,7 @@ public class HmrcClient {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
-        Resource<PayeIncome> incomeResource = traversonUtils.followTraverson(linkHref, accessToken, restTemplate, payeIncomesResourceTypeRef);
+        Resource<PayeIncome> incomeResource = traversonUtils.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, payeIncomesResourceTypeRef);
         log.info("PAYE response received from HMRC", value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
 
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
@@ -181,7 +181,7 @@ public class HmrcClient {
     private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         Resource<Employments> employmentsResource =
-                traversonUtils.followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken, restTemplate, employmentsResourceTypeRef);
+                traversonUtils.followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken, hmrcApiVersion, restTemplate, employmentsResourceTypeRef);
 
         return employmentsResource.getContent().getEmployments();
     }
@@ -199,7 +199,7 @@ public class HmrcClient {
         }
 
         Resource<SelfEmployments> selfEmploymentsResource =
-                traversonUtils.followTraverson(asAbsolute(link.getHref()), accessToken, restTemplate, selfEmploymentsResourceTypeRef);
+                traversonUtils.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 

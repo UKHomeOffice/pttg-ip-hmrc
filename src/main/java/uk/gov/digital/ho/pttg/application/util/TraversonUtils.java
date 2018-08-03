@@ -23,12 +23,12 @@ import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 @Component
 public class TraversonUtils {
 
-    public <T> Resource<T> followTraverson(String link, String accessToken, RestTemplate restTemplate, ParameterizedTypeReference<Resource<T>> resourceTypeRef) {
+    public <T> Resource<T> followTraverson(String link, String accessToken, String apiVersion, RestTemplate restTemplate, ParameterizedTypeReference<Resource<T>> resourceTypeRef) {
         log.info("following traverson for {}", link);
-        return traversonFor(link, restTemplate).follow().withHeaders(generateHeaders(accessToken)).toObject(resourceTypeRef);
+        return traversonFor(link, restTemplate).follow().withHeaders(generateHeaders(apiVersion, accessToken)).toObject(resourceTypeRef);
     }
 
-    public Traverson traversonFor(String link, RestTemplate restTemplate) {
+    private Traverson traversonFor(String link, RestTemplate restTemplate) {
         try {
             return new Traverson(new URI(link), APPLICATION_JSON).setRestOperations(restTemplate);
         } catch (URISyntaxException e) {

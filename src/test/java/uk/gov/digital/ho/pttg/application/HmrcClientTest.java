@@ -478,7 +478,7 @@ public class HmrcClientTest {
     public void shouldLogInfoBeforePayeRequestSent() {
         // given
         Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<Income>())), new Link("http://www.foo.com/bar"));
-        given(mockTraversonUtils.followTraverson(anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
 
         HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
 
@@ -498,7 +498,7 @@ public class HmrcClientTest {
     public void shouldLogInfoAfterPayeResponseReceived() {
         // given
         Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<Income>())), new Link("http://www.foo.com/bar"));
-        given(mockTraversonUtils.followTraverson(anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
+        given(mockTraversonUtils.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
 
         HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonUtils, mockNameNormalizer, "application/json", "http://something.com/anyurl");
 

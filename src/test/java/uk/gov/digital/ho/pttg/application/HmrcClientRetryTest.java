@@ -19,10 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.*;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.net.URI;
@@ -61,6 +58,10 @@ public class HmrcClientRetryTest {
         @Bean
         public NinoUtils createNinoUtils() {
             return new NinoUtils();
+        }
+        @Bean
+        public TraversonUtils createTraversonUtils() {
+            return new TraversonUtils();
         }
         @Bean
         public NameNormalizer createNameNormalizer() {
