@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.client.Traverson;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -17,11 +16,11 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
@@ -78,11 +77,13 @@ public class HmrcClient {
     private final String hmrcUrl;
     private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
+    private final TraversonFollower traversonFollower;
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
 
     public HmrcClient(RestTemplate restTemplate,
                       NinoUtils ninoUtils,
+                      TraversonFollower traversonFollower,
                       NameNormalizer nameNormalizer,
                       @Value("${hmrc.api.version}") String hmrcApiVersion,
                       @Value("${hmrc.endpoint}") String hmrcUrl) {
@@ -91,6 +92,7 @@ public class HmrcClient {
         this.hmrcApiVersion = hmrcApiVersion;
         this.hmrcUrl = hmrcUrl;
         this.ninoUtils = ninoUtils;
+        this.traversonFollower = traversonFollower;
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
@@ -159,11 +161,12 @@ public class HmrcClient {
         }
     }
 
-    private List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
+    List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
-        Resource<PayeIncome> incomeResource =
-                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken)
-                        .toObject(payeIncomesResourceTypeRef);
+        String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
+        log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
+        Resource<PayeIncome> incomeResource = traversonFollower.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, payeIncomesResourceTypeRef);
+        log.info("PAYE response received from HMRC", value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
 
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
@@ -175,12 +178,13 @@ public class HmrcClient {
         }
     }
 
-    private List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
+    List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
-        Resource<Employments> employmentsResource =
-                followTraverson(buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref())), accessToken)
-                        .toObject(employmentsResourceTypeRef);
+        final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
+        log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
+        Resource<Employments> employmentsResource = traversonFollower.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, employmentsResourceTypeRef);
+        log.info("Employments response received from HMRC", value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
         return employmentsResource.getContent().getEmployments();
     }
 
@@ -190,15 +194,16 @@ public class HmrcClient {
         }
     }
 
-    private List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
+    List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
 
         if (link == null) {
             return emptyList();
         }
 
+        log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmployments> selfEmploymentsResource =
-                followTraverson(asAbsolute(link.getHref()), accessToken)
-                        .toObject(selfEmploymentsResourceTypeRef);
+                traversonFollower.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
+        log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 
@@ -208,13 +213,13 @@ public class HmrcClient {
     private List<AnnualSelfAssessmentTaxReturn> groupSelfEmployments(List<TaxReturn> taxReturns) {
 
         return taxReturns
-                       .stream()
-                       .map(tr -> new AnnualSelfAssessmentTaxReturn(tr.getTaxYear(),
-                               tr.getSelfEmployments()
-                                       .stream()
-                                       .map(SelfEmployment::getSelfEmploymentProfit)
-                                       .reduce(BigDecimal.ZERO, BigDecimal::add)))
-                       .collect(Collectors.toList());
+                .stream()
+                .map(tr -> new AnnualSelfAssessmentTaxReturn(tr.getTaxYear(),
+                        tr.getSelfEmployments()
+                                .stream()
+                                .map(SelfEmployment::getSelfEmploymentProfit)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)))
+                .collect(Collectors.toList());
     }
 
     private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
@@ -304,7 +309,7 @@ public class HmrcClient {
         HttpStatus statusCode = exception.getStatusCode();
 
         if (!statusCode.equals(FORBIDDEN)) {
-            return  false;
+            return false;
         }
 
         return exception.getResponseBodyAsString().contains("MATCHING_FAILED");
@@ -419,12 +424,6 @@ public class HmrcClient {
         return new HttpEntity<>(null, headers);
     }
 
-    private HttpHeaders generateHeaders(String accessToken) {
-        final HttpHeaders headers = generateHeaders();
-        headers.add("Authorization", format("Bearer %s", accessToken));
-        return headers;
-    }
-
     private HttpHeaders generateHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_JSON);
@@ -433,18 +432,4 @@ public class HmrcClient {
         headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
         return headers;
     }
-
-    private Traverson traversonFor(String link) {
-        try {
-            return new Traverson(new URI(link), APPLICATION_JSON).setRestOperations(this.restTemplate);
-        } catch (URISyntaxException e) {
-            throw new HmrcException("Problem building hmrc API url", e);
-        }
-    }
-
-    private Traverson.TraversalBuilder followTraverson(String link, String accessToken) {
-        log.info("following traverson for {}", link);
-        return traversonFor(link).follow().withHeaders(generateHeaders(accessToken));
-    }
-
 }
