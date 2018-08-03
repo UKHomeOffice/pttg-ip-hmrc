@@ -203,7 +203,7 @@ public class HmrcClient {
         log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmployments> selfEmploymentsResource =
                 traversonFollower.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
-        log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_REQUEST_RECEIVED));
+        log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 
