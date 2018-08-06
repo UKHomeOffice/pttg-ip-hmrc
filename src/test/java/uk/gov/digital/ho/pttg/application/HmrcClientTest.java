@@ -1,79 +1,34 @@
 package uk.gov.digital.ho.pttg.application;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
-import net.logstash.logback.marker.ObjectAppendingMarker;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
-import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.Address;
+import uk.gov.digital.ho.pttg.dto.Employer;
+import uk.gov.digital.ho.pttg.dto.Employment;
+import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.math.BigDecimal;
-import java.net.URI;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
     @Mock
-    private RestTemplate mockRestTemplate;
-
-    @Mock
-    private NinoUtils mockNinoUtils;
-    @Mock
-    private TraversonFollower mockTraversonFollower;
-
-    @Mock
-    private NameNormalizer mockNameNormalizer;
+    private HmrcHateoasClient mockHmrcHateoasClient;
     @Mock
     private Appender<ILoggingEvent> mockAppender;
-    @Mock
-    private ResponseEntity mockResponse;
-    private Individual individual = new Individual("John", "Smith", "12345677", LocalDate.of(2018, 7, 30));
-
-    @Before
-    public void setup() {
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcClient.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
-    }
 
     @Test
     public void shouldProduceEmptyMap() {
 
-        HmrcClient client = new HmrcClient(new RestTemplate(), new NinoUtils(), new TraversonFollower(), mockNameNormalizer, "any api version", "any url");
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, new NinoUtils());
 
         Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
 
@@ -81,93 +36,9 @@ public class HmrcClientTest {
     }
 
     @Test
-    public void shouldLogInfoBeforeMatchingRequestSent() {
-        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonFollower(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
-
-        client.getMatchResource(individual, "", "testurl");
-
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Match Individual 12345*** via a POST to testurl") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoAfterMatchingRequestSent() {
-        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonFollower(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
-
-        client.getMatchResource(individual, "", "testurl");
-
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Successfully matched individual 12345***") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoAfterMatchingFailure() {
-        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(Charset.defaultCharset()), null)
-        );
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonFollower(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
-
-        try {
-            client.getMatchResource(individual, "", "testurl");
-        } catch (HmrcNotFoundException e) {
-            // Swallowed as not of interest for this test.
-        }
-
-        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Failed to match individual 12345***") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoForEveryMatchingAttempt() {
-        when(mockRestTemplate.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(FORBIDDEN, "No match", "MATCHING_FAILED".getBytes(Charset.defaultCharset()), null)
-        );
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonFollower(), mockNameNormalizer, "any api version", "http://something.com/anyurl");
-
-
-        try {
-            client.getMatchResource(individual, "", "testurl");
-        } catch (HmrcNotFoundException e) {
-            // Swallowed as not of interest for this test.
-        }
-
-        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Match attempt 1 of 2") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
-
-        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Match attempt 2 of 2") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
     public void shouldProduceMapWithOneEntry() {
 
-        RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-        String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
         Address anyEmployerAddress = null;
@@ -176,7 +47,7 @@ public class HmrcClientTest {
 
         String somePayeReference = "some ref";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                         somePayFrequency,
@@ -197,11 +68,7 @@ public class HmrcClientTest {
     @Test
     public void shouldProduceMapWithMutlipleEntries() {
 
-        RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-        String anyUrl = "any url";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
         Address anyEmployerAddress = null;
@@ -211,7 +78,7 @@ public class HmrcClientTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                         somePayFrequency,
@@ -242,11 +109,7 @@ public class HmrcClientTest {
     @Test
     public void shouldDoNothingWhenNoIncome() {
 
-        RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-        String anyUrl = "any url";
         String somePayeReference = "some ref";
         String somePayFrequency = "any pay frequency";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -254,7 +117,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
         List<Income> incomes = null;
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -274,11 +137,7 @@ public class HmrcClientTest {
     @Test
     public void shouldDoNothingWhenEmptyIncome() {
 
-        RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-        String anyUrl = "any url";
         String somePayeReference = "some ref";
         String somePayFrequency = "any pay frequency";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -286,7 +145,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
         List<Income> incomes = Collections.emptyList();
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -308,11 +167,7 @@ public class HmrcClientTest {
     @Test
     public void shouldDefaultPaymentFrequencyWhenNoPaymentFrequency() {
 
-        RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-        String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
         String somePayeReference = "some ref";
         BigDecimal anyTaxablePayment = new BigDecimal("0");
@@ -324,7 +179,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -358,11 +213,7 @@ public class HmrcClientTest {
     @Test
     public void shouldAddPaymentFrequencyToIncomeData() {
 
-        RestTemplate anyRestTemplate = new RestTemplate();
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-        String anyUrl = "any url";
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
         String somePayeReference = "some ref";
         BigDecimal anyTaxablePayment = new BigDecimal("0");
@@ -375,7 +226,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(anyRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, anyUrl);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -404,193 +255,5 @@ public class HmrcClientTest {
         client.addPaymentFrequency(incomes, p);
 
         assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(somePayFrequency);
-    }
-
-    @Test
-    public void shouldThrowExceptionForHttpUnauthorised() {
-        final String baseHmrcUrl = "http://localhost";
-        final URI uri = URI.create(baseHmrcUrl + "/individuals/matching/");
-        final String hmrcApiVersion = "1";
-
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, mockNinoUtils, mockTraversonFollower, mockNameNormalizer, hmrcApiVersion, baseHmrcUrl);
-
-        when(mockRestTemplate.exchange(eq(uri), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-
-        assertThatThrownBy(() -> {
-            hmrcClient.getIncomeSummary(
-                    "ACCESS_TOKEN",
-                    new Individual("first", "last", "nino", LocalDate.now()),
-                    LocalDate.now(),
-                    LocalDate.now(),
-                    new IncomeSummaryContext()
-            );
-        }).isInstanceOf(HmrcUnauthorisedException.class);
-
-    }
-
-    @Test(expected = HttpClientErrorException.class)
-    public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
-        NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-
-        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(NOT_FOUND));
-
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, "some-resource");
-
-        LocalDate now = LocalDate.now();
-        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now, new IncomeSummaryContext());
-    }
-
-    @Test(expected = HmrcNotFoundException.class)
-    public void shouldThrowHmrcNotFoundExceptionWhenForbiddenFromHmrc() {
-        NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
-        String anyApiVersion = "any api version";
-
-        String responseBody = "{\"code\" : \"MATCHING_FAILED\", \"message\" : \"There is no match for the information provided\"}";
-        Charset defaultCharset = Charset.defaultCharset();
-        HttpClientErrorException exception = new HttpClientErrorException(FORBIDDEN, "", responseBody.getBytes(defaultCharset), defaultCharset);
-        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(exception);
-
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, anyNinoUtils, anyTraversonFollower, mockNameNormalizer, anyApiVersion, "some-resource");
-
-        LocalDate now = LocalDate.now();
-        hmrcClient.getIncomeSummary("some access token", new Individual("somefirstname", "somelastname", "some nino", now), now, now, new IncomeSummaryContext());
-    }
-
-    @Test
-    public void shouldThrowProxyForbiddenExceptionWhenForbiddenFromProxy() {
-        when(mockRestTemplate.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(new HttpClientErrorException(FORBIDDEN));
-
-        HmrcClient hmrcClient = new HmrcClient(mockRestTemplate, new NinoUtils(), new TraversonFollower(), mockNameNormalizer, "", "some-resource");
-
-        LocalDate now = LocalDate.now();
-        Individual testIndividual = new Individual("somefirstname", "somelastname", "some nino", now);
-
-        assertThatThrownBy(() -> hmrcClient.getIncomeSummary("some access token", testIndividual, now, now, new IncomeSummaryContext()))
-                .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
-    }
-
-    @Test
-    public void shouldLogInfoBeforePayeRequestSent() {
-        // given
-        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
-
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonFollower, mockNameNormalizer, "application/json", "http://something.com/anyurl");
-
-        // when
-        client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Sending PAYE request to HMRC") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoAfterPayeResponseReceived() {
-        // given
-        Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(incomeResource);
-
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonFollower, mockNameNormalizer, "application/json", "http://something.com/anyurl");
-
-        // when
-        client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("PAYE response received from HMRC") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoBeforeSelfAssessmentRequestSent() {
-        // given
-        Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(saResource);
-
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonFollower, mockNameNormalizer, "application/json", "http://something.com/anyurl");
-
-        // when
-        client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Sending Self Assessment request to HMRC") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoAfterSelfAssessmentResponseReceived() {
-        // given
-        Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(saResource);
-
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonFollower, mockNameNormalizer, "application/json", "http://something.com/anyurl");
-
-        // when
-        client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Self Assessment response received from HMRC") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoBeforeEmploymentsRequestSent() {
-        // given
-        Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
-        given(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(employmentsResource);
-
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonFollower, mockNameNormalizer, "application/json", "http://something.com/anyurl");
-
-        // when
-        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Sending Employments request to HMRC") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
-    public void shouldLogInfoAfterEmploymentsResponseReceived() {
-        // given
-        Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
-        given(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any())).willReturn(employmentsResource);
-
-        HmrcClient client = new HmrcClient(mockRestTemplate, new NinoUtils(), mockTraversonFollower, mockNameNormalizer, "application/json", "http://something.com/anyurl");
-
-        // when
-        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Employments response received from HMRC") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
     }
 }

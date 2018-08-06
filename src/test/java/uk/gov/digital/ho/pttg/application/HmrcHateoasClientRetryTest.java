@@ -38,15 +38,15 @@ import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
         "hmrc.retry.attempts=4",
         "hmrc.retry.delay=10"
 })
-public class HmrcClientRetryTest {
+public class HmrcHateoasClientRetryTest {
 
     @MockBean
     private RestTemplate mockRestTemplate;
 
     @TestConfiguration
     @EnableRetry
-    @Import(HmrcClient.class)
-    public static class HmrcClientRetryTestConfig {
+    @Import(HmrcHateoasClient.class)
+    public static class HmrcHateoasClientRetryTestConfig {
         @Bean
         public NinoUtils createNinoUtils() {
             return new NinoUtils();
@@ -66,7 +66,7 @@ public class HmrcClientRetryTest {
     }
 
     @Autowired
-    private HmrcClient hmrcClient;
+    private HmrcHateoasClient hmrcClient;
 
     @Test
     public void shouldThrowProxyForbiddenExceptionOn_403_Not_MATCHING_FAILED() {
@@ -80,7 +80,7 @@ public class HmrcClientRetryTest {
         given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .willThrow(new HttpClientErrorException(FORBIDDEN));
 
-        assertThatThrownBy(() -> hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to, new IncomeSummaryContext()))
+        assertThatThrownBy(() -> hmrcClient.getMatchResource(someIndividual, someAccessToken))
                 .isInstanceOf(ProxyForbiddenException.class);
 
         verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
@@ -100,7 +100,7 @@ public class HmrcClientRetryTest {
         given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .willThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
-        assertThatThrownBy(() -> hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to, new IncomeSummaryContext()))
+        assertThatThrownBy(() -> hmrcClient.getMatchResource(someIndividual, someAccessToken))
                 .isInstanceOf(HmrcNotFoundException.class);
 
         verify(mockRestTemplate, times(2)).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
@@ -118,7 +118,7 @@ public class HmrcClientRetryTest {
         given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
             .willThrow(new HttpClientErrorException(UNAUTHORIZED));
 
-        assertThatThrownBy(() -> hmrcClient.getIncomeSummary(someAccessToken, someIndividual, from, to, new IncomeSummaryContext()))
+        assertThatThrownBy(() -> hmrcClient.getMatchResource(someIndividual, someAccessToken))
                 .isInstanceOf(HmrcUnauthorisedException.class);
 
         verify(mockRestTemplate).exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class));
