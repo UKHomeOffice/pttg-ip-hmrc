@@ -15,6 +15,8 @@ import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static net.logstash.logback.argument.StructuredArguments.value;
@@ -35,6 +37,7 @@ public class HmrcAccessCodeClient {
     private final RequestData requestData;
     private final RetryTemplate retryTemplate;
     private final int maxRetryAttempts;
+    private Optional<AccessCode> accessCode = Optional.ofNullable(null);
 
     public HmrcAccessCodeClient(final RestTemplate restTemplate,
                                 final RequestData requestData,
@@ -55,16 +58,32 @@ public class HmrcAccessCodeClient {
     }
 
     public String getAccessCode() {
-        return getAccessCodeWithRetries();
+        if(isAccessCodeStale()) {
+            refreshAccessCode();
+        }
+        return accessCode.get().getCode();
     }
 
-    private String getAccessCodeWithRetries() {
-        return this.retryTemplate.execute(context -> {
+    public void refreshAccessCode() {
+        getAccessCodeWithRetries();
+    }
+
+    private boolean isAccessCodeStale() {
+        if (!accessCode.isPresent()) {
+            return true;
+        }
+        if (!LocalDateTime.now().isBefore(accessCode.get().getExpiry())) {
+            return true;
+        }
+        return false;
+    }
+
+    private synchronized void getAccessCodeWithRetries() {
+        accessCode = Optional.of(this.retryTemplate.execute(context -> {
             log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,
                     value(EVENT, HMRC_API_CALL_ATTEMPT));
-
-            return requestAccessCode().getCode();
-        });
+            return requestAccessCode();
+        }));
     }
 
     private AccessCode requestAccessCode() {
