@@ -15,10 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.ServiceRunner;
+import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 
@@ -26,6 +28,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.ConnectException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -64,6 +68,9 @@ public class HmrcResourceIntegrationTest {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private HmrcAccessCodeClient hmrcAccessCodeClient;
+
     @Before
     public void setup() throws JsonProcessingException {
         MockRestServiceServerBuilder builder = bindTo(mockRestTemplate);
@@ -79,6 +86,8 @@ public class HmrcResourceIntegrationTest {
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
+
+        ReflectionTestUtils.setField(hmrcAccessCodeClient, "accessCode", Optional.ofNullable(null));
     }
 
     @Test
@@ -557,7 +566,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     private String buildOauthResponse() throws JsonProcessingException {
-        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, null));
+        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, LocalDateTime.MAX));
     }
 
     private String buildMatchResponse() throws IOException {

@@ -153,6 +153,7 @@ public class IncomeSummaryServiceTest {
         assertThat(mockIncomeSummary).isEqualTo(incomeSummary);
 
         verify(mockAccessCodeClient, times(2)).getAccessCode();
+        verify(mockAccessCodeClient).refreshAccessCode();
         verify(mockHmrcClient, times(2)).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class));
         verify(mockAuditClient, times(2)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
     }
