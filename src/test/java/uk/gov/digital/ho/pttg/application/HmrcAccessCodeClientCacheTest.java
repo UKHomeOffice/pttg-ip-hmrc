@@ -115,13 +115,25 @@ public class HmrcAccessCodeClientCacheTest {
     }
 
     private List<Future<String>> runConflictingThreads(Callable<String>... callables) throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
+        ExecutorService executor = Executors.newFixedThreadPool(callables.length);
 
         List<Future<String>> futures = executor.invokeAll(Arrays.asList(callables));
 
         awaitTerminationAfterShutdown(executor);
 
         return futures;
+    }
+
+    private void awaitTerminationAfterShutdown(ExecutorService threadPool) {
+        threadPool.shutdown();
+        try {
+            if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                threadPool.shutdownNow();
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private Callable<String> callGetAccessCode(HmrcAccessCodeClient client, String accessCodeServiceUrl) {
@@ -144,18 +156,6 @@ public class HmrcAccessCodeClientCacheTest {
             client.refreshAccessCode();
             return "finished refresh access code";
         };
-    }
-
-    private void awaitTerminationAfterShutdown(ExecutorService threadPool) {
-        threadPool.shutdown();
-        try {
-            if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
-                threadPool.shutdownNow();
-            }
-        } catch (InterruptedException ex) {
-            threadPool.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
     String buildAccesCodeResponse(AccessCode accessCode, ObjectMapper objectMapper) throws JsonProcessingException {

@@ -44,8 +44,8 @@ public class HmrcAccessCodeClientTest {
     private static final String ACCESS_CODE_URL = "https://localhost:9876";
     private static final int MAX_RETRY_ATTEMPTS = 5;
     private static final long RETRY_DELAY_IN_MILLIS = 0L;
-    private static final String SOME_ACCESS_CODE = "Some Access Code";
-    private static final AccessCode someAccessCode = new AccessCode(SOME_ACCESS_CODE, LocalDateTime.MAX);
+    private static final String SOME_ACCESS_CODE_VALUE = "Some Access Code";
+    private static final AccessCode SOME_ACCESS_CODE = new AccessCode(SOME_ACCESS_CODE_VALUE, LocalDateTime.MAX);
 
     @Mock
     private RestTemplate mockRestTemplate;
@@ -102,7 +102,7 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         verifyNoMoreInteractions(mockRestTemplate);
 
-        assertThat(actualAccessCode).isEqualTo(SOME_ACCESS_CODE);
+        assertThat(actualAccessCode).isEqualTo(SOME_ACCESS_CODE_VALUE);
     }
 
     @Test
@@ -212,7 +212,7 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate, times(2)).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         verifyNoMoreInteractions(mockRestTemplate);
 
-        assertThat(accessCode).isEqualTo(SOME_ACCESS_CODE);
+        assertThat(accessCode).isEqualTo(SOME_ACCESS_CODE_VALUE);
     }
 
     @Test
@@ -249,7 +249,7 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate, times(2)).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         verifyNoMoreInteractions(mockRestTemplate);
 
-        assertThat(accessCode).isEqualTo(SOME_ACCESS_CODE);
+        assertThat(accessCode).isEqualTo(SOME_ACCESS_CODE_VALUE);
     }
 
     @Test
@@ -311,7 +311,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     private ResponseEntity<AccessCode> okResponse() {
-        return okResponse(someAccessCode);
+        return okResponse(SOME_ACCESS_CODE);
     }
 
     private ResponseEntity<AccessCode> okResponse(AccessCode accessCode) {
