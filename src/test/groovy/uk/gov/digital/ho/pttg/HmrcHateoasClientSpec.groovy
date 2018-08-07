@@ -3,14 +3,16 @@ package uk.gov.digital.ho.pttg
 
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
+import uk.gov.digital.ho.pttg.application.HmrcCallWrapper
 import uk.gov.digital.ho.pttg.application.HmrcClient
+import uk.gov.digital.ho.pttg.application.HmrcHateoasClient
 import uk.gov.digital.ho.pttg.application.NinoUtils
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower
 
 import java.time.LocalDate
 
-class HmrcClientSpec extends Specification {
+class HmrcHateoasClientSpec extends Specification {
 
     private static final LocalDate FROM_DATE = LocalDate.of(2016, 6, 21)
     private static final LocalDate TO_DATE = LocalDate.of(2016, 8, 1)
@@ -24,15 +26,14 @@ class HmrcClientSpec extends Specification {
     private static final LocalDate DATE_1_MAY_2013 = LocalDate.of(2013, 5, 1)
     private static final LocalDate DATE_6_APRIL_2011 = LocalDate.of(2011, 4, 6)
 
-    public RestTemplate mockRestTemplate = Mock(RestTemplate.class)
     public NameNormalizer mockNameNormalizer = Mock(NameNormalizer.class)
     private NinoUtils ninoUtils = new NinoUtils()
-    private TraversonFollower traversonUtils = new TraversonFollower()
+    private HmrcCallWrapper mockHmrcCallWrapper = Mock(HmrcCallWrapper.class)
 
-    public HmrcClient client
+    public HmrcHateoasClient client
 
     def setup() {
-        client = new HmrcClient(mockRestTemplate, ninoUtils, traversonUtils, mockNameNormalizer, HMRC_API_VERSION, HMRC_BASE_URL)
+        client = new HmrcHateoasClient(ninoUtils, mockNameNormalizer, mockHmrcCallWrapper, HMRC_API_VERSION, HMRC_BASE_URL)
     }
 
     def 'should retain any returned query params from absolute url'() {
