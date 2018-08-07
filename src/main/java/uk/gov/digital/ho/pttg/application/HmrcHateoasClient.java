@@ -9,13 +9,9 @@ import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
@@ -31,14 +27,10 @@ import static java.util.Collections.emptyList;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
-import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_FAILURE_RECEIVED;
 import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator.generateCandidateNames;
 
 @Service
@@ -47,11 +39,10 @@ public class HmrcHateoasClient {
 
     private final String hmrcApiVersion;
     private final String hmrcUrl;
-    private final RestTemplate restTemplate;
     private final NinoUtils ninoUtils;
-    private final TraversonFollower traversonFollower;
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
+    private final HmrcCallWrapper hmrcCallWrapper;
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {};
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};
@@ -68,19 +59,17 @@ public class HmrcHateoasClient {
     private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
 
     public HmrcHateoasClient(
-            RestTemplate restTemplate,
             NinoUtils ninoUtils,
-            TraversonFollower traversonFollower,
             NameNormalizer nameNormalizer,
+            HmrcCallWrapper hmrcCallWrapper,
             @Value("${hmrc.api.version}") String hmrcApiVersion,
             @Value("${hmrc.endpoint}") String hmrcUrl
             ) {
+        this.ninoUtils = ninoUtils;
+        this.nameNormalizer = nameNormalizer;
+        this.hmrcCallWrapper = hmrcCallWrapper;
         this.hmrcApiVersion = hmrcApiVersion;
         this.hmrcUrl = hmrcUrl;
-        this.restTemplate = restTemplate;
-        this.ninoUtils = ninoUtils;
-        this.traversonFollower = traversonFollower;
-        this.nameNormalizer = nameNormalizer;
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
@@ -88,7 +77,7 @@ public class HmrcHateoasClient {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
-        Resource<PayeIncome> incomeResource = traversonFollower.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, payeIncomesResourceTypeRef);
+        Resource<PayeIncome> incomeResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, hmrcApiVersion, payeIncomesResourceTypeRef);
         log.info("PAYE response received from HMRC", value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
 
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
@@ -99,7 +88,7 @@ public class HmrcHateoasClient {
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
         log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        Resource<Employments> employmentsResource = traversonFollower.followTraverson(linkHref, accessToken, hmrcApiVersion, restTemplate, employmentsResourceTypeRef);
+        Resource<Employments> employmentsResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, hmrcApiVersion, employmentsResourceTypeRef);
         log.info("Employments response received from HMRC", value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
         return employmentsResource.getContent().getEmployments();
     }
@@ -112,7 +101,7 @@ public class HmrcHateoasClient {
 
         log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmployments> selfEmploymentsResource =
-                traversonFollower.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, restTemplate, selfEmploymentsResourceTypeRef);
+                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, selfEmploymentsResourceTypeRef);
         log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
@@ -190,34 +179,15 @@ public class HmrcHateoasClient {
                 log.info("Successfully matched individual {}", ninoUtils.redact(individual.getNino()), value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
                 return matchedIndividual;
 
-            } catch (HttpClientErrorException ex) {
-                HttpStatus statusCode = ex.getStatusCode();
-                if (isHmrcMatchFailedError(ex)) {
+            } catch (ApplicationExceptions.HmrcNotFoundException ex) {
                     log.info("Failed to match individual {}", ninoUtils.redact(individual.getNino()), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
                     retries++;
-                } else if (statusCode.equals(FORBIDDEN)) {
-                    throw new ApplicationExceptions.ProxyForbiddenException("Received a 403 Forbidden response from proxy");
-                } else if (statusCode.equals(UNAUTHORIZED)) {
-                    throw new ApplicationExceptions.HmrcUnauthorisedException(ex.getMessage(), ex);
-                } else {
-                    throw ex;
-                }
             }
         }
 
         throw new ApplicationExceptions.HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
 
-    private boolean isHmrcMatchFailedError(HttpClientErrorException exception) {
-
-        HttpStatus statusCode = exception.getStatusCode();
-
-        if (!statusCode.equals(FORBIDDEN)) {
-            return false;
-        }
-
-        return exception.getResponseBodyAsString().contains("MATCHING_FAILED");
-    }
 
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, String candidateNames, String nino, LocalDate dateOfBirth) {
         String[] names = candidateNames.split("\\s+");
@@ -225,7 +195,7 @@ public class HmrcHateoasClient {
         Individual individualToMatch = new Individual(names[0], names[1], nino, dateOfBirth);
         Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
 
-        return restTemplate.exchange(
+        return hmrcCallWrapper.exchange(
                 URI.create(matchUrl),
                 HttpMethod.POST,
                 createEntity(normalizedIndividual, accessToken),
@@ -237,7 +207,7 @@ public class HmrcHateoasClient {
 
         String url = asAbsolute(link.getHref());
         log.info("GET Individual Resource for {} from {}", redactedNino, url);
-        Resource<EmbeddedIndividual> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), individualResourceTypeRef).getBody();
+        Resource<EmbeddedIndividual> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), individualResourceTypeRef).getBody();
         log.info("Individual Response has been received for {}", redactedNino);
 
         return resource;
@@ -248,7 +218,7 @@ public class HmrcHateoasClient {
 
         String url = asAbsolute(link.getHref());
         log.info("GET Income Resource for {} from {}", redactedNino, url);
-        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
+        Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("Income Response has been received for {}", redactedNino);
 
         return resource;
@@ -259,7 +229,7 @@ public class HmrcHateoasClient {
 
         String url = asAbsolute(link.getHref());
         log.info("GET Employment Resource for {} from {}", redactedNino, url);
-        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
+        Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("Employment Response has been received for {}", redactedNino);
 
         return resource;
@@ -278,7 +248,7 @@ public class HmrcHateoasClient {
 
         log.info("GET SA Resource for {} from {}", redactedNino, url);
 
-        Resource<String> resource = restTemplate.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
+        Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("SA Response has been received for {}", redactedNino);
 
         return resource;
