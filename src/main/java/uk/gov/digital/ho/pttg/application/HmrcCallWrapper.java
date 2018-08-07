@@ -15,6 +15,7 @@ import java.net.URI;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 
 @Service
 public class HmrcCallWrapper {
@@ -32,10 +33,9 @@ public class HmrcCallWrapper {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
 
         } catch (HttpClientErrorException ex) {
-            handleClientErrorExceptions(ex);
+            throw handleClientErrorExceptions(ex);
         }
-        //noop
-        return null;
+
     }
 
     <T> Resource<T> followTraverson(String link, String accessToken, String apiVerion, ParameterizedTypeReference<Resource<T>> reference) {
@@ -43,26 +43,24 @@ public class HmrcCallWrapper {
             return traversonFollower.followTraverson(link, accessToken, apiVerion, restTemplate, reference);
 
         } catch (HttpClientErrorException ex) {
-            handleClientErrorExceptions(ex);
+            throw handleClientErrorExceptions(ex);
         }
-        // noop
-        return null;
     }
 
-    private void handleClientErrorExceptions(HttpClientErrorException ex) {
+    private RuntimeException handleClientErrorExceptions(HttpClientErrorException ex) {
         HttpStatus statusCode = ex.getStatusCode();
 
         if (isHmrcMatchFailedError(ex)) {
-            throw new ApplicationExceptions.HmrcNotFoundException("Received MATCHING_FAILED from HMRC");
+            return new HmrcNotFoundException("Received MATCHING_FAILED from HMRC");
 
         } else if (statusCode.equals(FORBIDDEN)) {
-            throw new ApplicationExceptions.ProxyForbiddenException("Received a 403 Forbidden response from proxy");
+            return new ProxyForbiddenException("Received a 403 Forbidden response from proxy");
 
         } else if (statusCode.equals(UNAUTHORIZED)) {
-            throw new ApplicationExceptions.HmrcUnauthorisedException(ex.getMessage(), ex);
+            return new HmrcUnauthorisedException(ex.getMessage(), ex);
 
         } else {
-            throw ex;
+            return ex;
         }
     }
 
@@ -76,6 +74,5 @@ public class HmrcCallWrapper {
 
         return exception.getResponseBodyAsString().contains("MATCHING_FAILED");
     }
-
 
 }
