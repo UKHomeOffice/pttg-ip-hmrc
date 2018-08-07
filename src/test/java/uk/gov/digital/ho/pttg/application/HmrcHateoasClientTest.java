@@ -138,7 +138,6 @@ public class HmrcHateoasClientTest {
     @Test(expected = HttpClientErrorException.class)
     public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
         NinoUtils anyNinoUtils = new NinoUtils();
-        TraversonFollower anyTraversonFollower = new TraversonFollower();
         String anyApiVersion = "any api version";
 
         when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
