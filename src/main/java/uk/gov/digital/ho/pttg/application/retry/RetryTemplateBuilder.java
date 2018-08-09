@@ -1,5 +1,7 @@
 package uk.gov.digital.ho.pttg.application.retry;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.apache.http.conn.HttpHostConnectException;
 import org.springframework.retry.RetryListener;
 import org.springframework.retry.RetryPolicy;
@@ -19,7 +21,11 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonMap;
 
 public class RetryTemplateBuilder {
+
+    @Getter
+    @Accessors(fluent = true)
     private final int maxAttempts;
+
     private final List<RetryPolicy> retryPolicyList;
     private final List<RetryListener> retryListenerList;
     private StatelessBackOffPolicy backOffPolicy;

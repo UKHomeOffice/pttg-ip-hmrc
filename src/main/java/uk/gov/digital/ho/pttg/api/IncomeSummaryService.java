@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.IncomeSummaryContext;
-import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
@@ -32,7 +31,6 @@ public class IncomeSummaryService {
     private final AuditClient auditClient;
     private final RetryTemplate reauthorisingRetryTemplate;
     private final RetryTemplate apiFailureRetryTemplate;
-    private final int hmrcUnauthorizedRetryAttempts;
     private final int hmrcApiFailureRetryAttempts;
 
     @Autowired
@@ -40,44 +38,42 @@ public class IncomeSummaryService {
             HmrcClient hmrcClient,
             HmrcAccessCodeClient accessCodeClient,
             AuditClient auditClient,
-            @Value("${hmrc.retry.unauthorized.attempts}") int hmrcUnauthorizedRetryAttempts,
-            @Value("${hmrc.retry.attempts}") int hmrcApiFailureRetryAttempts,
-            @Value("${hmrc.retry.delay}") int retryDelay) {
+            RetryTemplate reauthorisingRetryTemplate,
+            RetryTemplate apiFailureRetryTemplate,
+            @Value("${hmrc.retry.attempts}") int hmrcApiFailureRetryAttempts) {
 
         this.hmrcClient = hmrcClient;
         this.accessCodeClient = accessCodeClient;
         this.auditClient = auditClient;
 
+        this.reauthorisingRetryTemplate = reauthorisingRetryTemplate;
+        this.apiFailureRetryTemplate = apiFailureRetryTemplate;
         this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
-        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
-
-        this.reauthorisingRetryTemplate = new RetryTemplateBuilder(this.hmrcUnauthorizedRetryAttempts)
-                .retryHmrcUnauthorisedException()
-                .build();
-        this.apiFailureRetryTemplate = new RetryTemplateBuilder(this.hmrcApiFailureRetryAttempts)
-                .withBackOffPeriod(retryDelay)
-                .retryHttpServerErrors()
-                .build();
     }
 
-    public IncomeSummary getIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
+    IncomeSummary getIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
         return requestIncomeSummaryWithRetries(individual, fromDate, toDate);
     }
 
     private IncomeSummary requestIncomeSummaryWithRetries(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
         return reauthorisingRetryTemplate.execute(context -> {
-            log.info("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
+            log.debug("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
+
             if (context.getRetryCount() > 0) {
                 accessCodeClient.refreshAccessCode();
             }
+
             return requestIncomeSummary(individual, fromDate, toDate);
         });
     }
 
     private IncomeSummary requestIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
+
         auditRequestToHmrc(individual);
+
         String accessCode = requestAccessCode();
+
         return apiFailureRetryTemplate.execute(context -> {
             log.info("HMRC call attempt {} of {}", context.getRetryCount() + 1, hmrcApiFailureRetryAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
             return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate, new IncomeSummaryContext());

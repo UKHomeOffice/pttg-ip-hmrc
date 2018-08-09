@@ -1,7 +1,5 @@
 package uk.gov.digital.ho.pttg.application;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -20,15 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
-    @Mock
-    private HmrcHateoasClient mockHmrcHateoasClient;
-    @Mock
-    private Appender<ILoggingEvent> mockAppender;
+    @Mock private HmrcHateoasClient mockHmrcHateoasClient;
 
     @Test
     public void shouldProduceEmptyMap() {
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, new NinoUtils());
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
 
         Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
 
@@ -38,7 +33,6 @@ public class HmrcClientTest {
     @Test
     public void shouldProduceMapWithOneEntry() {
 
-        NinoUtils anyNinoUtils = new NinoUtils();
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
         Address anyEmployerAddress = null;
@@ -47,7 +41,7 @@ public class HmrcClientTest {
 
         String somePayeReference = "some ref";
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                         somePayFrequency,
@@ -68,7 +62,6 @@ public class HmrcClientTest {
     @Test
     public void shouldProduceMapWithMutlipleEntries() {
 
-        NinoUtils anyNinoUtils = new NinoUtils();
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
         LocalDate anyEndDate = LocalDate.now();
         Address anyEmployerAddress = null;
@@ -78,7 +71,7 @@ public class HmrcClientTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
         List<Employment> employments = Arrays.asList(
                 new Employment(
                         somePayFrequency,
@@ -109,7 +102,6 @@ public class HmrcClientTest {
     @Test
     public void shouldDoNothingWhenNoIncome() {
 
-        NinoUtils anyNinoUtils = new NinoUtils();
         String somePayeReference = "some ref";
         String somePayFrequency = "any pay frequency";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -117,7 +109,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
         List<Income> incomes = null;
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -137,7 +129,6 @@ public class HmrcClientTest {
     @Test
     public void shouldDoNothingWhenEmptyIncome() {
 
-        NinoUtils anyNinoUtils = new NinoUtils();
         String somePayeReference = "some ref";
         String somePayFrequency = "any pay frequency";
         LocalDate anyStartDate = LocalDate.now().minusYears(1);
@@ -145,7 +136,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
         List<Income> incomes = Collections.emptyList();
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -167,7 +158,6 @@ public class HmrcClientTest {
     @Test
     public void shouldDefaultPaymentFrequencyWhenNoPaymentFrequency() {
 
-        NinoUtils anyNinoUtils = new NinoUtils();
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
         String somePayeReference = "some ref";
         BigDecimal anyTaxablePayment = new BigDecimal("0");
@@ -179,7 +169,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(
@@ -213,7 +203,6 @@ public class HmrcClientTest {
     @Test
     public void shouldAddPaymentFrequencyToIncomeData() {
 
-        NinoUtils anyNinoUtils = new NinoUtils();
         LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
         String somePayeReference = "some ref";
         BigDecimal anyTaxablePayment = new BigDecimal("0");
@@ -226,7 +215,7 @@ public class HmrcClientTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient, anyNinoUtils);
+        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
 
         List<Employment> employments = Arrays.asList(
                 new Employment(

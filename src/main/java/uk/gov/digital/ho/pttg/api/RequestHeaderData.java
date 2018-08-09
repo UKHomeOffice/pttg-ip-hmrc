@@ -9,12 +9,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
 @Component
-public class RequestData implements HandlerInterceptor {
+public class RequestHeaderData implements HandlerInterceptor {
 
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
@@ -24,9 +24,10 @@ public class RequestData implements HandlerInterceptor {
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
     @Value("${hmrc.access.service.auth}") private String hmrcAccessBasicAuth;
     @Value("${audit.service.auth}") private String auditBasicAuth;
+    @Value("${hmrc.api.version}") private String hmrcApiVersion;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
         MDC.clear();
         MDC.put(SESSION_ID_HEADER, initialiseSessionId(request));
@@ -38,12 +39,12 @@ public class RequestData implements HandlerInterceptor {
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
         MDC.clear();
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
     }
 
     private String initialiseSessionId(HttpServletRequest request) {
@@ -69,9 +70,13 @@ public class RequestData implements HandlerInterceptor {
         return deploymentNamespace;
     }
 
-    public String hmrcBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(hmrcAccessBasicAuth.getBytes(Charset.forName("utf-8")))); }
+    public String hmrcApiVersion() {
+        return hmrcApiVersion;
+    }
 
-    public String auditBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(auditBasicAuth.getBytes(Charset.forName("UTF-8")))); }
+    public String hmrcBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(hmrcAccessBasicAuth.getBytes(StandardCharsets.UTF_8))); }
+
+    public String auditBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(auditBasicAuth.getBytes(StandardCharsets.UTF_8))); }
 
     public String sessionId() {
         return MDC.get(SESSION_ID_HEADER);

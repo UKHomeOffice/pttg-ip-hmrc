@@ -13,8 +13,13 @@ Overview
 
 This is the Income Proving HMRC API. Interfaces with the HMRC using [pttg-ip-hmrc-access-code] for authentication to retrieve previous incomes and employments. 
 
-Currently the only client of this service is [pttg-ip-api].
+Currently the client of this service are [pttg-ip-api] [eue-api-rps-service].
 
+###### NINO logging
+
+N.B. Any log output that contains a NINO must sufficiently redact the data to hide the actual identity!
+This is achieved through the use of a specific LogBack appender in logback-spring.xml.
+ 
 ## Find Us
 
 * [GitHub]

@@ -64,7 +64,7 @@
         <module name="CyclomaticComplexity"/>
         <module name="NPathComplexity"/>
         <module name="ParameterNumber">
-            <property name="max" value="10"/>
+            <property name="max" value="11"/>
             <property name="tokens" value="CTOR_DEF"/>
         </module>
         <module name="IllegalInstantiation">

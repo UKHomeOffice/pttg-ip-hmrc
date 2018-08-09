@@ -18,39 +18,34 @@ import java.util.Map;
 public class HmrcClient {
 
     private final HmrcHateoasClient hateoasClient;
-    private final NinoUtils ninoUtils;
 
     private static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
 
     /*
         Hypermedia paths and links
     */
-    static final String INDIVIDUAL = "individual";
-    static final String INCOME = "income";
-    static final String EMPLOYMENTS = "employments";
-    static final String SELF_ASSESSMENT = "selfAssessment";
-    static final String PAYE_INCOME = "paye";
-    static final String PAYE_EMPLOYMENT = "paye";
-    static final String SELF_EMPLOYMENTS = "selfEmployments";
+    private static final String INDIVIDUAL = "individual";
+    private static final String INCOME = "income";
+    private static final String EMPLOYMENTS = "employments";
+    private static final String SELF_ASSESSMENT = "selfAssessment";
+    private static final String PAYE_INCOME = "paye";
+    private static final String PAYE_EMPLOYMENT = "paye";
+    private static final String SELF_EMPLOYMENTS = "selfEmployments";
 
 
-    public HmrcClient(HmrcHateoasClient hateoasClient,
-                      NinoUtils ninoUtils) {
+    public HmrcClient(HmrcHateoasClient hateoasClient) {
         this.hateoasClient = hateoasClient;
-        this.ninoUtils = ninoUtils;
     }
 
     public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
 
-        String redactedNino = ninoUtils.redact(suppliedIndividual.getNino());
-
-        log.info("Attempt to retrieve HMRC data for {}", redactedNino);
+        log.debug("Attempt to retrieve HMRC data for {}", suppliedIndividual.getNino());
 
         getHmrcData(accessToken, suppliedIndividual, fromDate, toDate, context);
 
         enrichIncomeData(context.payeIncome(), context.employments());
 
-        log.info("Successfully retrieved HMRC data for {}", redactedNino);
+        log.debug("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
 
         return new IncomeSummary(
                 context.payeIncome(),
@@ -60,14 +55,12 @@ public class HmrcClient {
     }
 
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
-        String nino = suppliedIndividual.getNino();
-
         storeMatchResource(suppliedIndividual, accessToken, context);
 
-        storeIndividualResource(nino, accessToken, context);
-        storeIncomeResource(nino, accessToken, context);
-        storeEmploymentResource(nino, accessToken, context);
-        storeSelfAssessmentResource(nino, accessToken, fromDate, toDate, context);
+        storeIndividualResource(accessToken, context);
+        storeIncomeResource(accessToken, context);
+        storeEmploymentResource(accessToken, context);
+        storeSelfAssessmentResource(accessToken, fromDate, toDate, context);
 
         storePayeIncome(fromDate, toDate, accessToken, context);
         storeEmployments(fromDate, toDate, accessToken, context);
@@ -99,27 +92,27 @@ public class HmrcClient {
         }
     }
 
-    private void storeIndividualResource(String nino, String accessToken, IncomeSummaryContext context) {
+    private void storeIndividualResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsIndividualResource()) {
-            context.setIndividualResource(hateoasClient.getIndividualResource(nino, accessToken, context.matchResource().getLink(INDIVIDUAL)));
+            context.setIndividualResource(hateoasClient.getIndividualResource(accessToken, context.matchResource().getLink(INDIVIDUAL)));
         }
     }
 
-    private void storeIncomeResource(String nino, String accessToken, IncomeSummaryContext context) {
+    private void storeIncomeResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsIncomeResource()) {
-            context.setIncomeResource(hateoasClient.getIncomeResource(nino, accessToken, context.individualResource().getLink(INCOME)));
+            context.setIncomeResource(hateoasClient.getIncomeResource(accessToken, context.individualResource().getLink(INCOME)));
         }
     }
 
-    private void storeEmploymentResource(String nino, String accessToken, IncomeSummaryContext context) {
+    private void storeEmploymentResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsEmploymentResource()) {
-            context.setEmploymentResource(hateoasClient.getEmploymentResource(nino, accessToken, context.individualResource().getLink(EMPLOYMENTS)));
+            context.setEmploymentResource(hateoasClient.getEmploymentResource(accessToken, context.individualResource().getLink(EMPLOYMENTS)));
         }
     }
 
-    private void storeSelfAssessmentResource(String nino, String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
+    private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentResource()) {
-            context.setSelfAssessmentResource(hateoasClient.getSelfAssessmentResource(nino, accessToken, fromDate, toDate, context.incomeResource().getLink(SELF_ASSESSMENT)));
+            context.setSelfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromDate, toDate, context.incomeResource().getLink(SELF_ASSESSMENT)));
         }
     }
 

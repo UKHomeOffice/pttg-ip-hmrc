@@ -12,12 +12,37 @@
                 <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
             </layout>
         </appender>
+
+        <!--This appender is used when logging may include a NINO - NINOs must not be logged in full-->
+        <appender name="redactingAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Z]{2}[0-9]{3})[0-9]{3}[A-D]','$1****'}</Pattern>
+            </layout>
+        </appender>
     </springProfile>
 
     <springProfile name="!logtoconsole">
         <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                 <includeCallerInfo>true</includeCallerInfo>
+            </encoder>
+        </appender>
+
+        <!--This appender is used when logging may include a NINO - NINOs must not be logged in full-->
+        <appender name="redactingAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeCallerInfo>true</includeCallerInfo>
+                <fieldNames>
+                    <!-- Do not output the standard message field.  It will be output by the pattern provider below -->
+                    <message>[ignore]</message>
+                </fieldNames>
+                <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
+                    <pattern>
+                        {
+                        "message": "%replace(%msg){'([A-Z]{2}[0-9]{3})[0-9]{3}[A-D]','$1****'}"
+                        }
+                    </pattern>
+                </provider>
             </encoder>
         </appender>
     </springProfile>
@@ -33,8 +58,9 @@
         <appender-ref ref="consoleAppender"/>
     </logger>
 
+    <!--This logger _must_ use the redactingAppender - NINOs must be hidden in logs-->
     <logger name="uk.gov" additivity="false" level="INFO">
-        <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="redactingAppender"/>
     </logger>
 
     <logger name="com.github.tomakehurst.wiremock" additivity="false" level="INFO">

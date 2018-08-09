@@ -21,7 +21,7 @@ public class HMRCProxyRoutePlanner extends DefaultProxyRoutePlanner {
             throws HttpException {
 
         if (target.getHostName().equals(hostToProxy)) {
-            log.info("proxying {} to {}", target.getHostName(), hostToProxy);
+            log.debug("proxying {} to {}", target.getHostName(), hostToProxy);
             return super.determineProxy(target, request, context);
         }
 

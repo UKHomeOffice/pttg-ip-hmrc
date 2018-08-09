@@ -22,7 +22,7 @@ public class HmrcResource {
     private final IncomeSummaryService incomeSummaryService;
     private final NinoUtils ninoUtils;
 
-    public HmrcResource(final IncomeSummaryService incomeSummaryService, final NinoUtils ninoUtils) {
+    public HmrcResource(IncomeSummaryService incomeSummaryService, NinoUtils ninoUtils) {
         this.incomeSummaryService = incomeSummaryService;
         this.ninoUtils = ninoUtils;
     }
@@ -36,16 +36,16 @@ public class HmrcResource {
             @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
-        final String redactedNino = ninoUtils.redact(nino);
-        log.info("Hmrc service invoked for nino {} with date range {} to {}", redactedNino, fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
+        log.info("Hmrc service invoked for nino {} with date range {} to {}", nino, fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
 
-        final String sanitisedNino = ninoUtils.sanitise(nino);
+        String sanitisedNino = ninoUtils.sanitise(nino);
         ninoUtils.validate(sanitisedNino);
 
-        final Individual individual = new Individual(firstName, lastName, sanitisedNino, dob);
-        final IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
+        Individual individual = new Individual(firstName, lastName, sanitisedNino, dob);
+        IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
 
         log.info("Income summary successfully retrieved from HMRC", value(EVENT, HMRC_SERVICE_RESPONSE_SUCCESS));
+
         return incomeSummary;
     }
 }

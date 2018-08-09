@@ -10,7 +10,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.api.RequestData;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 
 import java.time.Clock;
@@ -31,21 +31,21 @@ public class AuditClient {
     private final Clock clock;
     private final RestTemplate restTemplate;
     private final String auditEndpoint;
-    private final RequestData requestData;
+    private final RequestHeaderData requestHeaderData;
     private final ObjectMapper mapper;
     private final RetryTemplate retryTemplate;
     private final int maxCallAttempts;
 
     public AuditClient(Clock clock,
                        RestTemplate restTemplate,
-                       RequestData requestData,
+                       RequestHeaderData requestHeaderData,
                        @Value("${pttg.audit.endpoint}") String auditEndpoint,
                        ObjectMapper mapper,
                        @Value("#{${audit.service.retry.attempts}}") int maxCallAttempts,
                        @Value("#{${audit.service.retry.delay}}") int retryDelay) {
         this.clock = clock;
         this.restTemplate = restTemplate;
-        this.requestData = requestData;
+        this.requestHeaderData = requestHeaderData;
         this.auditEndpoint = auditEndpoint;
         this.mapper = mapper;
         this.maxCallAttempts = maxCallAttempts;
@@ -57,18 +57,18 @@ public class AuditClient {
 
     public void add(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) {
 
-        log.info("POST data for {} to audit service", eventId);
+        log.debug("POST data for {} to audit service", eventId);
 
         try {
             AuditableData auditableData = generateAuditableData(eventType, eventId, auditData);
             dispatchAuditableData(auditableData);
-            log.info("data POSTed to audit service");
+            log.debug("data POSTed to audit service");
         } catch (JsonProcessingException e) {
             log.error("Failed to create json representation of audit data");
         }
     }
 
-    public void dispatchAuditableData(AuditableData auditableData) {
+    void dispatchAuditableData(AuditableData auditableData) {
         try {
             retryTemplate.execute(context -> {
                 log.info("Audit attempt {} of {}", context.getRetryCount() + 1, maxCallAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
@@ -83,11 +83,11 @@ public class AuditClient {
     private AuditableData generateAuditableData(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) throws JsonProcessingException {
         return new AuditableData(eventId.toString(),
                 LocalDateTime.now(clock),
-                requestData.sessionId(),
-                requestData.correlationId(),
-                requestData.userId(),
-                requestData.deploymentName(),
-                requestData.deploymentNamespace(),
+                requestHeaderData.sessionId(),
+                requestHeaderData.correlationId(),
+                requestHeaderData.userId(),
+                requestHeaderData.deploymentName(),
+                requestHeaderData.deploymentNamespace(),
                 eventType,
                 mapper.writeValueAsString(auditData));
     }
@@ -100,7 +100,7 @@ public class AuditClient {
 
         HttpHeaders headers = new HttpHeaders();
 
-        headers.add(AUTHORIZATION, requestData.auditBasicAuth());
+        headers.add(AUTHORIZATION, requestHeaderData.auditBasicAuth());
         headers.setContentType(APPLICATION_JSON);
 
         return headers;

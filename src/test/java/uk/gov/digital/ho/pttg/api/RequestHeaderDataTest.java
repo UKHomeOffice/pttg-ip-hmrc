@@ -14,17 +14,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RequestDataTest {
+public class RequestHeaderDataTest {
 
     @Mock private HttpServletRequest mockHttpServletRequest;
     @Mock private HttpServletResponse mockHttpServletResponse;
     @Mock private Object mockHandler;
 
-    private RequestData requestData;
+    private RequestHeaderData requestData;
 
     @Before
     public void setup() {
-        requestData = new RequestData();
+        requestData = new RequestHeaderData();
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
     }
 
@@ -34,7 +34,7 @@ public class RequestDataTest {
     }
 
     @Test
-    public void shouldDefaultRequestData() throws Exception {
+    public void shouldDefaultRequestData() {
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
         assertThat(requestData.deploymentName()).isNull();
@@ -45,7 +45,7 @@ public class RequestDataTest {
     }
 
     @Test
-    public void shouldUseSessionIdFromRequest() throws Exception {
+    public void shouldUseSessionIdFromRequest() {
         when(mockHttpServletRequest.getHeader("x-session-id")).thenReturn("some session id");
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
@@ -54,7 +54,7 @@ public class RequestDataTest {
     }
 
     @Test
-    public void shouldUseCorrelationIdFromRequest() throws Exception {
+    public void shouldUseCorrelationIdFromRequest() {
         when(mockHttpServletRequest.getHeader("x-correlation-id")).thenReturn("some correlation id");
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
@@ -63,7 +63,7 @@ public class RequestDataTest {
     }
 
     @Test
-    public void shouldUseUserIdFromRequest() throws Exception {
+    public void shouldUseUserIdFromRequest() {
         when(mockHttpServletRequest.getHeader("x-auth-userid")).thenReturn("some user id");
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
