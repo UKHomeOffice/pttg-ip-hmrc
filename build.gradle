@@ -30,15 +30,17 @@ apply plugin: 'findbugs'
 apply plugin: 'jacoco'
 apply plugin: 'project-report'
 
+
+checkstyleTest.enabled = false
 checkstyle {
   toolVersion = "5.9"
   ignoreFailures = false
 }
+
 findbugs {
   ignoreFailures = false
 }
 
-gradle.taskGraph.beforeTask { task -> if ( task.name == "checkstyleTest") {task.deleteAllActions()}}
 tasks.withType(FindBugs) {
   excludeFilter = file('config/findbugs/exclude-filter.xml')
   reports {

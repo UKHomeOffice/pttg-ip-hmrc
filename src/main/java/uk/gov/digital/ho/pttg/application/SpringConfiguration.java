@@ -15,10 +15,12 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import uk.gov.digital.ho.pttg.api.RequestData;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
@@ -34,6 +36,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Configuration
 @EnableRetry
 public class SpringConfiguration implements WebMvcConfigurer {
+
     private final boolean useProxy;
     private final String hmrcBaseUrl;
     private final String proxyHost;
@@ -44,6 +47,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     private final int hmrcNameMaxLength;
 
+    private final int hmrcUnauthorizedRetryAttempts;
+    private final int hmrcApiFailureRetryAttempts;
+    private final int retryDelay;
+
     public SpringConfiguration(ObjectMapper objectMapper,
                                @Value("${proxy.enabled:false}") boolean useProxy,
                                @Value("${hmrc.endpoint:}") String hmrcBaseUrl,
@@ -51,7 +58,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
                                @Value("${proxy.port}") Integer proxyPort,
                                @Value("${resttemplate.timeout.read:30000}") int restTemplateReadTimeoutInMillis,
                                @Value("${resttemplate.timeout.connect:30000}") int restTemplateConnectTimeoutInMillis,
-                               @Value("${hmrc.name.rules.length.max:35}") int hmrcNameMaxLength) {
+                               @Value("${hmrc.name.rules.length.max:35}") int hmrcNameMaxLength,
+                               @Value("${hmrc.retry.unauthorized.attempts}") int hmrcUnauthorizedRetryAttempts,
+                               @Value("${hmrc.retry.attempts}") int hmrcApiFailureRetryAttempts,
+                               @Value("${hmrc.retry.delay}") int retryDelay) {
 
         this.useProxy = useProxy;
         this.hmrcBaseUrl = hmrcBaseUrl;
@@ -60,6 +70,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
         this.restTemplateReadTimeoutInMillis = restTemplateReadTimeoutInMillis;
         this.restTemplateConnectTimeoutInMillis = restTemplateConnectTimeoutInMillis;
         this.hmrcNameMaxLength = hmrcNameMaxLength;
+        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
+        this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
+        this.retryDelay = retryDelay;
+
         initialiseObjectMapper(objectMapper);
     }
 
@@ -118,8 +132,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public RequestData createRequestData() {
-        return new RequestData();
+    public RequestHeaderData createRequestData() {
+        return new RequestHeaderData();
     }
 
     @Override
@@ -135,5 +149,21 @@ public class SpringConfiguration implements WebMvcConfigurer {
         };
         return new CompositeNameNormalizer(nameNormalizers);
     }
+
+    @Bean
+    public RetryTemplate reauthorisingRetryTemplate() {
+        return new RetryTemplateBuilder(hmrcUnauthorizedRetryAttempts)
+                       .retryHmrcUnauthorisedException()
+                       .build();
+    }
+
+    @Bean
+    public RetryTemplate apiFailureRetryTemplate() {
+        return new RetryTemplateBuilder(hmrcApiFailureRetryAttempts)
+                       .withBackOffPeriod(retryDelay)
+                       .retryHttpServerErrors()
+                       .build();
+    }
+
 }
 

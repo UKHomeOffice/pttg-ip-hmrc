@@ -42,7 +42,7 @@ public class SpringConfigurationTest {
     @Test
     public void shouldUseCustomizerWhenProxyEnabled() {
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                true, "", "some-proxy-host", 1234, 0, 0, 35);
+                true, "", "some-proxy-host", 1234, 0, 0, 35, 1, 1, 1);
         config.createRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
         verify(mockRestTemplateBuilder).additionalCustomizers(any(ProxyCustomizer.class));
     }
@@ -50,7 +50,7 @@ public class SpringConfigurationTest {
     @Test
     public void shouldNotUseCustomizerByWhenProxyDisabled() {
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                false, null, null, null, 0, 0,35);
+                false, null, null, null, 0, 0, 35, 1, 1, 1);
         config.createRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
         verify(mockRestTemplateBuilder, never()).additionalCustomizers(any(ProxyCustomizer.class));
     }
@@ -60,7 +60,7 @@ public class SpringConfigurationTest {
         // given
         int readTimeout = 1234;
         int connectTimeout = 4321;
-        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, readTimeout, connectTimeout, 35);
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, readTimeout, connectTimeout, 35, 1, 1, 1);
 
         // when
         RestTemplate restTemplate = springConfig.createRestTemplate(mockRestTemplateBuilder, new ObjectMapper());

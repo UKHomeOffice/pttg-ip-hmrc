@@ -27,6 +27,7 @@ import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -562,7 +563,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     private String loadJsonFile(String filename) throws IOException {
-        return IOUtils.toString(this.getClass().getResourceAsStream(String.format("/template/%s.json", filename)));
+        return IOUtils.toString(this.getClass().getResourceAsStream(String.format("/template/%s.json", filename)), StandardCharsets.UTF_8);
     }
 
     private String buildOauthResponse() throws JsonProcessingException {

@@ -19,8 +19,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.net.URI;
@@ -39,16 +39,13 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcHateoasClientTest {
 
-    @Mock
-    private HmrcCallWrapper mockHmrcCallWrapper;
-    @Mock
-    private NameNormalizer mockNameNormalizer;
-    @Mock
-    private ResponseEntity mockResponse;
-    @Mock
-    private Appender<ILoggingEvent> mockAppender;
+    @Mock private HmrcCallWrapper mockHmrcCallWrapper;
+    @Mock private NameNormalizer mockNameNormalizer;
+    @Mock private ResponseEntity mockResponse;
+    @Mock private Appender<ILoggingEvent> mockAppender;
+    @Mock private RequestHeaderData mockRequestHeaderData;
 
-    private Individual individual = new Individual("John", "Smith", "12345677", LocalDate.of(2018, 7, 30));
+    private final Individual individual = new Individual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30));
 
     @Before
     public void setup() {
@@ -60,14 +57,14 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoBeforeMatchingRequestSent() {
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "any api version", "http://localhost");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://localhost");
 
         client.getMatchResource(individual, "");
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Match Individual 12345*** via a POST to http://localhost/individuals/matching/") &&
+            return loggingEvent.getFormattedMessage().equals("Match Individual NR123456C via a POST to http://localhost/individuals/matching/") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
         }));
     }
@@ -75,14 +72,14 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoAfterMatchingRequestSent() {
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper,"any api version", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         client.getMatchResource(individual, "");
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Successfully matched individual 12345***") &&
+            return loggingEvent.getFormattedMessage().equals("Successfully matched individual NR123456C") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
         }));
     }
@@ -91,7 +88,7 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoAfterMatchingFailure() {
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new ApplicationExceptions.HmrcNotFoundException(""));
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "any api version", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         try {
             client.getMatchResource(individual, "");
@@ -102,7 +99,7 @@ public class HmrcHateoasClientTest {
         verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Failed to match individual 12345***") &&
+            return loggingEvent.getFormattedMessage().equals("Failed to match individual NR123456C") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
         }));
     }
@@ -111,7 +108,7 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoForEveryMatchingAttempt() {
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new ApplicationExceptions.HmrcNotFoundException(""));
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "any api version", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
 
         try {
@@ -137,13 +134,12 @@ public class HmrcHateoasClientTest {
 
     @Test(expected = HttpClientErrorException.class)
     public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
-        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
 
         when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
                 new HttpClientErrorException(NOT_FOUND));
 
-        HmrcHateoasClient client = new HmrcHateoasClient(anyNinoUtils, mockNameNormalizer, mockHmrcCallWrapper, anyApiVersion, "some-resource");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "some-resource");
 
         LocalDate now = LocalDate.now();
         client.getMatchResource(new Individual("somefirstname", "somelastname", "some nino", now), "some access token");
@@ -151,13 +147,12 @@ public class HmrcHateoasClientTest {
 
     @Test(expected = ApplicationExceptions.HmrcNotFoundException.class)
     public void shouldThrowHmrcNotFoundExceptionWhenForbiddenFromHmrc() {
-        NinoUtils anyNinoUtils = new NinoUtils();
         String anyApiVersion = "any api version";
 
         when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new ApplicationExceptions.HmrcNotFoundException(""));
 
-        HmrcHateoasClient client = new HmrcHateoasClient(anyNinoUtils, mockNameNormalizer, mockHmrcCallWrapper, anyApiVersion, "some-resource");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "some-resource");
 
         LocalDate now = LocalDate.now();
         client.getMatchResource(new Individual("somefirstname", "somelastname", "some nino", now), "some access token");
@@ -167,9 +162,9 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoBeforePayeRequestSent() {
         // given
         Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), anyString(), any())).willReturn(incomeResource);
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(incomeResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(),mockNameNormalizer, mockHmrcCallWrapper, "application/json", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
         client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
@@ -187,9 +182,9 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoAfterPayeResponseReceived() {
         // given
         Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), anyString(), any())).willReturn(incomeResource);
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(incomeResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "application/json", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
         client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
@@ -207,9 +202,9 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoBeforeSelfAssessmentRequestSent() {
         // given
         Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), anyString(), any())).willReturn(saResource);
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "application/json", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
         client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
@@ -227,9 +222,9 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoAfterSelfAssessmentResponseReceived() {
         // given
         Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
-        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), anyString(), any())).willReturn(saResource);
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(),mockNameNormalizer, mockHmrcCallWrapper, "application/json", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
         client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
@@ -247,9 +242,9 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoBeforeEmploymentsRequestSent() {
         // given
         Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
-        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), anyString(), any())).willReturn(employmentsResource);
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(employmentsResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "application/json", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
         client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
@@ -267,9 +262,9 @@ public class HmrcHateoasClientTest {
     public void shouldLogInfoAfterEmploymentsResponseReceived() {
         // given
         Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
-        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), anyString(), any())).willReturn(employmentsResource);
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(employmentsResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(new NinoUtils(), mockNameNormalizer, mockHmrcCallWrapper, "application/json", "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
         client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
@@ -282,7 +277,4 @@ public class HmrcHateoasClientTest {
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
         }));
     }
-
-
-
 }

@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
@@ -11,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 
@@ -26,10 +26,10 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.ACCEPT;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static uk.gov.digital.ho.pttg.api.RequestData.CORRELATION_ID_HEADER;
-import static uk.gov.digital.ho.pttg.api.RequestData.USER_ID_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator.generateCandidateNames;
 
@@ -37,9 +37,8 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandid
 @Slf4j
 public class HmrcHateoasClient {
 
-    private final String hmrcApiVersion;
     private final String hmrcUrl;
-    private final NinoUtils ninoUtils;
+    private final RequestHeaderData requestHeaderData;
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
     private final HmrcCallWrapper hmrcCallWrapper;
@@ -59,16 +58,14 @@ public class HmrcHateoasClient {
     private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
 
     public HmrcHateoasClient(
-            NinoUtils ninoUtils,
+            RequestHeaderData requestHeaderData,
             NameNormalizer nameNormalizer,
             HmrcCallWrapper hmrcCallWrapper,
-            @Value("${hmrc.api.version}") String hmrcApiVersion,
             @Value("${hmrc.endpoint}") String hmrcUrl
             ) {
-        this.ninoUtils = ninoUtils;
+        this.requestHeaderData = requestHeaderData;
         this.nameNormalizer = nameNormalizer;
         this.hmrcCallWrapper = hmrcCallWrapper;
-        this.hmrcApiVersion = hmrcApiVersion;
         this.hmrcUrl = hmrcUrl;
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
@@ -77,7 +74,7 @@ public class HmrcHateoasClient {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
-        Resource<PayeIncome> incomeResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, hmrcApiVersion, payeIncomesResourceTypeRef);
+        Resource<PayeIncome> incomeResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, payeIncomesResourceTypeRef);
         log.info("PAYE response received from HMRC", value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
 
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
@@ -88,7 +85,7 @@ public class HmrcHateoasClient {
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
         log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        Resource<Employments> employmentsResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, hmrcApiVersion, employmentsResourceTypeRef);
+        Resource<Employments> employmentsResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, employmentsResourceTypeRef);
         log.info("Employments response received from HMRC", value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
         return employmentsResource.getContent().getEmployments();
     }
@@ -101,7 +98,7 @@ public class HmrcHateoasClient {
 
         log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmployments> selfEmploymentsResource =
-                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, hmrcApiVersion, selfEmploymentsResourceTypeRef);
+                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, selfEmploymentsResourceTypeRef);
         log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
         List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
@@ -165,7 +162,7 @@ public class HmrcHateoasClient {
 
     Resource<String> getMatchResource(Individual individual, String accessToken) {
 
-        log.info("Match Individual {} via a POST to {}", ninoUtils.redact(individual.getNino()), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
+        log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
         List<String> candidateNames = generateCandidateNames(individual.getFirstName(), individual.getLastName());
 
@@ -176,11 +173,11 @@ public class HmrcHateoasClient {
 
             try {
                 final Resource<String> matchedIndividual = performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
-                log.info("Successfully matched individual {}", ninoUtils.redact(individual.getNino()), value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+                log.info("Successfully matched individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
                 return matchedIndividual;
 
             } catch (ApplicationExceptions.HmrcNotFoundException ex) {
-                    log.info("Failed to match individual {}", ninoUtils.redact(individual.getNino()), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
+                    log.info("Failed to match individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
                     retries++;
             }
         }
@@ -202,54 +199,50 @@ public class HmrcHateoasClient {
                 linksResourceTypeRef).getBody();
     }
 
-    Resource<EmbeddedIndividual> getIndividualResource(String nino, String accessToken, Link link) {
-        String redactedNino = ninoUtils.redact(nino);
+    Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
-        log.info("GET Individual Resource for {} from {}", redactedNino, url);
+        log.debug("GET Individual Resource from {}", url);
         Resource<EmbeddedIndividual> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), individualResourceTypeRef).getBody();
-        log.info("Individual Response has been received for {}", redactedNino);
+        log.debug("Individual Response has been received");
 
         return resource;
     }
 
-    Resource<String> getIncomeResource(String nino, String accessToken, Link link) {
-        String redactedNino = ninoUtils.redact(nino);
+    Resource<String> getIncomeResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
-        log.info("GET Income Resource for {} from {}", redactedNino, url);
+        log.debug("GET Income Resource from {}", url);
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
-        log.info("Income Response has been received for {}", redactedNino);
+        log.debug("Income Response has been received");
 
         return resource;
     }
 
-    Resource<String> getEmploymentResource(String nino, String accessToken, Link link) {
-        String redactedNino = ninoUtils.redact(nino);
+    Resource<String> getEmploymentResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
-        log.info("GET Employment Resource for {} from {}", redactedNino, url);
+        log.debug("GET Employment Resource from {}", url);
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
-        log.info("Employment Response has been received for {}", redactedNino);
+        log.debug("Employment Response has been received");
 
         return resource;
     }
 
-    Resource<String> getSelfAssessmentResource(String nino, String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
-        String redactedNino = ninoUtils.redact(nino);
+    Resource<String> getSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
 
         if (link == null) {
-            log.info("No SA Resource for {}", redactedNino);
+            log.debug("No SA Resource");
             return new Resource<>("", emptyList());
         }
 
         String baseUrl = asAbsolute(link.getHref());
         String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
 
-        log.info("GET SA Resource for {} from {}", redactedNino, url);
+        log.debug("GET SA Resource from {}", url);
 
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
-        log.info("SA Response has been received for {}", redactedNino);
+        log.debug("SA Response has been received");
 
         return resource;
     }
@@ -263,27 +256,34 @@ public class HmrcHateoasClient {
         return hmrcUrl + uri;
     }
 
-    // TODO: Can this method produce an entity with CORRELATION_ID header? If so, can combine createEntityWithHeadersWithoutBody
     private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON);
-        headers.add(ACCEPT, hmrcApiVersion);
-        headers.add("Authorization", format("Bearer %s", accessToken));
+
+        HttpHeaders headers = generateHeaders();
+
+        headers.add(AUTHORIZATION, format("Bearer %s", accessToken));
+
         return new HttpEntity<>(individual, headers);
     }
 
     private HttpEntity createEntityWithHeadersWithoutBody(String accessToken) {
+
         HttpHeaders headers = generateHeaders();
-        headers.add("Authorization", format("Bearer %s", accessToken));
+
+        headers.add(AUTHORIZATION, format("Bearer %s", accessToken));
+
         return new HttpEntity<>(null, headers);
     }
 
     private HttpHeaders generateHeaders() {
+
         HttpHeaders headers = new HttpHeaders();
+
+        headers.add(ACCEPT, requestHeaderData.hmrcApiVersion());
+        headers.add(SESSION_ID_HEADER, requestHeaderData.sessionId());
+        headers.add(CORRELATION_ID_HEADER, requestHeaderData.correlationId());
+        headers.add(USER_ID_HEADER, requestHeaderData.userId());
         headers.setContentType(APPLICATION_JSON);
-        headers.add(ACCEPT, hmrcApiVersion);
-        headers.add(CORRELATION_ID_HEADER, MDC.get(CORRELATION_ID_HEADER));
-        headers.add(USER_ID_HEADER, MDC.get(USER_ID_HEADER));
+
         return headers;
     }
 

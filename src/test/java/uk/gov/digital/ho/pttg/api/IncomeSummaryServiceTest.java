@@ -15,12 +15,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.IncomeSummaryContext;
+import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
@@ -72,8 +74,21 @@ public class IncomeSummaryServiceTest {
 
     @Before
     public void setUp() {
-        incomeSummaryService = new IncomeSummaryService(mockHmrcClient, mockAccessCodeClient, mockAuditClient, REAUTHORISING_RETRY_ATTEMPTS,
-                MAX_API_CALL_ATTEMPTS, BACK_OFF_PERIOD);
+        RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
+                                                  .retryHmrcUnauthorisedException()
+                                                  .build();
+        RetryTemplate apiFailureRetryTemplate = new RetryTemplateBuilder(MAX_API_CALL_ATTEMPTS)
+                                               .withBackOffPeriod(BACK_OFF_PERIOD)
+                                               .retryHttpServerErrors()
+                                               .build();
+
+        incomeSummaryService = new IncomeSummaryService(
+                mockHmrcClient,
+                mockAccessCodeClient,
+                mockAuditClient,
+                reauthorisingRetryTemplate,
+                apiFailureRetryTemplate,
+                MAX_API_CALL_ATTEMPTS);
 
         given(mockAccessCodeClient.getAccessCode()).willReturn(SOME_ACCESS_CODE);
     }

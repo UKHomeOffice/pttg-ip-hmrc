@@ -18,7 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.api.RequestData;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -37,7 +37,7 @@ public class AuditClientTest {
     private static final int RETRY_DELAY = 1;
 
     @Mock
-    private RequestData mockRequestData;
+    private RequestHeaderData mockRequestHeaderData;
     @Mock
     private RestTemplate mockRestTemplate;
     @Mock
@@ -50,7 +50,7 @@ public class AuditClientTest {
     @Before
     public void setup(){
         final Clock clock = Clock.fixed(Instant.now(), ZoneId.of("Europe/London"));
-        client = new AuditClient(clock, mockRestTemplate, mockRequestData, "endpoint", new ObjectMapper(),
+        client = new AuditClient(clock, mockRestTemplate, mockRequestHeaderData, "endpoint", new ObjectMapper(),
                 MAX_RETRY_ATTEMPTS, RETRY_DELAY);
         when(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));

@@ -22,7 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.api.RequestData;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 
 import java.net.ConnectException;
@@ -51,7 +51,7 @@ public class HmrcAccessCodeClientTest {
     private RestTemplate mockRestTemplate;
 
     @Mock
-    private RequestData mockRequestData;
+    private RequestHeaderData mockRequestHeaderData;
 
     @Mock
     private Appender<ILoggingEvent> mockAppender;
@@ -66,7 +66,7 @@ public class HmrcAccessCodeClientTest {
 
     @Before
     public void setUp() {
-        accessCodeClient = new HmrcAccessCodeClient(mockRestTemplate, mockRequestData, ACCESS_CODE_URL, MAX_RETRY_ATTEMPTS, RETRY_DELAY_IN_MILLIS);
+        accessCodeClient = new HmrcAccessCodeClient(mockRestTemplate, mockRequestHeaderData, ACCESS_CODE_URL, MAX_RETRY_ATTEMPTS, RETRY_DELAY_IN_MILLIS);
     }
 
     @Test
@@ -116,10 +116,10 @@ public class HmrcAccessCodeClientTest {
         final String testUserId = "TestUserId";
         final String testHmrcBasicAuth = "TestHmrcBasicAuth";
 
-        when(mockRequestData.sessionId()).thenReturn(testSessionId);
-        when(mockRequestData.correlationId()).thenReturn(testCorrelationId);
-        when(mockRequestData.userId()).thenReturn(testUserId);
-        when(mockRequestData.hmrcBasicAuth()).thenReturn(testHmrcBasicAuth);
+        when(mockRequestHeaderData.sessionId()).thenReturn(testSessionId);
+        when(mockRequestHeaderData.correlationId()).thenReturn(testCorrelationId);
+        when(mockRequestHeaderData.userId()).thenReturn(testUserId);
+        when(mockRequestHeaderData.hmrcBasicAuth()).thenReturn(testHmrcBasicAuth);
 
         // when
         accessCodeClient.getAccessCode();

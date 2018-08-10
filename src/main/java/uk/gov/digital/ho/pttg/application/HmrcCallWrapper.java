@@ -31,17 +31,14 @@ public class HmrcCallWrapper {
     <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
         try {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
-
         } catch (HttpClientErrorException ex) {
             throw handleClientErrorExceptions(ex);
         }
-
     }
 
-    <T> Resource<T> followTraverson(String link, String accessToken, String apiVerion, ParameterizedTypeReference<Resource<T>> reference) {
+    <T> Resource<T> followTraverson(String link, String accessToken, ParameterizedTypeReference<Resource<T>> reference) {
         try {
-            return traversonFollower.followTraverson(link, accessToken, apiVerion, restTemplate, reference);
-
+            return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
         } catch (HttpClientErrorException ex) {
             throw handleClientErrorExceptions(ex);
         }

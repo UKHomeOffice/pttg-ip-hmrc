@@ -78,38 +78,38 @@ public class HmrcCallWrapperTest {
 
     @Test
     public void shouldThrowCustomExceptionForHttpForbiddenWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(FORBIDDEN));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", "some-api-version", new ParameterizedTypeReference<Resource<String>>() {}))
+        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
                 .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
     }
 
     @Test
     public void shouldThrowCustomExceptionForHttpUnauthorisedWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(UNAUTHORIZED));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", "some-api-version", new ParameterizedTypeReference<Resource<String>>() {}))
+        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
                 .isInstanceOf(ApplicationExceptions.HmrcUnauthorisedException.class);
     }
 
     @Test
     public void shouldThrowCustomExceptionForHmrcNotFoundWithTraverson() {
         byte[] responseBody = "blah blahMATCHING_FAILEDblah blah".getBytes(UTF_8);
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", "some-api-version", new ParameterizedTypeReference<Resource<String>>() {}))
+        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
                 .isInstanceOf(ApplicationExceptions.HmrcNotFoundException.class);
     }
 
     @Test
     public void shouldRethrowCOtherExceptionsWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new NullPointerException());
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", "some-api-version", new ParameterizedTypeReference<Resource<String>>() {}))
+        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
                 .isInstanceOf(NullPointerException.class);
     }
 
