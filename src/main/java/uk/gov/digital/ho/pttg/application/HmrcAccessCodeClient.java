@@ -57,14 +57,14 @@ public class HmrcAccessCodeClient {
                 .build();
     }
 
-    public String getAccessCode() {
+    public String getAccessCode() throws Exception {
         if(isAccessCodeStale()) {
             refreshAccessCode();
         }
         return accessCode.get().getCode();
     }
 
-    public void refreshAccessCode() {
+    public void refreshAccessCode() throws Exception {
         getAccessCodeWithRetries();
     }
 
@@ -78,18 +78,18 @@ public class HmrcAccessCodeClient {
         return false;
     }
 
-    private synchronized void getAccessCodeWithRetries() {
+    private synchronized void getAccessCodeWithRetries() throws Exception {
         // TODO This try catch is not required on jdk >= 1.8.0_131.  Remove it once we can be sure all build and deployment jdks are up to date.
+        try {
             accessCode = Optional.of(this.retryTemplate.execute(context -> {
-                try {
                     log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,
                             value(EVENT, HMRC_API_CALL_ATTEMPT));
                     return requestAccessCode();
-                } catch(Exception e) {
-                    log.info("Rethrowing following exception to workaround an issue on jdk < 1.8.0_131", e);
-                    throw e;
-                }
             }));
+        } catch(Exception e) {
+            log.info("Rethrowing following exception to workaround an issue on jdk < 1.8.0_131", e);
+            throw e;
+        }
 
     }
 

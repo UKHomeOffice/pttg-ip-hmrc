@@ -70,7 +70,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldSendRequestToCorrectEndpoint() {
+    public void shouldSendRequestToCorrectEndpoint() throws Exception {
         // given
         when(mockRestTemplate.exchange(uriCaptor.capture(), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class))).thenReturn(okResponse());
 
@@ -90,7 +90,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldCallAccessCodeServiceToGetTheLatestAccessCode() {
+    public void shouldCallAccessCodeServiceToGetTheLatestAccessCode() throws Exception {
         // given
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
                 .thenReturn(okResponse());
@@ -106,7 +106,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldSetHeadersForCallToAccessCodeService() {
+    public void shouldSetHeadersForCallToAccessCodeService() throws Exception {
         // given
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), httpEntityCaptor.capture(), eq(AccessCode.class)))
                 .thenReturn(okResponse());
@@ -137,7 +137,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldRethrowExceptionWhenHttpClientErrorException() {
+    public void shouldRethrowExceptionWhenHttpClientErrorException() throws Exception {
         // given
         final String exceptionMessage = "ExceptionMessage";
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
@@ -157,7 +157,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldKeepRetryingHttpServerErrorExceptionsToMaxAttempts() {
+    public void shouldKeepRetryingHttpServerErrorExceptionsToMaxAttempts() throws Exception {
         // given
         final String exceptionMessage = "ExceptionMessage";
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
@@ -177,7 +177,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldLogRetryOnServerError() {
+    public void shouldLogRetryOnServerError() throws Exception {
         final String exceptionMessage = "ExceptionMessage";
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
                 .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR, exceptionMessage));
@@ -199,7 +199,7 @@ public class HmrcAccessCodeClientTest {
         verifyHmrcAccessCodeCallMessage("Attempting to fetch the latest access code. Attempt number 5 of 5");
     }
     @Test
-    public void shouldSucceedAfterHttpServerErrorExceptionRetryAttempt() {
+    public void shouldSucceedAfterHttpServerErrorExceptionRetryAttempt() throws Exception {
         // given
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
                 .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR, "ExceptionMessage"))
@@ -216,7 +216,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldKeepRetryingConnectionRefusedErrorsToMaxAttempts() {
+    public void shouldKeepRetryingConnectionRefusedErrorsToMaxAttempts() throws Exception {
         // given
         final String exceptionMessage = "ExceptionMessage";
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
@@ -236,7 +236,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldSucceedAfterConnectionRefusedRetryAttempt() {
+    public void shouldSucceedAfterConnectionRefusedRetryAttempt() throws Exception {
         // given
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
                 .thenThrow(connectionRefusedException("ExceptionMessage"))
@@ -253,7 +253,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldUseCachedAccessCode() {
+    public void shouldUseCachedAccessCode() throws Exception {
         final AccessCode cachedAccessCode = new AccessCode("cachedAccessCode", LocalDateTime.MAX);
         ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(cachedAccessCode));
 
@@ -264,7 +264,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldGenerateNewAccessCodeIfNotCached() {
+    public void shouldGenerateNewAccessCodeIfNotCached() throws Exception {
         final AccessCode generatedAccessCode = new AccessCode("generatedAccessCode", LocalDateTime.MAX);
         when(mockRestTemplate.exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class)))
                 .thenReturn(okResponse(generatedAccessCode));
@@ -276,7 +276,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldRegenerateExpiredAccessCode() {
+    public void shouldRegenerateExpiredAccessCode() throws Exception {
         final AccessCode cachedAccessCode = new AccessCode("cachedAccessCode", LocalDateTime.now().minusSeconds(1));
         ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(cachedAccessCode));
         final AccessCode generatedAccessCode = new AccessCode("generatedAccessCode", LocalDateTime.MAX);
@@ -290,7 +290,7 @@ public class HmrcAccessCodeClientTest {
     }
 
     @Test
-    public void shouldCacheAccessCodeAfterRegeneration() {
+    public void shouldCacheAccessCodeAfterRegeneration() throws Exception {
         final AccessCode cachedAccessCode = new AccessCode("cachedAccessCode", LocalDateTime.now().minusSeconds(1));
         ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(cachedAccessCode));
         final AccessCode generatedAccessCode = new AccessCode("generatedAccessCode", LocalDateTime.MAX);

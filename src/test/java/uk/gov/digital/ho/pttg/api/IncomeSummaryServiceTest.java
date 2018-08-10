@@ -73,7 +73,7 @@ public class IncomeSummaryServiceTest {
     private IncomeSummaryService incomeSummaryService;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
                                                   .retryHmrcUnauthorisedException()
                                                   .build();
@@ -94,7 +94,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldCallCollaborators() {
+    public void shouldCallCollaborators() throws Exception {
 
         LocalDate someFromDate = LocalDate.of(2018, Month.JANUARY, 1);
         LocalDate someToDate = LocalDate.of(2018, Month.MAY, 1);
@@ -111,7 +111,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldAllowOptionalToDate() {
+    public void shouldAllowOptionalToDate() throws Exception {
 
         LocalDate someFromDate = LocalDate.of(2018, Month.JANUARY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
@@ -125,7 +125,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldAudit() {
+    public void shouldAudit() throws Exception {
 
         LocalDate someFromDate = LocalDate.of(2018, Month.JANUARY, 1);
         LocalDate dateOfBirth = LocalDate.of(1990, Month.DECEMBER, 25);
@@ -154,7 +154,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldRetryAllCollaboratorCallsIfHmrcServiceUnauthorizedStatusResponse() {
+    public void shouldRetryAllCollaboratorCallsIfHmrcServiceUnauthorizedStatusResponse() throws Exception {
 
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
@@ -187,7 +187,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test(expected = HttpServerErrorException.class)
-    public void shouldThrowExceptionIfHttpServerErrorException() {
+    public void shouldThrowExceptionIfHttpServerErrorException() throws Exception {
         // given
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
@@ -203,7 +203,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldThrowExceptionIfOtherHttpClientErrorException() {
+    public void shouldThrowExceptionIfOtherHttpClientErrorException() throws Exception {
         // given
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
@@ -250,7 +250,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldRetryApiCallOnUnexpectedError() {
+    public void shouldRetryApiCallOnUnexpectedError() throws Exception {
         // given
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
@@ -276,7 +276,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldNotRetryApiCallOnHmrcNotFoundException() {
+    public void shouldNotRetryApiCallOnHmrcNotFoundException() throws Exception {
         // given
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
@@ -302,7 +302,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldNotRetryApiCallOnHmrcProxyForbiddenException() {
+    public void shouldNotRetryApiCallOnHmrcProxyForbiddenException() throws Exception {
         // given
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
@@ -328,7 +328,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldLogInfoWhenRetryingApiCallOnUnexpectedError() {
+    public void shouldLogInfoWhenRetryingApiCallOnUnexpectedError() throws Exception {
         // given
         final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
