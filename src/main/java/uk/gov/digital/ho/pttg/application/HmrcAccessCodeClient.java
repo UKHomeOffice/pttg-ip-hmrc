@@ -87,8 +87,8 @@ public class HmrcAccessCodeClient {
                 return requestAccessCode();
             }));
         } catch(Exception e) {
-            log.error("Rethrowing following exception as a RuntimeException to workaround an issue on jdk < 1.8.0_131", e);
-            throw new RuntimeException(e);
+            log.info("Rethrowing following exception to workaround an issue on jdk < 1.8.0_131", e);
+            throw e;
         }
     }
 
