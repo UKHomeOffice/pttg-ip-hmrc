@@ -51,11 +51,11 @@ public class IncomeSummaryService {
         this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
     }
 
-    IncomeSummary getIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) throws Exception {
+    IncomeSummary getIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
         return requestIncomeSummaryWithRetries(individual, fromDate, toDate);
     }
 
-    private IncomeSummary requestIncomeSummaryWithRetries(Individual individual, LocalDate fromDate, LocalDate toDate) throws Exception {
+    private IncomeSummary requestIncomeSummaryWithRetries(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
         return reauthorisingRetryTemplate.execute(context -> {
             log.debug("Attempting to request Income Summary from HMRC. Attempt number #{}", context.getRetryCount() + 1);
@@ -68,7 +68,7 @@ public class IncomeSummaryService {
         });
     }
 
-    private IncomeSummary requestIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) throws Exception {
+    private IncomeSummary requestIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
         auditRequestToHmrc(individual);
 
@@ -80,7 +80,7 @@ public class IncomeSummaryService {
         });
     }
 
-    private String requestAccessCode() throws Exception {
+    private String requestAccessCode() {
         return accessCodeClient.getAccessCode();
     }
 

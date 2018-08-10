@@ -34,7 +34,7 @@ public class HmrcResource {
             @RequestParam(value = "nino") String nino,
             @RequestParam(value = "dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
             @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) throws Exception {
+            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
         log.info("Hmrc service invoked for nino {} with date range {} to {}", nino, fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
 

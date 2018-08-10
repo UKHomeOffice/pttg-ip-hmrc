@@ -42,7 +42,7 @@ public class HmrcResourceTest {
     private HmrcResource hmrcResource;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils);
         when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
 
@@ -52,7 +52,7 @@ public class HmrcResourceTest {
     }
 
     @Test
-    public void shouldUseCollaborators() throws Exception {
+    public void shouldUseCollaborators() {
 
         hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
@@ -61,14 +61,14 @@ public class HmrcResourceTest {
     }
 
     @Test
-    public void shouldProduceIncomeSummary() throws Exception {
+    public void shouldProduceIncomeSummary() {
         IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
         assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
     }
 
     @Test
-    public void shouldLogWhenRequestReceived() throws Exception {
+    public void shouldLogWhenRequestReceived() {
 
         hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
@@ -81,7 +81,7 @@ public class HmrcResourceTest {
     }
 
     @Test
-    public void shouldLogResponseSuccess() throws Exception {
+    public void shouldLogResponseSuccess() {
 
         hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
