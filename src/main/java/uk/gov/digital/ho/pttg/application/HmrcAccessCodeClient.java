@@ -79,11 +79,17 @@ public class HmrcAccessCodeClient {
     }
 
     private synchronized void getAccessCodeWithRetries() {
-        accessCode = Optional.of(this.retryTemplate.execute(context -> {
-            log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,
-                    value(EVENT, HMRC_API_CALL_ATTEMPT));
-            return requestAccessCode();
-        }));
+        // TODO This try catch is not required on jdk >= 1.8.0_131.  Remove it once we can be sure all build and deployment jdks are up to date.
+        try {
+            accessCode = Optional.of(this.retryTemplate.execute(context -> {
+                log.info("Attempting to fetch the latest access code. Attempt number {} of {}", context.getRetryCount() + 1, maxRetryAttempts,
+                        value(EVENT, HMRC_API_CALL_ATTEMPT));
+                return requestAccessCode();
+            }));
+        } catch(Exception e) {
+            log.error("Rethrowing following exception as a RuntimeException to workaround an issue on jdk < 1.8.0_131", e);
+            throw new RuntimeException(e);
+        }
     }
 
     private AccessCode requestAccessCode() {
