@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,7 +40,7 @@ public class HmrcAccessCodeClient {
     private final int maxRetryAttempts;
     private Optional<AccessCode> accessCode = Optional.ofNullable(null);
 
-    public HmrcAccessCodeClient(RestTemplate restTemplate,
+    public HmrcAccessCodeClient(@Qualifier("hmrcAccessCodeRestTemplate") RestTemplate restTemplate,
                                 RequestHeaderData requestHeaderData,
                                 @Value("${base.hmrc.access.code.url}") String baseAccessCodeUrl,
                                 @Value("${hmrc.access.service.retry.attempts}") int maxRetryAttempts,

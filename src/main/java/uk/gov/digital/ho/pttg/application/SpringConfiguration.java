@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.hal.Jackson2HalModule;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -42,8 +43,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
     private final String proxyHost;
     private final Integer proxyPort;
 
-    private final int restTemplateReadTimeoutInMillis;
-    private final int restTemplateConnectTimeoutInMillis;
+    private final TimeoutProperties timeoutProperties;
 
     private final int hmrcNameMaxLength;
 
@@ -56,23 +56,21 @@ public class SpringConfiguration implements WebMvcConfigurer {
                                @Value("${hmrc.endpoint:}") String hmrcBaseUrl,
                                @Value("${proxy.host:}") String proxyHost,
                                @Value("${proxy.port}") Integer proxyPort,
-                               @Value("${resttemplate.timeout.read:30000}") int restTemplateReadTimeoutInMillis,
-                               @Value("${resttemplate.timeout.connect:30000}") int restTemplateConnectTimeoutInMillis,
                                @Value("${hmrc.name.rules.length.max:35}") int hmrcNameMaxLength,
                                @Value("${hmrc.retry.unauthorized.attempts}") int hmrcUnauthorizedRetryAttempts,
                                @Value("${hmrc.retry.attempts}") int hmrcApiFailureRetryAttempts,
-                               @Value("${hmrc.retry.delay}") int retryDelay) {
+                               @Value("${hmrc.retry.delay}") int retryDelay,
+                               TimeoutProperties timeoutProperties) {
 
         this.useProxy = useProxy;
         this.hmrcBaseUrl = hmrcBaseUrl;
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
-        this.restTemplateReadTimeoutInMillis = restTemplateReadTimeoutInMillis;
-        this.restTemplateConnectTimeoutInMillis = restTemplateConnectTimeoutInMillis;
         this.hmrcNameMaxLength = hmrcNameMaxLength;
         this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
         this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
         this.retryDelay = retryDelay;
+        this.timeoutProperties = timeoutProperties;
 
         initialiseObjectMapper(objectMapper);
     }
@@ -86,25 +84,64 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public RestTemplate createRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+    public RestTemplate auditRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
 
-        if (useProxy) {
-            restTemplateBuilder = restTemplateBuilder.additionalCustomizers(createProxyCustomizer());
-        }
+        MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, APPLICATION_JSON);
 
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(mapper);
-        converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
-
-        ClientHttpRequestFactory clientHttpRequestFactory = createClientHttpRequestFactory();
-
-        return restTemplateBuilder
-                .requestFactory(() -> clientHttpRequestFactory)
+        return builder
+                .setReadTimeout(timeoutProperties.getAudit().getReadMs())
+                .setConnectTimeout(timeoutProperties.getAudit().getConnectMs())
                 .additionalMessageConverters(converter)
-                .setReadTimeout(restTemplateReadTimeoutInMillis)
-                .setConnectTimeout(restTemplateConnectTimeoutInMillis)
                 .build();
     }
+
+    @Bean
+    public RestTemplate hmrcAccessCodeRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
+
+        MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, APPLICATION_JSON);
+
+        return builder
+                .setReadTimeout(timeoutProperties.getHmrcAccessCode().getReadMs())
+                .setConnectTimeout(timeoutProperties.getHmrcAccessCode().getConnectMs())
+                .additionalMessageConverters(converter)
+                .build();
+    }
+
+    @Bean
+    public RestTemplate hmrcApiRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
+
+        MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, MediaTypes.HAL_JSON, APPLICATION_JSON);
+        ClientHttpRequestFactory clientHttpRequestFactory = createClientHttpRequestFactory();
+
+        return builder
+                .setReadTimeout(timeoutProperties.getHmrcApi().getReadMs())
+                .setConnectTimeout(timeoutProperties.getHmrcApi().getConnectMs())
+                .additionalMessageConverters(converter)
+                .requestFactory(() -> clientHttpRequestFactory)
+                .build();
+    }
+
+    private RestTemplateBuilder initaliseRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+        RestTemplateBuilder builder = restTemplateBuilder;
+
+        if (useProxy) {
+            builder = builder.additionalCustomizers(createProxyCustomizer());
+        }
+
+        return builder;
+    }
+
+    private MappingJackson2HttpMessageConverter initialiseConverter(ObjectMapper mapper, MediaType... mediaTypes) {
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(mapper);
+        converter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
+        return converter;
+
+    }
+
 
     private ProxyCustomizer createProxyCustomizer() {
         return new ProxyCustomizer(hmrcBaseUrl, proxyHost, proxyPort);

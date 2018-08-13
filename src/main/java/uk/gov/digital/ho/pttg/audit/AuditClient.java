@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.audit;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,7 +38,7 @@ public class AuditClient {
     private final int maxCallAttempts;
 
     public AuditClient(Clock clock,
-                       RestTemplate restTemplate,
+                       @Qualifier("auditRestTemplate") RestTemplate restTemplate,
                        RequestHeaderData requestHeaderData,
                        @Value("${pttg.audit.endpoint}") String auditEndpoint,
                        ObjectMapper mapper,
