@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
@@ -23,7 +24,7 @@ public class HmrcCallWrapper {
     private RestTemplate restTemplate;
     private TraversonFollower traversonFollower;
 
-    public HmrcCallWrapper(RestTemplate restTemplate, TraversonFollower traversonFollower) {
+    public HmrcCallWrapper(@Qualifier("hmrcApiRestTemplate") RestTemplate restTemplate, TraversonFollower traversonFollower) {
         this.restTemplate = restTemplate;
         this.traversonFollower = traversonFollower;
     }
