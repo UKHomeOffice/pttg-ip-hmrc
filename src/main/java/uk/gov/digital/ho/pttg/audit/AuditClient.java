@@ -24,6 +24,7 @@ import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_API_CALL_ATTEMPT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_AUDIT_FAILURE;
 
 @Component
 @Slf4j
@@ -65,7 +66,7 @@ public class AuditClient {
             dispatchAuditableData(auditableData);
             log.debug("data POSTed to audit service");
         } catch (JsonProcessingException e) {
-            log.error("Failed to create json representation of audit data");
+            log.error("Failed to create json representation of audit data", value(EVENT, HMRC_AUDIT_FAILURE));
         }
     }
 
@@ -76,8 +77,7 @@ public class AuditClient {
                 return restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
             });
         } catch (HttpServerErrorException e) {
-            log.error("Failed to audit {} after retries", auditableData.getEventType());
-            throw e;
+            log.error("Failed to audit {} after retries", auditableData.getEventType(), value(EVENT, HMRC_AUDIT_FAILURE));
         }
     }
 

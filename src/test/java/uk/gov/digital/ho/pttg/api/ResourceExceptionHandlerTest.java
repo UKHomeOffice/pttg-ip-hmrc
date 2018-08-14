@@ -39,32 +39,6 @@ public class ResourceExceptionHandlerTest {
     }
 
     @Test
-    public void shouldProduceInternalServerErrorForAuditDataException() {
-        AuditDataException mockAuditDataException = mock(AuditDataException.class);
-        when(mockAuditDataException.getMessage()).thenReturn("any message");
-
-        ResponseEntity responseEntity = handler.handle(mockAuditDataException);
-
-        assertThat(responseEntity.getBody()).isEqualTo("any message");
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-    }
-
-    @Test
-    public void shouldLogErrorForAuditDataException() {
-        AuditDataException mockAuditDataException = mock(AuditDataException.class);
-        when(mockAuditDataException.getMessage()).thenReturn("any message");
-
-        handler.handle(mockAuditDataException);
-
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("AuditDataException: any message") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
     public void shouldProduceInternalServerErrorForHmrcException() {
         HmrcException mockHmrcException = mock(HmrcException.class);
         when(mockHmrcException.getMessage()).thenReturn("any message");
