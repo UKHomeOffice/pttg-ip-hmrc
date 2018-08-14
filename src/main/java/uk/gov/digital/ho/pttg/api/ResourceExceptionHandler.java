@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions.AuditDataException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
@@ -22,12 +21,6 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 @ControllerAdvice
 @Slf4j
 public class ResourceExceptionHandler {
-
-    @ExceptionHandler(AuditDataException.class)
-    public ResponseEntity handle(AuditDataException e) {
-        log.error("AuditDataException: {}", e.getMessage(), value(EVENT, HMRC_SERVICE_RESPONSE_ERROR));
-        return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
-    }
 
     @ExceptionHandler(value = HmrcException.class)
     public ResponseEntity handle(HmrcException e) {
