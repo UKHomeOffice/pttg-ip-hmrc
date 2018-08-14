@@ -106,16 +106,10 @@ public class AuditClientTest {
         }));
     }
 
-    // TODO OJR 2018/08/14 Test JsonException logs AUDIT_FAILURE.
-
     @Test
     public void logInfoOnRetry() {
-        try {
-            client.add(AuditEventType.HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
-        } catch (HttpServerErrorException e) {
-            // Ignore expected exception.
-        }
-
+        client.add(AuditEventType.HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
+        
         verifyLogMessage("Audit attempt 1 of 5");
         verifyLogMessage("Audit attempt 2 of 5");
         verifyLogMessage("Audit attempt 3 of 5");
