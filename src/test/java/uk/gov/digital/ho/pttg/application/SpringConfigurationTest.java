@@ -2,13 +2,16 @@ package uk.gov.digital.ho.pttg.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.function.Supplier;
@@ -27,6 +30,12 @@ public class SpringConfigurationTest {
 
     @Mock
     private RestTemplate mockRestTemplate;
+
+    @Mock
+    private ClientHttpRequestFactory mockClientHttpRequestFactory;
+
+    @Mock
+    private TimeoutProperties mockTimeoutProperties;
 
     private TimeoutProperties timeoutProperties;
 
@@ -113,12 +122,22 @@ public class SpringConfigurationTest {
         SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, timeoutProperties);
 
         // when
-        RestTemplate restTemplate = springConfig.hmrcApiRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
+        RestTemplate restTemplate = springConfig.hmrcApiRestTemplate(mockRestTemplateBuilder, new ObjectMapper(), mockClientHttpRequestFactory);
 
         // then
         verify(mockRestTemplateBuilder).setReadTimeout(readTimeout);
         verify(mockRestTemplateBuilder).setConnectTimeout(connectTimeout);
 
         assertThat(restTemplate).isEqualTo(mockRestTemplate);
+    }
+
+    @Test
+    public void shouldEvictStaleHttpClientConnections() {
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, mockTimeoutProperties);
+
+        HttpClientBuilder builder = springConfig.createHttpClientBuilder();
+
+        boolean evictExpiredConnections = (Boolean)ReflectionTestUtils.getField(builder, "evictExpiredConnections");
+        assertThat(evictExpiredConnections).isTrue();
     }
 }
