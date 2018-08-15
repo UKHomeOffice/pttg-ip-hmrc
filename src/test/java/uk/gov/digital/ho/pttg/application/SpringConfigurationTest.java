@@ -14,6 +14,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -137,7 +138,9 @@ public class SpringConfigurationTest {
 
         HttpClientBuilder builder = springConfig.createHttpClientBuilder();
 
-        boolean evictExpiredConnections = (Boolean)ReflectionTestUtils.getField(builder, "evictExpiredConnections");
-        assertThat(evictExpiredConnections).isTrue();
+        Optional<Boolean> evictExpiredConnections = Optional.ofNullable((Boolean)ReflectionTestUtils.getField(builder, "evictExpiredConnections"));
+
+        assertThat(evictExpiredConnections.isPresent()).isTrue();
+        assertThat(evictExpiredConnections.get()).isTrue();
     }
 }
