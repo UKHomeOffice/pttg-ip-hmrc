@@ -110,11 +110,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public RestTemplate hmrcApiRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+    public RestTemplate hmrcApiRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper, ClientHttpRequestFactory clientHttpRequestFactory) {
         RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
 
         MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, MediaTypes.HAL_JSON, APPLICATION_JSON);
-        ClientHttpRequestFactory clientHttpRequestFactory = createClientHttpRequestFactory();
 
         return builder
                 .setReadTimeout(timeoutProperties.getHmrcApi().getReadMs())
@@ -148,19 +147,24 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public ClientHttpRequestFactory createClientHttpRequestFactory() {
-
-        /*
-         * HttpClient - By default, only GET requests resulting in a redirect are automatically followed
-         * need to alter the default redirect strategy for redirect on post
-         */
-
-        HttpClientBuilder builder = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy());
+    public ClientHttpRequestFactory createClientHttpRequestFactory(HttpClientBuilder builder) {
 
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
         factory.setHttpClient(builder.build());
 
         return factory;
+    }
+
+    @Bean
+    public HttpClientBuilder createHttpClientBuilder() {
+        /*
+         * HttpClient - By default, only GET requests resulting in a redirect are automatically followed
+         * need to alter the default redirect strategy for redirect on post
+         */
+
+        return HttpClientBuilder.create()
+                        .setRedirectStrategy(new LaxRedirectStrategy())
+                        .evictExpiredConnections();
     }
 
     @Bean
