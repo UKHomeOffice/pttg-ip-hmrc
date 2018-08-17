@@ -14,6 +14,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -133,7 +135,7 @@ public class SpringConfigurationTest {
     }
 
     @Test
-    public void shouldEvictStaleHttpClientConnections() {
+    public void shouldEvictStaleHttpClientConnections() throws KeyManagementException, NoSuchAlgorithmException {
         SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, mockTimeoutProperties);
 
         HttpClientBuilder builder = springConfig.createHttpClientBuilder();

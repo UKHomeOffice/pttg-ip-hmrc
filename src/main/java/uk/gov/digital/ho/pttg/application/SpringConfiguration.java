@@ -3,8 +3,10 @@ package uk.gov.digital.ho.pttg.application;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +29,8 @@ import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.time.ZoneId;
@@ -156,15 +160,18 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public HttpClientBuilder createHttpClientBuilder() {
+    public HttpClientBuilder createHttpClientBuilder() throws NoSuchAlgorithmException, KeyManagementException {
         /*
          * HttpClient - By default, only GET requests resulting in a redirect are automatically followed
          * need to alter the default redirect strategy for redirect on post
          */
 
+        final String[] supportedSSLProtocols = {"TLSv1.2"};
+        final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(SSLContexts.createDefault(), supportedSSLProtocols, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
         return HttpClientBuilder.create()
-                        .setRedirectStrategy(new LaxRedirectStrategy())
-                        .evictExpiredConnections();
+                .setSSLSocketFactory(sslSocketFactory)
+                .setRedirectStrategy(new LaxRedirectStrategy())
+                .evictExpiredConnections();
     }
 
     @Bean
@@ -194,16 +201,16 @@ public class SpringConfiguration implements WebMvcConfigurer {
     @Bean
     public RetryTemplate reauthorisingRetryTemplate() {
         return new RetryTemplateBuilder(hmrcUnauthorizedRetryAttempts)
-                       .retryHmrcUnauthorisedException()
-                       .build();
+                .retryHmrcUnauthorisedException()
+                .build();
     }
 
     @Bean
     public RetryTemplate apiFailureRetryTemplate() {
         return new RetryTemplateBuilder(hmrcApiFailureRetryAttempts)
-                       .withBackOffPeriod(retryDelay)
-                       .retryHttpServerErrors()
-                       .build();
+                .withBackOffPeriod(retryDelay)
+                .retryHttpServerErrors()
+                .build();
     }
 
 }
