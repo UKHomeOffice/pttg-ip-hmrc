@@ -48,12 +48,9 @@ public class SpringConfiguration implements WebMvcConfigurer {
     private final Integer proxyPort;
 
     private final TimeoutProperties timeoutProperties;
+    private final RetryProperties retryProperties;
 
     private final int hmrcNameMaxLength;
-
-    private final int hmrcUnauthorizedRetryAttempts;
-    private final int hmrcApiFailureRetryAttempts;
-    private final int retryDelay;
     private final String[] supportedSslProtocols;
 
     public SpringConfiguration(ObjectMapper objectMapper,
@@ -71,10 +68,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
         this.hmrcNameMaxLength = hmrcNameMaxLength;
-        this.hmrcUnauthorizedRetryAttempts = retryProperties.getUnauthorizedAttempts();
-        this.hmrcApiFailureRetryAttempts = retryProperties.getAttempts();
-        this.retryDelay = retryProperties.getDelay();
         this.timeoutProperties = timeoutProperties;
+        this.retryProperties = retryProperties;
 
         initialiseObjectMapper(objectMapper);
         this.supportedSslProtocols = supportedSslProtocols.toArray(new String[]{});
@@ -200,15 +195,15 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RetryTemplate reauthorisingRetryTemplate() {
-        return new RetryTemplateBuilder(hmrcUnauthorizedRetryAttempts)
+        return new RetryTemplateBuilder(retryProperties.getUnauthorizedAttempts())
                 .retryHmrcUnauthorisedException()
                 .build();
     }
 
     @Bean
     public RetryTemplate apiFailureRetryTemplate() {
-        return new RetryTemplateBuilder(hmrcApiFailureRetryAttempts)
-                .withBackOffPeriod(retryDelay)
+        return new RetryTemplateBuilder(retryProperties.getAttempts())
+                .withBackOffPeriod(retryProperties.getDelay())
                 .retryHttpServerErrors()
                 .build();
     }
