@@ -13,9 +13,12 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -27,6 +30,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_INFERRED")
 public class SpringConfigurationTest {
+
 
     @Mock
     private RestTemplateBuilder mockRestTemplateBuilder;
@@ -41,6 +45,8 @@ public class SpringConfigurationTest {
     private TimeoutProperties mockTimeoutProperties;
 
     private TimeoutProperties timeoutProperties;
+    private RetryProperties anyRetryProperties;
+    private final List<String> anySSLProtocols = new ArrayList<>();
 
     @Before
     public void setUp() {
@@ -55,12 +61,15 @@ public class SpringConfigurationTest {
         timeoutProperties.setAudit(new TimeoutProperties.Audit());
         timeoutProperties.setHmrcAccessCode(new TimeoutProperties.HmrcAccessCode());
         timeoutProperties.setHmrcApi(new TimeoutProperties.HmrcApi());
+
+        anyRetryProperties= new RetryProperties();
+        anyRetryProperties.setRetry(new RetryProperties.Retry());
     }
 
     @Test
     public void shouldUseCustomizerWhenProxyEnabled() {
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                true, "", "some-proxy-host", 1234, 35, 1, 1, 1, timeoutProperties);
+                true, "", "some-proxy-host", 1234, 35, anySSLProtocols, anyRetryProperties, timeoutProperties);
         config.auditRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
         verify(mockRestTemplateBuilder).additionalCustomizers(any(ProxyCustomizer.class));
     }
@@ -68,7 +77,7 @@ public class SpringConfigurationTest {
     @Test
     public void shouldNotUseCustomizerByWhenProxyDisabled() {
         SpringConfiguration config = new SpringConfiguration(new ObjectMapper(),
-                false, null, null, null,35, 1, 1, 1, timeoutProperties);
+                false, null, null, null, 35, anySSLProtocols, anyRetryProperties, timeoutProperties);
         config.auditRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
         verify(mockRestTemplateBuilder, never()).additionalCustomizers(any(ProxyCustomizer.class));
     }
@@ -81,7 +90,7 @@ public class SpringConfigurationTest {
 
         timeoutProperties.getAudit().setReadMs(readTimeout);
         timeoutProperties.getAudit().setConnectMs(connectTimeout);
-        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, timeoutProperties);
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, anySSLProtocols, anyRetryProperties, timeoutProperties);
 
         // when
         RestTemplate restTemplate = springConfig.auditRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
@@ -101,7 +110,7 @@ public class SpringConfigurationTest {
 
         timeoutProperties.getHmrcAccessCode().setReadMs(readTimeout);
         timeoutProperties.getHmrcAccessCode().setConnectMs(connectTimeout);
-        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, timeoutProperties);
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, anySSLProtocols, anyRetryProperties, timeoutProperties);
 
         // when
         RestTemplate restTemplate = springConfig.hmrcAccessCodeRestTemplate(mockRestTemplateBuilder, new ObjectMapper());
@@ -122,7 +131,7 @@ public class SpringConfigurationTest {
 
         timeoutProperties.getHmrcApi().setReadMs(readTimeout);
         timeoutProperties.getHmrcApi().setConnectMs(connectTimeout);
-        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, timeoutProperties);
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, anySSLProtocols, anyRetryProperties, timeoutProperties);
 
         // when
         RestTemplate restTemplate = springConfig.hmrcApiRestTemplate(mockRestTemplateBuilder, new ObjectMapper(), mockClientHttpRequestFactory);
@@ -136,11 +145,11 @@ public class SpringConfigurationTest {
 
     @Test
     public void shouldEvictStaleHttpClientConnections() throws KeyManagementException, NoSuchAlgorithmException {
-        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, 1, 1, 1, mockTimeoutProperties);
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, anySSLProtocols, anyRetryProperties, mockTimeoutProperties);
 
         HttpClientBuilder builder = springConfig.createHttpClientBuilder();
 
-        Optional<Boolean> evictExpiredConnections = Optional.ofNullable((Boolean)ReflectionTestUtils.getField(builder, "evictExpiredConnections"));
+        Optional<Boolean> evictExpiredConnections = Optional.ofNullable((Boolean) ReflectionTestUtils.getField(builder, "evictExpiredConnections"));
 
         assertThat(evictExpiredConnections.isPresent()).isTrue();
         assertThat(evictExpiredConnections.get()).isTrue();

@@ -23,18 +23,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -54,6 +54,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
     private final int hmrcUnauthorizedRetryAttempts;
     private final int hmrcApiFailureRetryAttempts;
     private final int retryDelay;
+    private final String[] supportedSslProtocols;
 
     public SpringConfiguration(ObjectMapper objectMapper,
                                @Value("${proxy.enabled:false}") boolean useProxy,
@@ -61,9 +62,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
                                @Value("${proxy.host:}") String proxyHost,
                                @Value("${proxy.port}") Integer proxyPort,
                                @Value("${hmrc.name.rules.length.max:35}") int hmrcNameMaxLength,
-                               @Value("${hmrc.retry.unauthorized.attempts}") int hmrcUnauthorizedRetryAttempts,
-                               @Value("${hmrc.retry.attempts}") int hmrcApiFailureRetryAttempts,
-                               @Value("${hmrc.retry.delay}") int retryDelay,
+                               @Value("#{'${hmrc.ssl.supportedProtocols}'.split(',')}") List<String> supportedSslProtocols,
+                               RetryProperties retryProperties,
                                TimeoutProperties timeoutProperties) {
 
         this.useProxy = useProxy;
@@ -71,12 +71,13 @@ public class SpringConfiguration implements WebMvcConfigurer {
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
         this.hmrcNameMaxLength = hmrcNameMaxLength;
-        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
-        this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
-        this.retryDelay = retryDelay;
+        this.hmrcUnauthorizedRetryAttempts = retryProperties.getUnauthorizedAttempts();
+        this.hmrcApiFailureRetryAttempts = retryProperties.getAttempts();
+        this.retryDelay = retryProperties.getDelay();
         this.timeoutProperties = timeoutProperties;
 
         initialiseObjectMapper(objectMapper);
+        this.supportedSslProtocols = supportedSslProtocols.toArray(new String[]{});
     }
 
     private static void initialiseObjectMapper(final ObjectMapper mapper) {
@@ -160,14 +161,13 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public HttpClientBuilder createHttpClientBuilder() throws NoSuchAlgorithmException, KeyManagementException {
+    public HttpClientBuilder createHttpClientBuilder() {
         /*
          * HttpClient - By default, only GET requests resulting in a redirect are automatically followed
          * need to alter the default redirect strategy for redirect on post
          */
 
-        final String[] supportedSSLProtocols = {"TLSv1.2"};
-        final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(SSLContexts.createDefault(), supportedSSLProtocols, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+        final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(SSLContexts.createDefault(), supportedSslProtocols, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
         return HttpClientBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
                 .setRedirectStrategy(new LaxRedirectStrategy())
