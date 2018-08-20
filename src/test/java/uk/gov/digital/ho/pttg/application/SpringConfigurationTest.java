@@ -15,8 +15,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +28,6 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_INFERRED")
 public class SpringConfigurationTest {
-
 
     @Mock
     private RestTemplateBuilder mockRestTemplateBuilder;
@@ -62,7 +59,7 @@ public class SpringConfigurationTest {
         timeoutProperties.setHmrcAccessCode(new TimeoutProperties.HmrcAccessCode());
         timeoutProperties.setHmrcApi(new TimeoutProperties.HmrcApi());
 
-        anyRetryProperties= new RetryProperties();
+        anyRetryProperties = new RetryProperties();
         anyRetryProperties.setRetry(new RetryProperties.Retry());
     }
 
@@ -144,7 +141,7 @@ public class SpringConfigurationTest {
     }
 
     @Test
-    public void shouldEvictStaleHttpClientConnections() throws KeyManagementException, NoSuchAlgorithmException {
+    public void shouldEvictStaleHttpClientConnections() {
         SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, anySSLProtocols, anyRetryProperties, mockTimeoutProperties);
 
         HttpClientBuilder builder = springConfig.createHttpClientBuilder();
