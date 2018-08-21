@@ -35,19 +35,14 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class AuditClientTest {
 
-    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final int RETRY_DELAY = 1;
 
-    @Mock
-    private RequestHeaderData mockRequestHeaderData;
-    @Mock
-    private RestTemplate mockRestTemplate;
-    @Mock
-    private AuditIndividualData mockAuditableData;
-    @Mock
-    private Appender<ILoggingEvent> mockAppender;
-    @Mock
-    private ObjectMapper mockMapper;
+    @Mock private RequestHeaderData mockRequestHeaderData;
+    @Mock private RestTemplate mockRestTemplate;
+    @Mock private AuditIndividualData mockAuditableData;
+    @Mock private Appender<ILoggingEvent> mockAppender;
+    @Mock private ObjectMapper mockMapper;
 
     private AuditClient client;
 
@@ -69,7 +64,7 @@ public class AuditClientTest {
     public void dispatchAuditableDataShouldRetryOnHttpError() {
         client.add(AuditEventType.HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
 
-        verify(mockRestTemplate, times(5)).exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class));
+        verify(mockRestTemplate, times(3)).exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class));
     }
 
     @Test
@@ -110,13 +105,9 @@ public class AuditClientTest {
     public void logInfoOnRetry() {
         client.add(AuditEventType.HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
         
-        verifyLogMessage("Audit attempt 1 of 5");
-        verifyLogMessage("Audit attempt 2 of 5");
-        verifyLogMessage("Audit attempt 3 of 5");
-        verifyLogMessage("Audit attempt 4 of 5");
-        verifyLogMessage("Audit attempt 5 of 5");
+        verifyLogMessage("Retrying audit attempt 1 of 2");
+        verifyLogMessage("Retrying audit attempt 2 of 2");
     }
-
 
     private void verifyLogMessage(String message) {
         verify(mockAppender).doAppend(argThat(argument -> {

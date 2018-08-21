@@ -21,7 +21,8 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static uk.gov.digital.ho.pttg.application.LogEvent.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_AUDIT_FAILURE;
 
 @Component
 @Slf4j
@@ -70,7 +71,9 @@ public class AuditClient {
     void dispatchAuditableData(AuditableData auditableData) {
         try {
             retryTemplate.execute(context -> {
-                log.info("Audit attempt {} of {}", context.getRetryCount() + 1, maxCallAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
+                if (context.getRetryCount() > 0) {
+                    log.info("Retrying audit attempt {} of {}", context.getRetryCount(), maxCallAttempts - 1, value(EVENT, auditableData.getEventType()));
+                }
                 return restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
             });
         } catch (Exception e) {
