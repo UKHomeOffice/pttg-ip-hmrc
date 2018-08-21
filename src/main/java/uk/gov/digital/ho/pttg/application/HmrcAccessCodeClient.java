@@ -16,7 +16,6 @@ import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
@@ -59,23 +58,32 @@ public class HmrcAccessCodeClient {
     }
 
     public String getAccessCode() {
-        if(isAccessCodeStale()) {
+
+        if (isAccessCodeStale()) {
             refreshAccessCode();
         }
+
         return accessCode.get().getCode();
     }
 
     public void refreshAccessCode() {
+        log.info("Refresh the cached Access Code");
         getAccessCodeWithRetries();
+        log.info("Cached Access Code refreshed");
     }
 
     private boolean isAccessCodeStale() {
+
         if (!accessCode.isPresent()) {
+            log.info("No cached Access Code available yet");
             return true;
         }
-        if (!LocalDateTime.now().isBefore(accessCode.get().getExpiry())) {
+
+        if (accessCode.get().hasExpired()) {
+            log.info("The cached Access Code is stale");
             return true;
         }
+
         return false;
     }
 

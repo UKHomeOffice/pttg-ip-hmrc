@@ -39,13 +39,13 @@ public class HmrcClient {
 
     public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
 
-        log.debug("Attempt to retrieve HMRC data for {}", suppliedIndividual.getNino());
+        log.info("Attempt to retrieve HMRC data for {}", suppliedIndividual.getNino());
 
         getHmrcData(accessToken, suppliedIndividual, fromDate, toDate, context);
 
         enrichIncomeData(context.payeIncome(), context.employments());
 
-        log.debug("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
+        log.info("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
 
         return new IncomeSummary(
                 context.payeIncome(),

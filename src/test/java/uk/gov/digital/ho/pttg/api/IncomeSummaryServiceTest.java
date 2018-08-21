@@ -52,35 +52,27 @@ public class IncomeSummaryServiceTest {
     private static final int MAX_API_CALL_ATTEMPTS = 5;
     private static final int BACK_OFF_PERIOD = 1;
 
-    @Mock
-    private HmrcClient mockHmrcClient;
-    @Mock
-    private HmrcAccessCodeClient mockAccessCodeClient;
-    @Mock
-    private AuditClient mockAuditClient;
-    @Mock
-    private IncomeSummary mockIncomeSummary;
-    @Mock
-    private Individual mockIndividual;
-    @Mock
-    private Appender<ILoggingEvent> mockAppender;
+    @Mock private HmrcClient mockHmrcClient;
+    @Mock private HmrcAccessCodeClient mockAccessCodeClient;
+    @Mock private AuditClient mockAuditClient;
+    @Mock private IncomeSummary mockIncomeSummary;
+    @Mock private Individual mockIndividual;
+    @Mock private Appender<ILoggingEvent> mockAppender;
 
-    @Captor
-    private ArgumentCaptor<UUID> eventIdCaptor;
-    @Captor
-    private ArgumentCaptor<AuditIndividualData> auditDataCaptor;
+    @Captor private ArgumentCaptor<UUID> eventIdCaptor;
+    @Captor private ArgumentCaptor<AuditIndividualData> auditDataCaptor;
 
     private IncomeSummaryService incomeSummaryService;
 
     @Before
     public void setUp() {
         RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
-                                                  .retryHmrcUnauthorisedException()
-                                                  .build();
+                                                           .retryHmrcUnauthorisedException()
+                                                           .build();
         RetryTemplate apiFailureRetryTemplate = new RetryTemplateBuilder(MAX_API_CALL_ATTEMPTS)
-                                               .withBackOffPeriod(BACK_OFF_PERIOD)
-                                               .retryHttpServerErrors()
-                                               .build();
+                                                        .withBackOffPeriod(BACK_OFF_PERIOD)
+                                                        .retryHttpServerErrors()
+                                                        .build();
 
         incomeSummaryService = new IncomeSummaryService(
                 mockHmrcClient,
@@ -330,8 +322,8 @@ public class IncomeSummaryServiceTest {
     @Test
     public void shouldLogInfoWhenRetryingApiCallOnUnexpectedError() {
         // given
-        final LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
-        final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
+        LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
+        LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
         when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
@@ -363,7 +355,7 @@ public class IncomeSummaryServiceTest {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals(message) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+                           ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
         }));
     }
 }

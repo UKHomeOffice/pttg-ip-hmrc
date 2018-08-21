@@ -16,4 +16,8 @@ public class AccessCode {
 
     @JsonProperty(value = "expiry")
     private final LocalDateTime expiry;
+
+    public boolean hasExpired() {
+        return !LocalDateTime.now().isBefore(expiry);
+    }
 }
