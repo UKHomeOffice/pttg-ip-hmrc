@@ -50,7 +50,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         classes = ServiceRunner.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-        "hmrc.retry.unauthorized.attempts=2",
+        "hmrc.retry.unauthorized-attempts=2",
         "hmrc.access.service.retry.attempts=3"
 })
 public class HmrcResourceIntegrationTest {

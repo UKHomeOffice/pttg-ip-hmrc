@@ -3,8 +3,10 @@ package uk.gov.digital.ho.pttg.application;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
@@ -31,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -44,12 +48,10 @@ public class SpringConfiguration implements WebMvcConfigurer {
     private final Integer proxyPort;
 
     private final TimeoutProperties timeoutProperties;
+    private final RetryProperties retryProperties;
 
     private final int hmrcNameMaxLength;
-
-    private final int hmrcUnauthorizedRetryAttempts;
-    private final int hmrcApiFailureRetryAttempts;
-    private final int retryDelay;
+    private final String[] supportedSslProtocols;
 
     public SpringConfiguration(ObjectMapper objectMapper,
                                @Value("${proxy.enabled:false}") boolean useProxy,
@@ -57,9 +59,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
                                @Value("${proxy.host:}") String proxyHost,
                                @Value("${proxy.port}") Integer proxyPort,
                                @Value("${hmrc.name.rules.length.max:35}") int hmrcNameMaxLength,
-                               @Value("${hmrc.retry.unauthorized.attempts}") int hmrcUnauthorizedRetryAttempts,
-                               @Value("${hmrc.retry.attempts}") int hmrcApiFailureRetryAttempts,
-                               @Value("${hmrc.retry.delay}") int retryDelay,
+                               @Value("#{'${hmrc.ssl.supportedProtocols}'.split(',')}") List<String> supportedSslProtocols,
+                               RetryProperties retryProperties,
                                TimeoutProperties timeoutProperties) {
 
         this.useProxy = useProxy;
@@ -67,12 +68,11 @@ public class SpringConfiguration implements WebMvcConfigurer {
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
         this.hmrcNameMaxLength = hmrcNameMaxLength;
-        this.hmrcUnauthorizedRetryAttempts = hmrcUnauthorizedRetryAttempts;
-        this.hmrcApiFailureRetryAttempts = hmrcApiFailureRetryAttempts;
-        this.retryDelay = retryDelay;
         this.timeoutProperties = timeoutProperties;
+        this.retryProperties = retryProperties;
 
         initialiseObjectMapper(objectMapper);
+        this.supportedSslProtocols = supportedSslProtocols.toArray(new String[]{});
     }
 
     private static void initialiseObjectMapper(final ObjectMapper mapper) {
@@ -162,9 +162,11 @@ public class SpringConfiguration implements WebMvcConfigurer {
          * need to alter the default redirect strategy for redirect on post
          */
 
+        final SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(SSLContexts.createDefault(), supportedSslProtocols, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
         return HttpClientBuilder.create()
-                        .setRedirectStrategy(new LaxRedirectStrategy())
-                        .evictExpiredConnections();
+                .setSSLSocketFactory(sslSocketFactory)
+                .setRedirectStrategy(new LaxRedirectStrategy())
+                .evictExpiredConnections();
     }
 
     @Bean
@@ -193,17 +195,17 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RetryTemplate reauthorisingRetryTemplate() {
-        return new RetryTemplateBuilder(hmrcUnauthorizedRetryAttempts)
-                       .retryHmrcUnauthorisedException()
-                       .build();
+        return new RetryTemplateBuilder(retryProperties.getUnauthorizedAttempts())
+                .retryHmrcUnauthorisedException()
+                .build();
     }
 
     @Bean
     public RetryTemplate apiFailureRetryTemplate() {
-        return new RetryTemplateBuilder(hmrcApiFailureRetryAttempts)
-                       .withBackOffPeriod(retryDelay)
-                       .retryHttpServerErrors()
-                       .build();
+        return new RetryTemplateBuilder(retryProperties.getAttempts())
+                .withBackOffPeriod(retryProperties.getDelay())
+                .retryHttpServerErrors()
+                .build();
     }
 
 }
