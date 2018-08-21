@@ -70,7 +70,9 @@ public class AuditClient {
     void dispatchAuditableData(AuditableData auditableData) {
         try {
             retryTemplate.execute(context -> {
-                log.info("Audit attempt {} of {}", context.getRetryCount() + 1, maxCallAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
+                if (context.getRetryCount() > 0) {
+                    log.info("Retrying audit attempt {} of {}", context.getRetryCount(), maxCallAttempts - 1, value(EVENT, auditableData.getEventType()));
+                }
                 return restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
             });
         } catch (Exception e) {
