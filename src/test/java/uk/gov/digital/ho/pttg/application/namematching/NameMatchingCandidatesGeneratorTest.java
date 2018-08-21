@@ -1,11 +1,9 @@
-package uk.gov.digital.ho.pttg.application.retry;
+package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator;
-import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 
 import java.util.Arrays;
 import java.util.List;

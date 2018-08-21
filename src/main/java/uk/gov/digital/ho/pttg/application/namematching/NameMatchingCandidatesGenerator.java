@@ -2,10 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
@@ -37,8 +34,8 @@ public class NameMatchingCandidatesGenerator {
         candidates = new ArrayList<>();
         if (lastName.trim().matches(".*\\s+.*")) {
             List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
-            if (listOfFirstNames.size() > 6) {
-                listOfFirstNames = listOfFirstNames.subList(0, 6);
+            if (listOfFirstNames.size() > MAX_NAMES - 1) {
+                listOfFirstNames = listOfFirstNames.subList(0, MAX_NAMES - 1);
             }
             candidates.addAll(
                     listOfFirstNames.stream()
@@ -60,14 +57,14 @@ public class NameMatchingCandidatesGenerator {
     }
 
     private static List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
-        List<PersonName> candidateNames = new ArrayList<>();
+        Set<PersonName> candidateNames = new LinkedHashSet<>();
 
         candidateNames.addAll(generateCandidatesForMultiWordSurname(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidatesForMultiWordSurname(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 
-        return candidateNames;
+        return newArrayList(candidateNames);
     }
 
     private static String nameWithSplittersRemoved(String name) {
