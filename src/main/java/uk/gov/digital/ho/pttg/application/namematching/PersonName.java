@@ -11,5 +11,5 @@ import lombok.ToString;
 @ToString
 public class PersonName {
     private String firstName;
-    private String surname;
+    private String lastName;
 }

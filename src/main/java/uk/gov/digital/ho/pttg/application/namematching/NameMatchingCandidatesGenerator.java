@@ -22,28 +22,11 @@ public class NameMatchingCandidatesGenerator {
         if (namesContainSplitters(firstName, lastName)) {
             candidates = generateCandidatesWithSplitters(firstName, lastName);
         } else {
-            candidates = generateCandidatesForMultiWordSurname(firstName, lastName);
+            candidates = generateCandidatesForMultiWordLastName(firstName, lastName);
             candidates.addAll(generateCandidates(firstName, lastName));
         }
 
         return Collections.unmodifiableList(candidates);
-    }
-
-    private static List<PersonName> generateCandidatesForMultiWordSurname(String firstName, String lastName) {
-        List<PersonName> candidates;
-        candidates = new ArrayList<>();
-        if (lastName.trim().matches(".*\\s+.*")) {
-            List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
-            if (listOfFirstNames.size() > MAX_NAMES - 1) {
-                listOfFirstNames = listOfFirstNames.subList(0, MAX_NAMES - 1);
-            }
-            candidates.addAll(
-                    listOfFirstNames.stream()
-                            .map(eachFirstName -> new PersonName(eachFirstName, lastName))
-                            .collect(toList())
-            );
-        }
-        return candidates;
     }
 
     private static void validateNames(String firstName, String lastName) {
@@ -59,8 +42,8 @@ public class NameMatchingCandidatesGenerator {
     private static List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
         Set<PersonName> candidateNames = new LinkedHashSet<>();
 
-        candidateNames.addAll(generateCandidatesForMultiWordSurname(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
-        candidateNames.addAll(generateCandidatesForMultiWordSurname(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
+        candidateNames.addAll(generateCandidatesForMultiWordLastName(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
+        candidateNames.addAll(generateCandidatesForMultiWordLastName(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 
@@ -84,6 +67,23 @@ public class NameMatchingCandidatesGenerator {
                 .stream()
                 .map(namePairRule -> namePairRule.calculateName(namesToUse))
                 .collect(toList());
+    }
+
+    private static List<PersonName> generateCandidatesForMultiWordLastName(String firstName, String lastName) {
+        List<PersonName> candidates;
+        candidates = new ArrayList<>();
+        if (lastName.trim().matches(".*\\s+.*")) {
+            List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
+            if (listOfFirstNames.size() > MAX_NAMES - 1) {
+                listOfFirstNames = listOfFirstNames.subList(0, MAX_NAMES - 1);
+            }
+            candidates.addAll(
+                    listOfFirstNames.stream()
+                            .map(eachFirstName -> new PersonName(eachFirstName, lastName))
+                            .collect(toList())
+            );
+        }
+        return candidates;
     }
 
     private static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {
