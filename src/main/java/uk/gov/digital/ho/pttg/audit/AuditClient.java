@@ -9,7 +9,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
@@ -22,9 +21,7 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_API_CALL_ATTEMPT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_AUDIT_FAILURE;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Component
 @Slf4j
@@ -76,7 +73,7 @@ public class AuditClient {
                 log.info("Audit attempt {} of {}", context.getRetryCount() + 1, maxCallAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
                 return restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
             });
-        } catch (HttpServerErrorException e) {
+        } catch (Exception e) {
             log.error("Failed to audit {} after retries", auditableData.getEventType(), value(EVENT, HMRC_AUDIT_FAILURE));
         }
     }
