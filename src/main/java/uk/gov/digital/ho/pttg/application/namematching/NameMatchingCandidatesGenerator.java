@@ -25,7 +25,17 @@ public class NameMatchingCandidatesGenerator {
         if (namesContainSplitters(firstName, lastName)) {
             candidates = generateCandidatesWithSplitters(firstName, lastName);
         } else {
-            candidates = generateCandidates(firstName, lastName);
+            candidates = new ArrayList<>();
+            if (lastName.trim().matches(".*\\s+.*")) {
+                List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
+                // TODO OJR 2018/08/21 If too long shrink
+                candidates.addAll(
+                        listOfFirstNames.stream()
+                                .map(eachFirstName -> new PersonName(eachFirstName, lastName))
+                                .collect(toList())
+                );
+            }
+            candidates.addAll(generateCandidates(firstName, lastName));
         }
 
         return Collections.unmodifiableList(candidates);

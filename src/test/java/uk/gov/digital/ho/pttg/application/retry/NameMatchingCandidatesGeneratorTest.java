@@ -7,6 +7,7 @@ import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGen
 import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -120,13 +121,14 @@ public class NameMatchingCandidatesGeneratorTest {
     public void shouldHandleMultipleLastNames() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "Brian Coates");
 
-        assertThat("The number of generated names should be as expected", names.size(), is(6));
-        assertThat("The names should be correctly generated in the defined order", names.get(0), is(new PersonName("Arthur", "Coates")));
-        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("Brian", "Coates")));
-        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("Coates", "Arthur")));
-        assertThat("The names should be correctly generated in the defined order", names.get(3), is(new PersonName("Coates", "Brian")));
-        assertThat("The names should be correctly generated in the defined order", names.get(4), is(new PersonName("Arthur", "Brian")));
-        assertThat("The names should be correctly generated in the defined order", names.get(5), is(new PersonName("Brian", "Arthur")));
+        assertThat("The number of generated names should be as expected", names.size(), is(7));
+        assertThat("The surname is used unsplit for the first permutation", names.get(0), is(new PersonName("Arthur", "Brian Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("Arthur", "Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("Brian", "Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(3), is(new PersonName("Coates", "Arthur")));
+        assertThat("The names should be correctly generated in the defined order", names.get(4), is(new PersonName("Coates", "Brian")));
+        assertThat("The names should be correctly generated in the defined order", names.get(5), is(new PersonName("Arthur", "Brian")));
+        assertThat("The names should be correctly generated in the defined order", names.get(6), is(new PersonName("Brian", "Arthur")));
 
     }
 
@@ -186,7 +188,13 @@ public class NameMatchingCandidatesGeneratorTest {
     public void shouldUseFirstFourAndLastThreeNamesIfOverSevenProvided() {
         List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
 
-        assertThat(candidateNames.size(), is(42));
+        assertThat(candidateNames.size(), is(47));
+
+        candidateNames = candidateNames.stream().
+                filter(name -> !name.getSurname().equals("F G H")).
+                collect(Collectors.toList());
+
+        assertThat(candidateNames.size(), is(42)); // Expect there to be 5 candidates of retained first names paired with the entire surname "F G H"
 
         for (PersonName name : candidateNames) {
             assertThat(name.getFirstName().contains("E"), is(false));
