@@ -25,20 +25,28 @@ public class NameMatchingCandidatesGenerator {
         if (namesContainSplitters(firstName, lastName)) {
             candidates = generateCandidatesWithSplitters(firstName, lastName);
         } else {
-            candidates = new ArrayList<>();
-            if (lastName.trim().matches(".*\\s+.*")) {
-                List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
-                // TODO OJR 2018/08/21 If too long shrink
-                candidates.addAll(
-                        listOfFirstNames.stream()
-                                .map(eachFirstName -> new PersonName(eachFirstName, lastName))
-                                .collect(toList())
-                );
-            }
+            candidates = generateCandidatesForMultiWordSurname(firstName, lastName);
             candidates.addAll(generateCandidates(firstName, lastName));
         }
 
         return Collections.unmodifiableList(candidates);
+    }
+
+    private static List<PersonName> generateCandidatesForMultiWordSurname(String firstName, String lastName) {
+        List<PersonName> candidates;
+        candidates = new ArrayList<>();
+        if (lastName.trim().matches(".*\\s+.*")) {
+            List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
+            if (listOfFirstNames.size() > 6) {
+                listOfFirstNames = listOfFirstNames.subList(0, 6);
+            }
+            candidates.addAll(
+                    listOfFirstNames.stream()
+                            .map(eachFirstName -> new PersonName(eachFirstName, lastName))
+                            .collect(toList())
+            );
+        }
+        return candidates;
     }
 
     private static void validateNames(String firstName, String lastName) {
@@ -54,6 +62,8 @@ public class NameMatchingCandidatesGenerator {
     private static List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
         List<PersonName> candidateNames = new ArrayList<>();
 
+        candidateNames.addAll(generateCandidatesForMultiWordSurname(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
+        candidateNames.addAll(generateCandidatesForMultiWordSurname(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 

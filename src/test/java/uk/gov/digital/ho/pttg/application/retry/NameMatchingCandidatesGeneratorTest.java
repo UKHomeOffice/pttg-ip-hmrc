@@ -1,11 +1,13 @@
 package uk.gov.digital.ho.pttg.application.retry;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator;
 import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -151,37 +153,40 @@ public class NameMatchingCandidatesGeneratorTest {
     public void shouldHandleApostrophedNames() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "O'Bobbins");
 
-        assertThat("The number of generated names should be as expected", names.size(), is(8));
-        assertThat("The names should be correctly generated in the defined order", names.get(0), is(new PersonName("Arthur", "OBobbins")));
-        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("OBobbins", "Arthur")));
-        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("Arthur", "Bobbins")));
-        assertThat("The names should be correctly generated in the defined order", names.get(3), is(new PersonName("O", "Bobbins")));
-        assertThat("The names should be correctly generated in the defined order", names.get(4), is(new PersonName("Bobbins", "Arthur")));
-        assertThat("The names should be correctly generated in the defined order", names.get(5), is(new PersonName("Bobbins", "O")));
-        assertThat("The names should be correctly generated in the defined order", names.get(6), is(new PersonName("Arthur", "O")));
-        assertThat("The names should be correctly generated in the defined order", names.get(7), is(new PersonName("O", "Arthur")));
+        assertThat("The number of generated names should be as expected", names.size(), is(9));
+        assertThat("The names should be correctly generated in the defined order", names.get(0), is(new PersonName("Arthur", "O Bobbins")));
+        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("Arthur", "OBobbins")));
+        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("OBobbins", "Arthur")));
+        assertThat("The names should be correctly generated in the defined order", names.get(3), is(new PersonName("Arthur", "Bobbins")));
+        assertThat("The names should be correctly generated in the defined order", names.get(4), is(new PersonName("O", "Bobbins")));
+        assertThat("The names should be correctly generated in the defined order", names.get(5), is(new PersonName("Bobbins", "Arthur")));
+        assertThat("The names should be correctly generated in the defined order", names.get(6), is(new PersonName("Bobbins", "O")));
+        assertThat("The names should be correctly generated in the defined order", names.get(7), is(new PersonName("Arthur", "O")));
+        assertThat("The names should be correctly generated in the defined order", names.get(8), is(new PersonName("O", "Arthur")));
     }
 
     @Test
     public void shouldHandleHyphensAndApostrophes() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur-Brian", "O'Coates");
 
-        assertThat("The number of generated names should be as expected", names.size(), is(14));
-        assertThat("The names should be correctly generated in the defined order", names.get(0), is(new PersonName("ArthurBrian", "OCoates")));
-        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("OCoates", "ArthurBrian")));
+        assertThat("The number of generated names should be as expected", names.size(), is(16));
+        assertThat("The names should be correctly generated in the defined order", names.get(0), is(new PersonName("Arthur", "O Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("Brian", "O Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("ArthurBrian", "OCoates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(3), is(new PersonName("OCoates", "ArthurBrian")));
 
-        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("Arthur", "Coates")));
-        assertThat("The names should be correctly generated in the defined order", names.get(3), is(new PersonName("Brian", "Coates")));
-        assertThat("The names should be correctly generated in the defined order", names.get(4), is(new PersonName("O", "Coates")));
-        assertThat("The names should be correctly generated in the defined order", names.get(5), is(new PersonName("Arthur", "Brian")));
-        assertThat("The names should be correctly generated in the defined order", names.get(6), is(new PersonName("Arthur", "O")));
-        assertThat("The names should be correctly generated in the defined order", names.get(7), is(new PersonName("Brian", "Arthur")));
-        assertThat("The names should be correctly generated in the defined order", names.get(8), is(new PersonName("O", "Arthur")));
-        assertThat("The names should be correctly generated in the defined order", names.get(9), is(new PersonName("Coates", "Arthur")));
-        assertThat("The names should be correctly generated in the defined order", names.get(10), is(new PersonName("Brian", "O")));
-        assertThat("The names should be correctly generated in the defined order", names.get(11), is(new PersonName("O", "Brian")));
-        assertThat("The names should be correctly generated in the defined order", names.get(12), is(new PersonName("Coates", "Brian")));
-        assertThat("The names should be correctly generated in the defined order", names.get(13), is(new PersonName("Coates", "O")));
+        assertThat("The names should be correctly generated in the defined order", names.get(4), is(new PersonName("Arthur", "Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(5), is(new PersonName("Brian", "Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(6), is(new PersonName("O", "Coates")));
+        assertThat("The names should be correctly generated in the defined order", names.get(7), is(new PersonName("Arthur", "Brian")));
+        assertThat("The names should be correctly generated in the defined order", names.get(8), is(new PersonName("Arthur", "O")));
+        assertThat("The names should be correctly generated in the defined order", names.get(9), is(new PersonName("Brian", "Arthur")));
+        assertThat("The names should be correctly generated in the defined order", names.get(10), is(new PersonName("O", "Arthur")));
+        assertThat("The names should be correctly generated in the defined order", names.get(11), is(new PersonName("Coates", "Arthur")));
+        assertThat("The names should be correctly generated in the defined order", names.get(12), is(new PersonName("Brian", "O")));
+        assertThat("The names should be correctly generated in the defined order", names.get(13), is(new PersonName("O", "Brian")));
+        assertThat("The names should be correctly generated in the defined order", names.get(14), is(new PersonName("Coates", "Brian")));
+        assertThat("The names should be correctly generated in the defined order", names.get(15), is(new PersonName("Coates", "O")));
     }
 
     @Test
@@ -200,5 +205,36 @@ public class NameMatchingCandidatesGeneratorTest {
             assertThat(name.getFirstName().contains("E"), is(false));
             assertThat(name.getSurname().contains("E"), is(false));
         }
+    }
+
+    @Test
+    public void shouldOnlyUseFirstSixFirstNamesWithMultipleWordSurname() {
+        List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E F G", "Van Halen");
+
+        List<PersonName> expectedCandidateNames = Arrays.asList(
+                new PersonName("A", "Van Halen"),
+                new PersonName("B", "Van Halen"),
+                new PersonName("C", "Van Halen"),
+                new PersonName("D", "Van Halen"),
+                new PersonName("E", "Van Halen"),
+                new PersonName("F", "Van Halen")
+        );
+
+        for (PersonName expectedCandidateName : expectedCandidateNames) {
+            assertThat(candidateNames.contains(expectedCandidateName), is(true));
+        }
+
+        assertThat(candidateNames.contains(new PersonName("G", "Van Halen")), is(false));
+    }
+
+    @Test
+    public void shouldUseWholeMultiWordSurnameWithHyphensEtc() {
+        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
+
+        assertThat("The names should be correctly generated in the defined order", names.get(0), is(new PersonName("BobBrian", "Hill OCoatesSmith")));
+        assertThat("The names should be correctly generated in the defined order", names.get(1), is(new PersonName("Bob", "Hill O Coates Smith")));
+        assertThat("The names should be correctly generated in the defined order", names.get(2), is(new PersonName("Brian", "Hill O Coates Smith")));
+
+        Assertions.assertThat(names).doesNotHaveDuplicates();
     }
 }
