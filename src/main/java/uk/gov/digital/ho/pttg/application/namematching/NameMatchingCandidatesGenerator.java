@@ -17,10 +17,10 @@ public class NameMatchingCandidatesGenerator {
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
     private static final Integer MAX_NAMES = 7;
 
-    public static List<String> generateCandidateNames(String firstName, String lastName) {
+    public static List<PersonName> generateCandidateNames(String firstName, String lastName) {
         validateNames(firstName, lastName);
 
-        List<String> candidates;
+        List<PersonName> candidates;
 
         if (namesContainSplitters(firstName, lastName)) {
             candidates = generateCandidatesWithSplitters(firstName, lastName);
@@ -41,8 +41,8 @@ public class NameMatchingCandidatesGenerator {
         return StringUtils.containsAny(firstName, NAME_SPLITTERS) || StringUtils.containsAny(lastName, NAME_SPLITTERS);
     }
 
-    private static List<String> generateCandidatesWithSplitters(String firstName, String lastName) {
-        List<String> candidateNames = new ArrayList<>();
+    private static List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
+        List<PersonName> candidateNames = new ArrayList<>();
 
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
@@ -58,7 +58,7 @@ public class NameMatchingCandidatesGenerator {
         return name.replaceAll(NAME_SPLITTER_REGEX, " ");
     }
 
-    private static List<String> generateCandidates(String firstName, String lastName) {
+    private static List<PersonName> generateCandidates(String firstName, String lastName) {
         List<String> fullListOfNames = splitIntoDistinctNames(firstName, lastName);
         List<String> namesToUse = removeAdditionalNamesIfOverMax(fullListOfNames);
 
