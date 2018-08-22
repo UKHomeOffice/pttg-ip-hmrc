@@ -14,13 +14,14 @@ class NamePair {
         return new NamePair(firstNameIndex, lastNameIndex);
     }
 
-    String calculateName(List<String> names) {
+    PersonName calculateName(List<String> names) {
         if (firstNameIndex > names.size() - 1) {
             throw new IllegalArgumentException(String.format("Cannot retrieve name in position %d from names %s", firstNameIndex, names.toString()));
         }
         if (lastNameIndex > names.size() - 1) {
             throw new IllegalArgumentException(String.format("Cannot retrieve name in position %d from names %s", lastNameIndex, names.toString()));
         }
-        return names.get(firstNameIndex) + " " + names.get(lastNameIndex);
+        return new PersonName(names.get(firstNameIndex), names.get(lastNameIndex));
     }
+
 }

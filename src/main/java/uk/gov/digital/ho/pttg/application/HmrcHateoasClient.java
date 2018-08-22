@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 
@@ -164,7 +165,7 @@ public class HmrcHateoasClient {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
-        List<String> candidateNames = generateCandidateNames(individual.getFirstName(), individual.getLastName());
+        List<PersonName> candidateNames = generateCandidateNames(individual.getFirstName(), individual.getLastName());
 
         int retries = 0;
 
@@ -186,10 +187,9 @@ public class HmrcHateoasClient {
     }
 
 
-    private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, String candidateNames, String nino, LocalDate dateOfBirth) {
-        String[] names = candidateNames.split("\\s+");
+    private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, PersonName candidateNames, String nino, LocalDate dateOfBirth) {
 
-        Individual individualToMatch = new Individual(names[0], names[1], nino, dateOfBirth);
+        Individual individualToMatch = new Individual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
 
         return hmrcCallWrapper.exchange(
