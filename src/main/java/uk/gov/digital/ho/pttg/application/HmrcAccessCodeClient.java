@@ -75,12 +75,12 @@ public class HmrcAccessCodeClient {
     private boolean isAccessCodeStale() {
 
         if (!accessCode.isPresent()) {
-            log.info("No cached Access Code available yet");
+            log.debug("No cached Access Code available yet");
             return true;
         }
 
         if (accessCode.get().hasExpired()) {
-            log.info("The cached Access Code is stale");
+            log.debug("The cached Access Code is stale");
             return true;
         }
 

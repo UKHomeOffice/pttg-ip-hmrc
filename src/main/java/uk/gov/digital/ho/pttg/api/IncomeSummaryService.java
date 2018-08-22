@@ -60,11 +60,11 @@ public class IncomeSummaryService {
         return reauthorisingRetryTemplate.execute(context -> {
 
             if (context.getRetryCount() > 0) {
-                log.info("Access Code refresh required");
+                log.debug("Access Code refresh required");
                 accessCodeClient.refreshAccessCode();
             }
 
-            log.info("Request Income Summary from HMRC. Attempt number {} of {}", context.getRetryCount() + 1, hmrcApiFailureRetryAttempts);
+            log.debug("Request Income Summary from HMRC. Attempt number {} of {}", context.getRetryCount() + 1, hmrcApiFailureRetryAttempts);
 
             return requestIncomeSummary(individual, fromDate, toDate);
         });
