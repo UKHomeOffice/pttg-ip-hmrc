@@ -76,9 +76,11 @@ public class IncomeSummaryService {
 
         String accessCode = requestAccessCode();
 
+        IncomeSummaryContext incomeSummaryContext = new IncomeSummaryContext();
+
         return apiFailureRetryTemplate.execute(context -> {
             log.info("HMRC call attempt {} of {}", context.getRetryCount() + 1, hmrcApiFailureRetryAttempts, value(EVENT, HMRC_API_CALL_ATTEMPT));
-            return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate, new IncomeSummaryContext());
+            return hmrcClient.getIncomeSummary(accessCode, individual, fromDate, toDate, incomeSummaryContext);
         });
     }
 
