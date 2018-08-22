@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -47,7 +48,7 @@ public class NameMatchingCandidatesGenerator {
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 
-        return newArrayList(candidateNames);
+        return ImmutableList.copyOf(candidateNames);
     }
 
     private static String nameWithSplittersRemoved(String name) {
@@ -70,8 +71,8 @@ public class NameMatchingCandidatesGenerator {
     }
 
     private static List<PersonName> generateCandidatesForMultiWordLastName(String firstName, String lastName) {
-        List<PersonName> candidates;
-        candidates = new ArrayList<>();
+        List<PersonName> candidates = new ArrayList<>();
+
         if (lastName.trim().matches(".*\\s+.*")) {
             List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
             if (listOfFirstNames.size() > MAX_NAMES - 1) {

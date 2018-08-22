@@ -189,7 +189,7 @@ public class HmrcHateoasClient {
 
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, PersonName candidateNames, String nino, LocalDate dateOfBirth) {
 
-        Individual individualToMatch = new Individual(candidateNames.getFirstName(), candidateNames.getLastName(), nino, dateOfBirth);
+        Individual individualToMatch = new Individual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
 
         return hmrcCallWrapper.exchange(

@@ -194,14 +194,14 @@ public class NameMatchingCandidatesGeneratorTest {
         assertThat(candidateNames.size(), is(47));
 
         candidateNames = candidateNames.stream().
-                filter(name -> !name.getLastName().equals("F G H")).
+                filter(name -> !name.lastName().equals("F G H")).
                 collect(Collectors.toList());
 
         assertThat(candidateNames.size(), is(42)); // Expect there to be 5 candidates of retained first names paired with the entire lastname "F G H"
 
         for (PersonName name : candidateNames) {
-            assertThat(name.getFirstName().contains("E"), is(false));
-            assertThat(name.getLastName().contains("E"), is(false));
+            assertThat(name.firstName().contains("E"), is(false));
+            assertThat(name.lastName().contains("E"), is(false));
         }
     }
 
