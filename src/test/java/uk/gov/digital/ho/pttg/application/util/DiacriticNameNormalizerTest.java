@@ -131,7 +131,7 @@ public class DiacriticNameNormalizerTest {
             Character unicodeCharacter = entry.getKey();
             String expectedReplacement = entry.getValue();
 
-            Individual inputIndividual = new Individual(unicodeCharacter.toString(), "Test", TEST_NINO, TEST_DOB);
+            Individual inputIndividual = new Individual(unicodeCharacter.toString(), null, TEST_NINO, TEST_DOB);
 
             // when
             Individual outputIndividual = accentNameNormalizer.normalizeNames(inputIndividual);

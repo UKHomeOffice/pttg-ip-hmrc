@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InvalidIdentityException;
 
+import java.beans.ConstructorProperties;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -17,6 +18,7 @@ public class Individual implements Serializable {
     private String nino;
     private LocalDate dateOfBirth;
 
+    @ConstructorProperties({"firstName", "lastName", "nino", "dateOfBirth"})
     public Individual(String firstName, String lastName, String nino, LocalDate dateOfBirth) {
         this.firstName = firstName;
         this.lastName = lastName;
