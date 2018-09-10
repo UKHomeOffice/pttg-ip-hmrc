@@ -1,6 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -16,24 +16,17 @@ public class NameMatchingCandidatesGenerator {
     private static final Integer MAX_NAMES = 7;
 
     public static List<PersonName> generateCandidateNames(String firstName, String lastName) {
-        validateNames(firstName, lastName);
 
-        List<PersonName> candidates;
+        List<PersonName> candidates = new ArrayList<>();
+
+        candidates.addAll(generateCandidatesForMultiWordLastName(firstName, lastName));
+        candidates.addAll(generateCandidates(firstName, lastName));
 
         if (namesContainSplitters(firstName, lastName)) {
-            candidates = generateCandidatesWithSplitters(firstName, lastName);
-        } else {
-            candidates = generateCandidatesForMultiWordLastName(firstName, lastName);
-            candidates.addAll(generateCandidates(firstName, lastName));
+            candidates.addAll(generateCandidatesWithSplitters(firstName, lastName));
         }
 
         return Collections.unmodifiableList(candidates);
-    }
-
-    private static void validateNames(String firstName, String lastName) {
-        if (isBlank(firstName) && isBlank(lastName)) {
-            throw new IllegalArgumentException("At least one name is required");
-        }
     }
 
     private static boolean namesContainSplitters(String firstName, String lastName) {
@@ -48,7 +41,7 @@ public class NameMatchingCandidatesGenerator {
         candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 
-        return ImmutableList.copyOf(candidateNames);
+        return Lists.newArrayList(candidateNames);
     }
 
     private static String nameWithSplittersRemoved(String name) {
@@ -73,7 +66,8 @@ public class NameMatchingCandidatesGenerator {
     private static List<PersonName> generateCandidatesForMultiWordLastName(String firstName, String lastName) {
         List<PersonName> candidates = new ArrayList<>();
 
-        if (lastName.trim().matches(".*\\s+.*")) {
+        if (multiPart(lastName)) {
+
             List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
             if (listOfFirstNames.size() > MAX_NAMES - 1) {
                 listOfFirstNames = listOfFirstNames.subList(0, MAX_NAMES - 1);
@@ -85,6 +79,10 @@ public class NameMatchingCandidatesGenerator {
             );
         }
         return candidates;
+    }
+
+    private static boolean multiPart(String lastName) {
+        return lastName.trim().matches(".*\\s+.*");
     }
 
     private static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {

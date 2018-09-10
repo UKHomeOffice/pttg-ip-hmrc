@@ -251,4 +251,57 @@ public class ResourceExceptionHandlerTest {
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
         }));
     }
+
+    @Test
+    public void shouldProduceUnprocessableEntityForInvalidNationalInsuranceNumberException() {
+        InvalidNationalInsuranceNumberException mockInvalidNationalInsuranceNumberException = mock(InvalidNationalInsuranceNumberException.class);
+        when(mockInvalidNationalInsuranceNumberException.getMessage()).thenReturn("any message");
+
+        ResponseEntity responseEntity = handler.handle(mockInvalidNationalInsuranceNumberException);
+
+        assertThat(responseEntity.getBody()).isEqualTo("any message");
+        assertThat(responseEntity.getStatusCode()).isEqualTo(UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void shouldLogErrorForInvalidNationalInsuranceNumberException() {
+        InvalidNationalInsuranceNumberException mockInvalidNationalInsuranceNumberException = mock(InvalidNationalInsuranceNumberException.class);
+        when(mockInvalidNationalInsuranceNumberException.getMessage()).thenReturn("any message");
+
+        handler.handle(mockInvalidNationalInsuranceNumberException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Service called with invalid NINO: any message") &&
+                           ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldProduceUnprocessableEntityForInvalidIdentityException() {
+        InvalidIdentityException mockInvalidIdentityException = mock(InvalidIdentityException.class);
+        when(mockInvalidIdentityException.getMessage()).thenReturn("any message");
+
+        ResponseEntity responseEntity = handler.handle(mockInvalidIdentityException);
+
+        assertThat(responseEntity.getBody()).isEqualTo("any message");
+        assertThat(responseEntity.getStatusCode()).isEqualTo(UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void shouldLogErrorForInvalidIdentityException() {
+        InvalidIdentityException mockInvalidIdentityException = mock(InvalidIdentityException.class);
+        when(mockInvalidIdentityException.getMessage()).thenReturn("any message");
+
+        handler.handle(mockInvalidIdentityException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Service called with invalid identity: any message") &&
+                           ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+        }));
+    }
+
 }

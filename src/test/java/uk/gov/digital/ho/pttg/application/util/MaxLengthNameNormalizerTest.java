@@ -115,41 +115,4 @@ public class MaxLengthNameNormalizerTest {
         assertThat(actualIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
     }
 
-    @Test
-    public void shouldReturnEmptyNamesIfNamesAreEmpty() {
-        // given
-        maxLengthNameNormalizer = new MaxLengthNameNormalizer(MAX_NAME_LENGTH);
-
-        String firstName = "";
-        String lastName = "";
-        Individual individual = new Individual(firstName, lastName, TEST_NINO, TEST_DOB);
-
-        // when
-        Individual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
-
-        // then
-        assertThat(actualIndividual.getFirstName()).isEmpty();
-        assertThat(actualIndividual.getLastName()).isEmpty();
-
-        assertThat(actualIndividual.getNino()).isEqualTo(TEST_NINO);
-        assertThat(actualIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
-    }
-
-    @Test
-    public void shouldReturnNullIfNameIsNull() {
-        // given
-        maxLengthNameNormalizer = new MaxLengthNameNormalizer(MAX_NAME_LENGTH);
-
-        Individual individual = new Individual(null, null, TEST_NINO, TEST_DOB);
-
-        // when
-        Individual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
-
-        // then
-        assertThat(actualIndividual.getFirstName()).isNull();
-        assertThat(actualIndividual.getLastName()).isNull();
-
-        assertThat(actualIndividual.getNino()).isEqualTo(TEST_NINO);
-        assertThat(actualIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
-    }
 }
