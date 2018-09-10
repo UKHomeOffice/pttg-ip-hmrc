@@ -16,7 +16,6 @@ public class NameMatchingCandidatesGenerator {
     private static final Integer MAX_NAMES = 7;
 
     public static List<PersonName> generateCandidateNames(String firstName, String lastName) {
-        validateNames(firstName, lastName);
 
         List<PersonName> candidates;
 
@@ -28,12 +27,6 @@ public class NameMatchingCandidatesGenerator {
         }
 
         return Collections.unmodifiableList(candidates);
-    }
-
-    private static void validateNames(String firstName, String lastName) {
-        if (isBlank(firstName) && isBlank(lastName)) {
-            throw new IllegalArgumentException("At least one name is required");
-        }
     }
 
     private static boolean namesContainSplitters(String firstName, String lastName) {
@@ -73,7 +66,8 @@ public class NameMatchingCandidatesGenerator {
     private static List<PersonName> generateCandidatesForMultiWordLastName(String firstName, String lastName) {
         List<PersonName> candidates = new ArrayList<>();
 
-        if (lastName.trim().matches(".*\\s+.*")) {
+        if (multiPart(lastName)) {
+
             List<String> listOfFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
             if (listOfFirstNames.size() > MAX_NAMES - 1) {
                 listOfFirstNames = listOfFirstNames.subList(0, MAX_NAMES - 1);
@@ -85,6 +79,10 @@ public class NameMatchingCandidatesGenerator {
             );
         }
         return candidates;
+    }
+
+    private static boolean multiPart(String lastName) {
+        return lastName.trim().matches(".*\\s+.*");
     }
 
     private static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {

@@ -21,6 +21,15 @@ public class NameMatchingCandidatesGeneratorTest {
     }
 
     @Test
+    public void tim() {
+        List<PersonName> PersonNamenames = NameMatchingCandidatesGenerator.generateCandidateNames("IMAD", "EL-MOHTAR");
+        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("EL-MOHTAR", "IMAD");
+
+        names.forEach(personName -> System.out.format("[%s] [%s]\n", personName.firstName(), personName.lastName()));
+
+    }
+
+    @Test
     public void shouldDuplicateSingleFirstName() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Mono", "");
 

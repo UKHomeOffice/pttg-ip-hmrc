@@ -3,10 +3,6 @@ package uk.gov.digital.ho.pttg.application;
 public interface ApplicationExceptions {
 
     class HmrcException extends RuntimeException {
-        public HmrcException(String message) {
-            super(message);
-        }
-
         public HmrcException(String message, Throwable cause) {
             super(message, cause);
         }
@@ -20,17 +16,23 @@ public interface ApplicationExceptions {
     }
 
     class InvalidNationalInsuranceNumberException extends IllegalArgumentException {
-        public InvalidNationalInsuranceNumberException(final String s) {
+        InvalidNationalInsuranceNumberException(String s) {
+            super(s);
+        }
+    }
+
+    class InvalidIdentityException extends IllegalArgumentException {
+        public InvalidIdentityException(String s) {
             super(s);
         }
     }
 
     class HmrcUnauthorisedException extends RuntimeException {
-        public HmrcUnauthorisedException(final String s) {
+        public HmrcUnauthorisedException(String s) {
             super(s);
         }
 
-        public HmrcUnauthorisedException(final String s, final Exception e) {
+        HmrcUnauthorisedException(String s, Exception e) {
             super(s, e);
         }
     }
