@@ -109,9 +109,31 @@ class NameMatchingSteps {
         for (individual in individuals) {
             def expectedJson = getIndividualMatchRequestExpectedJson(individual)
 
+            // Match full json response
             HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
                     .atPriority(1)
                     .withRequestBody(equalToJson(expectedJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
+                    .willReturn(aResponse().withBody(buildMatchResponse()).withStatus(HttpStatus.OK.value())
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+
+            int nameLength = individual.getFirstName().length()
+            int surnameLength = individual.getLastName().length()
+            int nameIndex = 3
+            int surnameIndex = 3
+            if (nameLength < 3) {
+                nameIndex = nameLength
+            }
+            if (surnameLength < 3) {
+                surnameIndex = surnameLength
+            }
+
+            // Match json with initials of name and surname only
+            HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
+                    .atPriority(1)
+                    .withRequestBody(matchingJsonPath("\$.firstName", matching(individual.getFirstName().substring(0, nameIndex)  + ".*")))
+                    .withRequestBody(matchingJsonPath("\$.lastName", matching(individual.getLastName().substring(0, surnameIndex) + ".*")))
+                    .withRequestBody(matchingJsonPath("\$.nino"))
+                    .withRequestBody(matchingJsonPath("\$.dateOfBirth"))
                     .willReturn(aResponse().withBody(buildMatchResponse()).withStatus(HttpStatus.OK.value())
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         }
