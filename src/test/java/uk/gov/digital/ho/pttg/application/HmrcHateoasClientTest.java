@@ -22,6 +22,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.selfemployment.SelfAssessment;
+import uk.gov.digital.ho.pttg.dto.selfemployment.TaxReturns;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -201,7 +203,7 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoBeforeSelfAssessmentRequestSent() {
         // given
-        Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        Resource<Object> saResource = new Resource<>(new SelfAssessment(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
@@ -221,7 +223,7 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoAfterSelfAssessmentResponseReceived() {
         // given
-        Resource<Object> saResource = new Resource<>(new SelfEmployments(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        Resource<Object> saResource = new Resource<>(new SelfAssessment(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");

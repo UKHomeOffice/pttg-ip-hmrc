@@ -14,6 +14,9 @@ import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.selfemployment.SelfEmployment;
+import uk.gov.digital.ho.pttg.dto.selfemployment.SelfAssessment;
+import uk.gov.digital.ho.pttg.dto.selfemployment.TaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -48,7 +51,7 @@ public class HmrcHateoasClient {
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};
     private static final ParameterizedTypeReference<Resource<PayeIncome>> payeIncomesResourceTypeRef = new ParameterizedTypeReference<Resource<PayeIncome>>() {};
     private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {};
-    private static final ParameterizedTypeReference<Resource<SelfEmployments>> selfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfEmployments>>() {};
+    private static final ParameterizedTypeReference<Resource<SelfAssessment>> selfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfAssessment>>() {};
 
     private static final MonthDay END_OF_TAX_YEAR = MonthDay.of(4, 5);
     private static final String QUERY_PARAM_TO_DATE = "toDate";
@@ -98,7 +101,7 @@ public class HmrcHateoasClient {
         }
 
         log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
-        Resource<SelfEmployments> selfEmploymentsResource =
+        Resource<SelfAssessment> selfEmploymentsResource =
                 hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, selfEmploymentsResourceTypeRef);
         log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
