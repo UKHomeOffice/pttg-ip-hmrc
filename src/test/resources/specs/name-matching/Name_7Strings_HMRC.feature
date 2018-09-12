@@ -133,12 +133,12 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10                        |
       | nino          | SE 123456 B                       |
     Then a Matched response will be returned from the service
-    And HMRC was called 54 times
+    And HMRC was called 6 times
 
   @name_matching
   Scenario: Applicant with a hyphenated first name is matched in HMRC on the hyphenated version of the name
     Given HMRC has the following individual records
-      | First name    | Last name | Date of Birth | nino        |
+      | First name     | Last name | Date of Birth | nino        |
       | Bob-Chicharito | Higuain   | 1987-12-10    | SE 123456 B |
     When the applicant submits the following data to the RPS service
       | First name    | Ali Bob-Chicharito Danilo Estoban |
@@ -151,13 +151,13 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with a hyphenated last name is matched in HMRC on the hyphenated version of the name
     Given HMRC has the following individual records
-      | First name    | Last name | Date of Birth | nino        |
-      | Bob           | El-Mohtar   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino        |
+      | Bob        | El-Mohtar | 1987-12-10    | SE 123456 B |
     When the applicant submits the following data to the RPS service
-      | First name    | Bob |
-      | Last name     | El-Mohtar          |
-      | Date of Birth | 1987-12-10                        |
-      | nino          | SE 123456 B                       |
+      | First name    | Bob         |
+      | Last name     | El-Mohtar   |
+      | Date of Birth | 1987-12-10  |
+      | nino          | SE 123456 B |
     Then a Matched response will be returned from the service
     And HMRC was called 1 times
 
