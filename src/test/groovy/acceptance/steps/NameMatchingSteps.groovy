@@ -116,16 +116,9 @@ class NameMatchingSteps {
                     .willReturn(aResponse().withBody(buildMatchResponse()).withStatus(HttpStatus.OK.value())
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
 
-            int nameLength = individual.getFirstName().length()
-            int surnameLength = individual.getLastName().length()
-            int nameIndex = 3
-            int surnameIndex = 3
-            if (nameLength < 3) {
-                nameIndex = nameLength
-            }
-            if (surnameLength < 3) {
-                surnameIndex = surnameLength
-            }
+            // Get at least the first letter of the firstname and at least the first three letters of the lastname
+            int nameIndex = Math.min(1, (int) individual.getFirstName().length())
+            int surnameIndex = Math.min(3, (int) individual.getLastName().length())
 
             // Match json with initials of name and surname only
             HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
