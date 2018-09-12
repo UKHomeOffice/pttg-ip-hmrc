@@ -3,7 +3,6 @@
 @story=Names_With_Special_Characters
 @jira=EE-8204
 
-
 Feature: Accept Hyphens and Apostrophes as part of the name matching
 
 
