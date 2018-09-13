@@ -29,6 +29,8 @@ import uk.gov.digital.ho.pttg.dto.Individual
 import java.nio.charset.Charset
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
@@ -107,24 +109,30 @@ class NameMatchingSteps {
                 .collect { row -> row.toIndividual() }
 
         for (individual in individuals) {
-            def expectedJson = getIndividualMatchRequestExpectedJson(individual)
 
-            // Match full json response
-            HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
-                    .atPriority(1)
-                    .withRequestBody(equalToJson(expectedJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
-                    .willReturn(aResponse().withBody(buildMatchResponse()).withStatus(HttpStatus.OK.value())
-                    .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+            String firstname = individual.getFirstName()
+            String lastname = individual.getLastName()
+
+            // Check if lastname contains spaces
+            Pattern pattern = Pattern.compile("\\s");
+            Matcher matcher = pattern.matcher(lastname);
+            int extraCharacter = 0
+
+            // If surname contains spaces and the first part of the surname is shorter than 3 characters,
+            // add an extra character to the string that the mock will match
+            if (matcher.find() && lastname.split("\\s+")[0].length() < 3) {
+                extraCharacter = 1
+            }
 
             // Get at least the first letter of the firstname and at least the first three letters of the lastname
-            int nameIndex = Math.min(1, (int) individual.getFirstName().length())
-            int surnameIndex = Math.min(3, (int) individual.getLastName().length())
+            int nameIndex = Math.min(1, (int) firstname.length())
+            int surnameIndex = Math.min(3 + extraCharacter, (int) lastname.length())
 
-            // Match json with initials of name and surname only
+            // Match json on NINO, DOB and with initials of name and surname only
             HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
                     .atPriority(1)
-                    .withRequestBody(matchingJsonPath("\$.firstName", matching(individual.getFirstName().substring(0, nameIndex)  + ".*")))
-                    .withRequestBody(matchingJsonPath("\$.lastName", matching(individual.getLastName().substring(0, surnameIndex) + ".*")))
+                    .withRequestBody(matchingJsonPath("\$.firstName", matching(firstname.substring(0, nameIndex) + ".*")))
+                    .withRequestBody(matchingJsonPath("\$.lastName", matching(lastname.substring(0, surnameIndex) + ".*")))
                     .withRequestBody(matchingJsonPath("\$.nino"))
                     .withRequestBody(matchingJsonPath("\$.dateOfBirth"))
                     .willReturn(aResponse().withBody(buildMatchResponse()).withStatus(HttpStatus.OK.value())

@@ -72,9 +72,30 @@ public class NameMatchingCandidatesGenerator {
             if (listOfFirstNames.size() > MAX_NAMES - 1) {
                 listOfFirstNames = listOfFirstNames.subList(0, MAX_NAMES - 1);
             }
+            List<String> listOfLastNames = new ArrayList<>(splitIntoDistinctNames(lastName));
+            if (listOfLastNames.size() > MAX_NAMES - 1) {
+                listOfLastNames = listOfLastNames.subList(0, MAX_NAMES - 1);
+            }
+
+            // Create a combination of surnames but only with those surnames shorter than 3 characters
+            List<String> surnameCombinationList = new ArrayList<>();
+            for (String surname1 : listOfLastNames) {
+                if (surname1.length() < 3) {
+                    for (String surname2 : listOfLastNames) {
+                        if (surname1.equals(surname2)) {
+                            continue;
+                        } else {
+                            surnameCombinationList.add(surname1 + " " + surname2);
+                        }
+                    }
+                }
+            }
+
             candidates.addAll(
                     listOfFirstNames.stream()
-                            .map(eachFirstName -> new PersonName(eachFirstName, lastName))
+                            .flatMap(eachFirstName ->
+                                    surnameCombinationList.stream()
+                                            .map(lastNameCombination -> new PersonName(eachFirstName, lastNameCombination)))
                             .collect(toList())
             );
         }
