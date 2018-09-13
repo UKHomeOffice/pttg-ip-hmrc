@@ -12,6 +12,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class TaxReturns extends ResourceSupport {
-    private final List<TaxReturn> taxReturns;
+public class SummaryTaxReturns extends ResourceSupport {
+    private final List<SummaryTaxReturn> taxReturns;
 }

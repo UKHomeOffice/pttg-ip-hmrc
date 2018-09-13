@@ -19,7 +19,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.CORRELATION_ID_HEADER
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.USER_ID_HEADER
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = RANDOM_PORT,
+        properties = ["hmrc.sa.self-employment-only=true"]
+)
 @TestPropertySource(locations = "classpath:test-application-override.properties")
 @ContextConfiguration
 class HMRCResourceHeadersIntSpec extends Specification {

@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.springframework.hateoas.ResourceSupport;
 
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelfAssessment extends ResourceSupport {
-    private final TaxReturns selfAssessment;
+@EqualsAndHashCode
+public class SummaryTaxReturn {
+    private final String taxYear;
+    private final List<Summary> summary;
 }

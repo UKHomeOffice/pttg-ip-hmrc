@@ -2,11 +2,9 @@ package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
-import uk.gov.digital.ho.pttg.dto.IncomeSummary;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -28,9 +26,13 @@ public class HmrcClient {
     private static final String INCOME = "income";
     private static final String EMPLOYMENTS = "employments";
     private static final String SELF_ASSESSMENT = "selfAssessment";
+    private static final String SUMMARY_SELF_ASSESSMENT = "summary";
     private static final String PAYE_INCOME = "paye";
     private static final String PAYE_EMPLOYMENT = "paye";
     private static final String SELF_EMPLOYMENTS = "selfEmployments";
+
+    @Value("${hmrc.sa.self-employment-only}")
+    private boolean selfEmploymentOnly;
 
 
     public HmrcClient(HmrcHateoasClient hateoasClient) {
@@ -47,9 +49,16 @@ public class HmrcClient {
 
         log.debug("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
 
+        List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome;
+        if (selfEmploymentOnly) {
+            selfAssessmentIncome = context.selfAssessmentIncome();
+        } else {
+            selfAssessmentIncome = context.summarySelfAssessmentIncome();
+        }
+
         return new IncomeSummary(
                 context.payeIncome(),
-                context.selfAssessmentIncome(),
+                selfAssessmentIncome,
                 context.employments(),
                 context.individualResource().getContent().getIndividual());
     }
@@ -64,7 +73,11 @@ public class HmrcClient {
 
         storePayeIncome(fromDate, toDate, accessToken, context);
         storeEmployments(fromDate, toDate, accessToken, context);
-        storeSelfAssessmentIncome(accessToken, context);
+        if (selfEmploymentOnly) {
+            storeSelfAssessmentIncome(accessToken, context);
+        } else {
+            storeSummarySelfAssessmentIncome(accessToken, context);
+        }
 
     }
 
@@ -83,6 +96,12 @@ public class HmrcClient {
     private void storeSelfAssessmentIncome(String accessToken, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentIncome()) {
             context.setSelfAssessmentIncome(hateoasClient.getSelfAssessmentIncome(accessToken, context.selfAssessmentResource().getLink(SELF_EMPLOYMENTS)));
+        }
+    }
+
+    private void storeSummarySelfAssessmentIncome(String accessToken, IncomeSummaryContext context) {
+        if (context.needsSummarySelfAssessmentIncome()) {
+            context.setSummarySelfAssessmentIncome(hateoasClient.getSummarySelfAssessmentIncome(accessToken, context.selfAssessmentResource().getLink(SUMMARY_SELF_ASSESSMENT)));
         }
     }
 

@@ -1,3 +1,6 @@
+@jira=EE-7304
+
+
 Feature: Name matching with 6 name strings
 
   Scenario: applicant with 6 names is matched on the last combination
