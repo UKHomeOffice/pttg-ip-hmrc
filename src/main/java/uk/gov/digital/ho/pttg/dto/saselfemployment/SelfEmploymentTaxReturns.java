@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.dto.selfemployment;
+package uk.gov.digital.ho.pttg.dto.saselfemployment;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -12,6 +12,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class TaxReturns extends ResourceSupport {
-    private final List<TaxReturn> taxReturns;
+public class SelfEmploymentTaxReturns extends ResourceSupport {
+    private final List<SelfEmploymentTaxReturn> taxReturns;
 }

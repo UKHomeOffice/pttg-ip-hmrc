@@ -1,3 +1,5 @@
+@jira=EE-7304
+
 Feature: Self Assessment Summary or Self Employment only configuration
   As a consumer of the HMRC service, I want to be able to select either SA summary or SA self-employment
   based on a configuration property

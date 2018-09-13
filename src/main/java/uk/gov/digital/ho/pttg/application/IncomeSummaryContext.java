@@ -22,8 +22,8 @@ public class IncomeSummaryContext {
 
     private List<Income> payeIncome;
     private List<Employment> employments;
-    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome;
-    private List<AnnualSelfAssessmentTaxReturn> summarySelfAssessmentIncome;
+    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome;
+    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome;
 
 
     boolean needsMatchResource() {
@@ -54,12 +54,12 @@ public class IncomeSummaryContext {
         return employments == null;
     }
 
-    boolean needsSelfAssessmentIncome() {
-        return selfAssessmentIncome == null;
+    boolean needsSelfAssessmentSelfEmploymentIncome() {
+        return selfAssessmentSelfEmploymentIncome == null;
     }
 
-    boolean needsSummarySelfAssessmentIncome() {
-        return summarySelfAssessmentIncome == null;
+    boolean needsSelfAssessmentSummaryIncome() {
+        return selfAssessmentSummaryIncome == null;
     }
 
     void setMatchResource(Resource<String> matchResource) {
@@ -90,12 +90,12 @@ public class IncomeSummaryContext {
         this.employments = employments;
     }
 
-    void setSelfAssessmentIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome) {
-        this.selfAssessmentIncome = selfAssessmentIncome;
+    void setSelfAssessmentSelfEmploymentIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome) {
+        this.selfAssessmentSelfEmploymentIncome = selfAssessmentSelfEmploymentIncome;
     }
 
-    void setSummarySelfAssessmentIncome(List<AnnualSelfAssessmentTaxReturn> summarySelfAssessmentIncome) {
-        this.summarySelfAssessmentIncome = summarySelfAssessmentIncome;
+    void setSelfAssessmentSummaryIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome) {
+        this.selfAssessmentSummaryIncome = selfAssessmentSummaryIncome;
     }
 
 }

@@ -22,8 +22,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
-import uk.gov.digital.ho.pttg.dto.selfemployment.SelfAssessment;
-import uk.gov.digital.ho.pttg.dto.selfemployment.TaxReturns;
+import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
+import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturns;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -203,13 +203,13 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoBeforeSelfAssessmentRequestSent() {
         // given
-        Resource<Object> saResource = new Resource<>(new SelfAssessment(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        Resource<Object> saResource = new Resource<>(new SelfEmploymentSelfAssessment(new SelfEmploymentTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
-        client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
+        client.getSelfAssessmentSelfEmploymentIncome("token", new Link("http://foo.com/bar"));
 
         // then
         verify(mockAppender).doAppend(argThat(argument -> {
@@ -223,13 +223,13 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoAfterSelfAssessmentResponseReceived() {
         // given
-        Resource<Object> saResource = new Resource<>(new SelfAssessment(new TaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        Resource<Object> saResource = new Resource<>(new SelfEmploymentSelfAssessment(new SelfEmploymentTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
 
         // when
-        client.getSelfAssessmentIncome("token", new Link("http://foo.com/bar"));
+        client.getSelfAssessmentSelfEmploymentIncome("token", new Link("http://foo.com/bar"));
 
         // then
         verify(mockAppender).doAppend(argThat(argument -> {

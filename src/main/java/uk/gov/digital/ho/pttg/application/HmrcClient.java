@@ -26,12 +26,12 @@ public class HmrcClient {
     private static final String INCOME = "income";
     private static final String EMPLOYMENTS = "employments";
     private static final String SELF_ASSESSMENT = "selfAssessment";
-    private static final String SUMMARY_SELF_ASSESSMENT = "summary";
     private static final String PAYE_INCOME = "paye";
     private static final String PAYE_EMPLOYMENT = "paye";
-    private static final String SELF_EMPLOYMENTS = "selfEmployments";
+    private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
+    private static final String SA_SUMMARY = "summary";
 
-    @Value("${hmrc.sa.self-employment-only}")
+    @Value("${hmrc.sa.self-employment-only:false}")
     private boolean selfEmploymentOnly;
 
 
@@ -51,9 +51,9 @@ public class HmrcClient {
 
         List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome;
         if (selfEmploymentOnly) {
-            selfAssessmentIncome = context.selfAssessmentIncome();
+            selfAssessmentIncome = context.selfAssessmentSelfEmploymentIncome();
         } else {
-            selfAssessmentIncome = context.summarySelfAssessmentIncome();
+            selfAssessmentIncome = context.selfAssessmentSummaryIncome();
         }
 
         return new IncomeSummary(
@@ -74,9 +74,9 @@ public class HmrcClient {
         storePayeIncome(fromDate, toDate, accessToken, context);
         storeEmployments(fromDate, toDate, accessToken, context);
         if (selfEmploymentOnly) {
-            storeSelfAssessmentIncome(accessToken, context);
+            storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
         } else {
-            storeSummarySelfAssessmentIncome(accessToken, context);
+            storeSelfAssessmentSummaryIncome(accessToken, context);
         }
 
     }
@@ -93,15 +93,15 @@ public class HmrcClient {
         }
     }
 
-    private void storeSelfAssessmentIncome(String accessToken, IncomeSummaryContext context) {
-        if (context.needsSelfAssessmentIncome()) {
-            context.setSelfAssessmentIncome(hateoasClient.getSelfAssessmentIncome(accessToken, context.selfAssessmentResource().getLink(SELF_EMPLOYMENTS)));
+    private void storeSelfAssessmentSelfEmploymentIncome(String accessToken, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentSelfEmploymentIncome()) {
+            context.setSelfAssessmentSelfEmploymentIncome(hateoasClient.getSelfAssessmentSelfEmploymentIncome(accessToken, context.selfAssessmentResource().getLink(SA_SELF_EMPLOYMENTS)));
         }
     }
 
-    private void storeSummarySelfAssessmentIncome(String accessToken, IncomeSummaryContext context) {
-        if (context.needsSummarySelfAssessmentIncome()) {
-            context.setSummarySelfAssessmentIncome(hateoasClient.getSummarySelfAssessmentIncome(accessToken, context.selfAssessmentResource().getLink(SUMMARY_SELF_ASSESSMENT)));
+    private void storeSelfAssessmentSummaryIncome(String accessToken, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentSummaryIncome()) {
+            context.setSelfAssessmentSummaryIncome(hateoasClient.getSelfAssessmentSummaryIncome(accessToken, context.selfAssessmentResource().getLink(SA_SUMMARY)));
         }
     }
 

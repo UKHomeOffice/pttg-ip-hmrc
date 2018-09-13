@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.dto.selfemployment;
+package uk.gov.digital.ho.pttg.dto.saselfemployment;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -11,6 +11,6 @@ import org.springframework.hateoas.ResourceSupport;
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class SelfAssessment extends ResourceSupport {
-    private final TaxReturns selfAssessment;
+public class SelfEmploymentSelfAssessment extends ResourceSupport {
+    private final SelfEmploymentTaxReturns selfAssessment;
 }
