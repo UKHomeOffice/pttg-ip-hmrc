@@ -54,13 +54,9 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | nino          | SE 123456 B |
     Then the footprint will try the following combination of names in order
       | First name | Last name | Date of Birth | nino        |
-      | Aaa        | Ccc       | 1987-12-10    | SE 123456 B |
-      | Bb-        | Ccc       | 1987-12-10    | SE 123456 B |
-      | Ccc        | Aaa       | 1987-12-10    | SE 123456 B |
-      | Ccc        | Bb-       | 1987-12-10    | SE 123456 B |
-      | Aaa        | Bb-       | 1987-12-10    | SE 123456 B |
+      | Aaa        | Bb- Ccc   | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 5 times
+    And HMRC was called 1 times
 
 
   @name_matching
@@ -147,8 +143,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | Date of Birth | 1987-12-10   |
       | nino          | SE 123456 B  |
     Then the footprint will try the following combination of names in order
-      | First name | Last name | Date of Birth | nino        |
-      | Joseph     | R De      | 1987-12-10    | SE 123456 B |
+      | First name   | Last name  | Date of Birth | nino        |
+      | Joseph James | R De Bloggs | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
     And HMRC was called 1 times
 
@@ -165,12 +161,14 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | nino          | SE 123456 B |
     Then the footprint will try the following combination of names in order
       | First name | Last name | Date of Birth | nino        |
+      | Pas Alb    | R De Fey  | 1987-12-10    | SE 123456 B |
+      | Pas        | R De Fey  | 1987-12-10    | SE 123456 B |
       | Pas        | R De      | 1987-12-10    | SE 123456 B |
       | Pas        | R Fey     | 1987-12-10    | SE 123456 B |
       | Pas        | De R      | 1987-12-10    | SE 123456 B |
       | Pas        | De Fey    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 4 times
+    And HMRC was called 6 times
 
 
   @name_matching
@@ -184,29 +182,30 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | Date of Birth | 1987-12-10     |
       | nino          | SE 123456 B    |
     Then the footprint will try the following combination of names in order
-      | First name | Last name | Date of Birth | nino        |
-      | R          | De Pas    | 1987-12-10    | SE 123456 B |
-      | R          | De Alb    | 1987-12-10    | SE 123456 B |
-      | R          | De Fey    | 1987-12-10    | SE 123456 B |
-      | R          | Fey       | 1987-12-10    | SE 123456 B |
-      | Pas        | Fey       | 1987-12-10    | SE 123456 B |
-      | Alb        | Fey       | 1987-12-10    | SE 123456 B |
-      | De         | Fey       | 1987-12-10    | SE 123456 B |
-      | R          | Pas       | 1987-12-10    | SE 123456 B |
-      | R          | Alb       | 1987-12-10    | SE 123456 B |
-      | R          | De        | 1987-12-10    | SE 123456 B |
-      | Pas        | R         | 1987-12-10    | SE 123456 B |
-      | Pas        | Alb       | 1987-12-10    | SE 123456 B |
-      | Pas        | De        | 1987-12-10    | SE 123456 B |
-      | Alb        | R         | 1987-12-10    | SE 123456 B |
-      | Alb        | Pas       | 1987-12-10    | SE 123456 B |
-      | Alb        | De        | 1987-12-10    | SE 123456 B |
-      | De         | R         | 1987-12-10    | SE 123456 B |
-      | De         | Pas       | 1987-12-10    | SE 123456 B |
-      | De         | Alb       | 1987-12-10    | SE 123456 B |
-      | Fey        | R         | 1987-12-10    | SE 123456 B |
-      | Fey        | Pas       | 1987-12-10    | SE 123456 B |
-      | Fey        | Alb       | 1987-12-10    | SE 123456 B |
-      | Fey        | De        | 1987-12-10    | SE 123456 B |
+      | First name | Last name      | Date of Birth | nino        |
+      | R          | Pas Alb De Fey | 1987-12-10    | SE 123456 B |
+      | R          | De Pas         | 1987-12-10    | SE 123456 B |
+      | R          | De Alb         | 1987-12-10    | SE 123456 B |
+      | R          | De Fey         | 1987-12-10    | SE 123456 B |
+      | R          | Fey            | 1987-12-10    | SE 123456 B |
+      | Pas        | Fey            | 1987-12-10    | SE 123456 B |
+      | Alb        | Fey            | 1987-12-10    | SE 123456 B |
+      | De         | Fey            | 1987-12-10    | SE 123456 B |
+      | R          | Pas            | 1987-12-10    | SE 123456 B |
+      | R          | Alb            | 1987-12-10    | SE 123456 B |
+      | R          | De             | 1987-12-10    | SE 123456 B |
+      | Pas        | R              | 1987-12-10    | SE 123456 B |
+      | Pas        | Alb            | 1987-12-10    | SE 123456 B |
+      | Pas        | De             | 1987-12-10    | SE 123456 B |
+      | Alb        | R              | 1987-12-10    | SE 123456 B |
+      | Alb        | Pas            | 1987-12-10    | SE 123456 B |
+      | Alb        | De             | 1987-12-10    | SE 123456 B |
+      | De         | R              | 1987-12-10    | SE 123456 B |
+      | De         | Pas            | 1987-12-10    | SE 123456 B |
+      | De         | Alb            | 1987-12-10    | SE 123456 B |
+      | Fey        | R              | 1987-12-10    | SE 123456 B |
+      | Fey        | Pas            | 1987-12-10    | SE 123456 B |
+      | Fey        | Alb            | 1987-12-10    | SE 123456 B |
+      | Fey        | De             | 1987-12-10    | SE 123456 B |
     Then a not matched response is returned
-    And HMRC was called 23 times
+    And HMRC was called 24 times

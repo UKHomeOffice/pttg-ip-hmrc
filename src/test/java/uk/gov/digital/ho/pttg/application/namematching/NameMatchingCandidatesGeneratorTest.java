@@ -108,7 +108,7 @@ public class NameMatchingCandidatesGeneratorTest {
     }
 
     @Test
-    public void shouldHanndleExtraWhitespace() {
+    public void shouldHandleExtraWhitespace() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames(" Arthur   Brian   ", " Coates ");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
@@ -174,40 +174,40 @@ public class NameMatchingCandidatesGeneratorTest {
     public void shouldHandleHyphensAndApostrophes() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur-Brian", "O'Coates");
 
-        assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(18));
+        assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(19));
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur-Brian", "O'Coates")));
         assertThat(INCORRECT_ORDER, names.get(1), is(new PersonName("O'Coates", "Arthur-Brian")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("Arthur", "O Coates")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("Brian", "O Coates")));
-        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("ArthurBrian", "OCoates")));
-        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("OCoates", "ArthurBrian")));
-
-        assertThat(INCORRECT_ORDER, names.get(6), is(new PersonName("Arthur", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(7), is(new PersonName("Brian", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(8), is(new PersonName("O", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(9), is(new PersonName("Arthur", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(10), is(new PersonName("Arthur", "O")));
-        assertThat(INCORRECT_ORDER, names.get(11), is(new PersonName("Brian", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(12), is(new PersonName("O", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(13), is(new PersonName("Coates", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(14), is(new PersonName("Brian", "O")));
-        assertThat(INCORRECT_ORDER, names.get(15), is(new PersonName("O", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(16), is(new PersonName("Coates", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(17), is(new PersonName("Coates", "O")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("Arthur Brian", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("Arthur", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("Brian", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("ArthurBrian", "OCoates")));
+        assertThat(INCORRECT_ORDER, names.get(6), is(new PersonName("OCoates", "ArthurBrian")));
+        assertThat(INCORRECT_ORDER, names.get(7), is(new PersonName("Arthur", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(8), is(new PersonName("Brian", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(9), is(new PersonName("O", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(10), is(new PersonName("Arthur", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(11), is(new PersonName("Arthur", "O")));
+        assertThat(INCORRECT_ORDER, names.get(12), is(new PersonName("Brian", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(13), is(new PersonName("O", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(14), is(new PersonName("Coates", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(15), is(new PersonName("Brian", "O")));
+        assertThat(INCORRECT_ORDER, names.get(16), is(new PersonName("O", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(17), is(new PersonName("Coates", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(18), is(new PersonName("Coates", "O")));
     }
 
     @Test
     public void shouldUseFirstFourAndLastThreeNamesIfOverSevenProvided() {
         List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
 
-        assertThat(candidateNames.size(), is(47));
+        assertThat(candidateNames.size(), is(71));
 
         candidateNames = candidateNames.stream().
                 filter(name -> !name.lastName().equals("F G H")).
                 collect(Collectors.toList());
 
-        assertThat(candidateNames.size(), is(42)); // Expect there to be 5 candidates of retained first names paired with the entire lastname "F G H"
+        assertThat(candidateNames.size(), is(66)); // Expect there to be 5 candidates of retained first names paired with the entire lastname "F G H"
 
         for (PersonName name : candidateNames) {
             assertThat(name.firstName().contains("E"), is(false));
@@ -216,33 +216,70 @@ public class NameMatchingCandidatesGeneratorTest {
     }
 
     @Test
-    public void shouldOnlyUseFirstSixFirstNamesWithMultipleWordLastName() {
+    public void shouldOnlyUseFiveOfSevenNameCandidate() {
         List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E F G", "Van Halen");
 
         List<PersonName> expectedCandidateNames = Arrays.asList(
-                new PersonName("A", "Van Halen"),
-                new PersonName("B", "Van Halen"),
-                new PersonName("C", "Van Halen"),
-                new PersonName("D", "Van Halen"),
-                new PersonName("E", "Van Halen"),
-                new PersonName("F", "Van Halen")
+                new PersonName("A", "Van"),
+                new PersonName("B", "Van"),
+                new PersonName("C", "Van"),
+                new PersonName("D", "Van"),
+                new PersonName("G", "Van"),
+                new PersonName("A", "Halen"),
+                new PersonName("B", "Halen"),
+                new PersonName("C", "Halen"),
+                new PersonName("D", "Halen"),
+                new PersonName("G", "Halen")
         );
 
         for (PersonName expectedCandidateName : expectedCandidateNames) {
             assertThat(candidateNames.contains(expectedCandidateName), is(true));
         }
 
-        assertThat(candidateNames.contains(new PersonName("G", "Van Halen")), is(false));
+        assertThat(candidateNames.contains(new PersonName("E", "Van")), is(false));
+        assertThat(candidateNames.contains(new PersonName("F", "Van")), is(false));
+        assertThat(candidateNames.contains(new PersonName("E", "Halen")), is(false));
+        assertThat(candidateNames.contains(new PersonName("F", "Halen")), is(false));
     }
 
     @Test
     public void shouldUseJoiningInBothNamesWithSuppliedNamesAsFirstAttempt() {
         List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
 
-        assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(46));
+        assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(53));
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Bob-Brian", "Hill O'Coates-Smith")));
 
         Assertions.assertThat(names).doesNotHaveDuplicates();
     }
+
+    @Test
+    public void shouldGenerateCorrectSurnameCombinationsForMultipleSurnames() {
+
+        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidatesForMultiWordLastName("A B C", "D E F");
+        assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(22));
+
+        assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("A B C", "D E F")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("A", "D E")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("A", "D F")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("A", "E D")));
+        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("A", "E F")));
+        assertThat(INCORRECT_ORDER, names.get(6), is(new PersonName("A", "F D")));
+        assertThat(INCORRECT_ORDER, names.get(7), is(new PersonName("A", "F E")));
+        assertThat(INCORRECT_ORDER, names.get(8), is(new PersonName("B", "D E F")));
+        assertThat(INCORRECT_ORDER, names.get(9), is(new PersonName("B", "D E")));
+        assertThat(INCORRECT_ORDER, names.get(10), is(new PersonName("B", "D F")));
+        assertThat(INCORRECT_ORDER, names.get(11), is(new PersonName("B", "E D")));
+        assertThat(INCORRECT_ORDER, names.get(12), is(new PersonName("B", "E F")));
+        assertThat(INCORRECT_ORDER, names.get(13), is(new PersonName("B", "F D")));
+        assertThat(INCORRECT_ORDER, names.get(14), is(new PersonName("B", "F E")));
+        assertThat(INCORRECT_ORDER, names.get(15), is(new PersonName("C", "D E F")));
+        assertThat(INCORRECT_ORDER, names.get(16), is(new PersonName("C", "D E")));
+        assertThat(INCORRECT_ORDER, names.get(17), is(new PersonName("C", "D F")));
+        assertThat(INCORRECT_ORDER, names.get(18), is(new PersonName("C", "E D")));
+        assertThat(INCORRECT_ORDER, names.get(19), is(new PersonName("C", "E F")));
+        assertThat(INCORRECT_ORDER, names.get(20), is(new PersonName("C", "F D")));
+        assertThat(INCORRECT_ORDER, names.get(21), is(new PersonName("C", "F E")));
+    }
+
 }
