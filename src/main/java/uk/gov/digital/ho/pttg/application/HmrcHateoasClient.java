@@ -104,10 +104,10 @@ public class HmrcHateoasClient {
             return emptyList();
         }
 
-        log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
+        log.info("Sending Self Assessment self employment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SelfEmploymentSelfAssessment> selfEmploymentsResource =
                 hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSelfEmploymentsResourceTypeRef);
-        log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        log.info("Self Assessment self employment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
         List<SelfEmploymentTaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 
@@ -134,10 +134,10 @@ public class HmrcHateoasClient {
             return emptyList();
         }
 
-        log.info("Sending Summary Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
+        log.info("Sending Self Assessment Summary request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
         Resource<SummarySelfAssessment> selfAssessmentSummaryResource =
                 hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSummaryResourceTypeRef);
-        log.info("Summary self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        log.info("Self Assessment summary response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
         List<SummaryTaxReturn> taxReturns = selfAssessmentSummaryResource.getContent().getSelfAssessment().getTaxReturns();
 

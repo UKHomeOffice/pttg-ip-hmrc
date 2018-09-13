@@ -24,6 +24,8 @@ import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturns;
+import uk.gov.digital.ho.pttg.dto.sasummary.SummarySelfAssessment;
+import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturns;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -201,7 +203,7 @@ public class HmrcHateoasClientTest {
     }
 
     @Test
-    public void shouldLogInfoBeforeSelfAssessmentRequestSent() {
+    public void shouldLogInfoBeforeSelfAssessmentSelfEmploymentRequestSent() {
         // given
         Resource<Object> saResource = new Resource<>(new SelfEmploymentSelfAssessment(new SelfEmploymentTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
@@ -215,13 +217,13 @@ public class HmrcHateoasClientTest {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Sending Self Assessment request to HMRC") &&
+            return loggingEvent.getFormattedMessage().equals("Sending Self Assessment self employment request to HMRC") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
         }));
     }
 
     @Test
-    public void shouldLogInfoAfterSelfAssessmentResponseReceived() {
+    public void shouldLogInfoAfterSelfAssessmentSelfEmploymentResponseReceived() {
         // given
         Resource<Object> saResource = new Resource<>(new SelfEmploymentSelfAssessment(new SelfEmploymentTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
@@ -235,7 +237,47 @@ public class HmrcHateoasClientTest {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Self Assessment response received from HMRC") &&
+            return loggingEvent.getFormattedMessage().equals("Self Assessment self employment response received from HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoBeforeSelfAssessmentSummaryRequestSent() {
+        // given
+        Resource<Object> saResource = new Resource<>(new SummarySelfAssessment(new SummaryTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
+
+        // when
+        client.getSelfAssessmentSummaryIncome("token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Sending Self Assessment Summary request to HMRC") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
+        }));
+    }
+
+    @Test
+    public void shouldLogInfoAfterSelfAssessmentSummaryResponseReceived() {
+        // given
+        Resource<Object> saResource = new Resource<>(new SummarySelfAssessment(new SummaryTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
+        given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
+
+        // when
+        client.getSelfAssessmentSummaryIncome("token", new Link("http://foo.com/bar"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Self Assessment summary response received from HMRC") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
         }));
     }
