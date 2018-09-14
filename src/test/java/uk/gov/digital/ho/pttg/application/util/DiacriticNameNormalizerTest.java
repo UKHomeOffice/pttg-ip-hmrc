@@ -125,47 +125,13 @@ public class DiacriticNameNormalizerTest {
     }
 
     @Test
-    public void shouldReturnEmptyNamesWhenNamesAreEmpty() {
-        // given
-        String firstName = "";
-        String lastName = "";
-        Individual individual = new Individual(firstName, lastName, TEST_NINO, TEST_DOB);
-
-        // when
-        Individual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
-
-        // then
-        assertThat(normalizedIndividual.getFirstName()).isEmpty();
-        assertThat(normalizedIndividual.getLastName()).isEmpty();
-
-        assertThat(normalizedIndividual.getNino()).isEqualTo(TEST_NINO);
-        assertThat(normalizedIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
-    }
-
-    @Test
-    public void shouldReturnNullNamesWhenNamesAreNull() {
-        // given
-        Individual individual = new Individual(null, null, TEST_NINO, TEST_DOB);
-
-        // when
-        Individual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
-
-        // then
-        assertThat(normalizedIndividual.getFirstName()).isNull();
-        assertThat(normalizedIndividual.getLastName()).isNull();
-
-        assertThat(normalizedIndividual.getNino()).isEqualTo(TEST_NINO);
-        assertThat(normalizedIndividual.getDateOfBirth()).isEqualTo(TEST_DOB);
-    }
-
-    @Test
     public void shouldCorrectlyMapAllExpectedUnicodeCharacters() throws Exception {
         for (UnicodeMapEntry entry : getExpectedUnicodeMapping()) {
             // given
             Character unicodeCharacter = entry.getKey();
             String expectedReplacement = entry.getValue();
 
-            Individual inputIndividual = new Individual(unicodeCharacter.toString(), "Test", TEST_NINO, TEST_DOB);
+            Individual inputIndividual = new Individual(unicodeCharacter.toString(), null, TEST_NINO, TEST_DOB);
 
             // when
             Individual outputIndividual = accentNameNormalizer.normalizeNames(inputIndividual);
