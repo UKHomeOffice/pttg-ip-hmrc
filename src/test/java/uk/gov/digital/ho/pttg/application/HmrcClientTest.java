@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -249,6 +250,7 @@ public class HmrcClientTest {
     }
 
     @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void shouldGetSummaryIfConfigNotSelfEmploymentOnly() {
         HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
         ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
@@ -265,6 +267,7 @@ public class HmrcClientTest {
     }
 
     @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void shouldGetSelfEmploymentIfConfigIsSelfEmploymentOnly() {
         HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
         ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", true);
