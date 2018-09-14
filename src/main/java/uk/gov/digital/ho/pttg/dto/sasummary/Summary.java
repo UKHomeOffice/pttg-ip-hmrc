@@ -1,14 +1,16 @@
-package uk.gov.digital.ho.pttg.dto;
+package uk.gov.digital.ho.pttg.dto.sasummary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @EqualsAndHashCode
-public class Submission {
-    private final String receivedDate;
+public class Summary {
+    private final BigDecimal totalIncome;
 }

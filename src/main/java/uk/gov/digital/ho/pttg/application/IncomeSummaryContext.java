@@ -2,16 +2,13 @@ package uk.gov.digital.ho.pttg.application;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
-import uk.gov.digital.ho.pttg.dto.AnnualSelfAssessmentTaxReturn;
-import uk.gov.digital.ho.pttg.dto.EmbeddedIndividual;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.util.List;
 
 @Accessors(fluent = true)
-@Getter
 public class IncomeSummaryContext {
 
     private Resource<String> matchResource;
@@ -20,9 +17,14 @@ public class IncomeSummaryContext {
     private Resource<String> employmentResource;
     private Resource<String> selfAssessmentResource;
 
+    @Getter
     private List<Income> payeIncome;
+    @Getter
     private List<Employment> employments;
-    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome;
+    @Getter
+    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome;
+    @Getter
+    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome;
 
 
     boolean needsMatchResource() {
@@ -53,8 +55,12 @@ public class IncomeSummaryContext {
         return employments == null;
     }
 
-    boolean needsSelfAssessmentIncome() {
-        return selfAssessmentIncome == null;
+    boolean needsSelfAssessmentSelfEmploymentIncome() {
+        return selfAssessmentSelfEmploymentIncome == null;
+    }
+
+    boolean needsSelfAssessmentSummaryIncome() {
+        return selfAssessmentSummaryIncome == null;
     }
 
     void setMatchResource(Resource<String> matchResource) {
@@ -85,9 +91,38 @@ public class IncomeSummaryContext {
         this.employments = employments;
     }
 
-    void setSelfAssessmentIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome) {
-        this.selfAssessmentIncome = selfAssessmentIncome;
+    void setSelfAssessmentSelfEmploymentIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome) {
+        this.selfAssessmentSelfEmploymentIncome = selfAssessmentSelfEmploymentIncome;
     }
+
+    void setSelfAssessmentSummaryIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome) {
+        this.selfAssessmentSummaryIncome = selfAssessmentSummaryIncome;
+    }
+
+    Individual getIndividual() {
+        return individualResource.getContent().getIndividual();
+    }
+
+    Link getMatchLink(String rel) {
+        return matchResource.getLink(rel);
+    }
+
+    Link getEmploymentLink(String rel) {
+        return employmentResource.getLink(rel);
+    }
+
+    Link getIndividualLink(String rel) {
+        return individualResource.getLink(rel);
+    }
+
+    Link getIncomeLink(String rel) {
+        return incomeResource.getLink(rel);
+    }
+
+    Link getSelfAssessmentLink(String rel) {
+        return selfAssessmentResource.getLink(rel);
+    }
+
 
 }
 
