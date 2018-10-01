@@ -133,7 +133,7 @@ class HMRCResourceHeadersIntSpec extends Specification {
     }
 
     String buildOauthResponse() {
-        return asJson(new AccessCode(ACCESS_ID, null))
+        return asJson(new AccessCode(ACCESS_ID, null, null))
     }
 
 

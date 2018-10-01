@@ -46,13 +46,13 @@ public class HmrcAccessCodeClientCacheTest {
      */
     @Test
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public void shouldNotRefreshAccessCodeWhileGeneratingNewAccessCode() throws JsonProcessingException, InterruptedException, ExecutionException {
+    public void shouldNotGetAccessCodeWhileLoadingNewAccessCode() throws JsonProcessingException, InterruptedException, ExecutionException {
         WireMockServer accessCodeServer1 = new WireMockServer(8181);
         WireMockServer accessCodeServer2 = new WireMockServer(8282);
 
-        AccessCode expiredAccessCode = new AccessCode("A", LocalDateTime.now().minusHours(1l));
-        AccessCode staleAccessCode = new AccessCode("B", LocalDateTime.MAX);
-        AccessCode validAccessCode = new AccessCode("C", LocalDateTime.MAX);
+        AccessCode expiredAccessCode = new AccessCode("A", LocalDateTime.now().minusHours(1l), LocalDateTime.MAX);
+        AccessCode staleAccessCode = new AccessCode("B", LocalDateTime.MAX, LocalDateTime.MAX);
+        AccessCode validAccessCode = new AccessCode("C", LocalDateTime.MAX, LocalDateTime.MAX);
 
         ObjectMapper objectMapper = initialiseObjectMapper();
         HmrcAccessCodeClient client = createClient(expiredAccessCode, objectMapper);
@@ -152,7 +152,7 @@ public class HmrcAccessCodeClientCacheTest {
                 e.printStackTrace();
                 return "error";
             }
-            client.refreshAccessCode();
+            client.loadLatestAccessCode();
             return "finished refresh access code";
         };
     }

@@ -61,7 +61,7 @@ public class IncomeSummaryService {
 
             if (context.getRetryCount() > 0) {
                 log.debug("Access Code refresh required");
-                accessCodeClient.refreshAccessCode();
+                accessCodeClient.loadLatestAccessCode();
             }
 
             log.debug("Request Income Summary from HMRC. Attempt number {} of {}", context.getRetryCount() + 1, hmrcApiFailureRetryAttempts);

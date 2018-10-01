@@ -611,7 +611,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     private String buildOauthResponse() throws JsonProcessingException {
-        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, LocalDateTime.MAX));
+        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, LocalDateTime.MAX, LocalDateTime.MAX));
     }
 
     private String buildMatchResponse() throws IOException {

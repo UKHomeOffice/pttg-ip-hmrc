@@ -60,13 +60,13 @@ public class HmrcAccessCodeClient {
     public String getAccessCode() {
 
         if (isAccessCodeStale()) {
-            refreshAccessCode();
+            loadLatestAccessCode();
         }
 
         return accessCode.get().getCode();
     }
 
-    public void refreshAccessCode() {
+    public void loadLatestAccessCode() {
         log.info("Refresh the cached Access Code");
         getAccessCodeWithRetries();
         log.info("Cached Access Code refreshed");
@@ -79,8 +79,13 @@ public class HmrcAccessCodeClient {
             return true;
         }
 
+        if (accessCode.get().needsRefreshing()) {
+            log.debug("The cached Access Code should have been refreshed");
+            return true;
+        }
+
         if (accessCode.get().hasExpired()) {
-            log.debug("The cached Access Code is stale");
+            log.debug("The cached Access Code has expired");
             return true;
         }
 
