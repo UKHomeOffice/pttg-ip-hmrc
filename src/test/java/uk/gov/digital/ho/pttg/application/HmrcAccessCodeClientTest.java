@@ -8,6 +8,7 @@ import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.HttpHostConnectException;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -317,6 +318,16 @@ public class HmrcAccessCodeClientTest {
         verify(mockRestTemplate).exchange(isA(URI.class), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class));
         assertThat(actualAccessCode).isEqualTo(newAccessCode.getCode());
         assertThat(actualAccessCode2).isEqualTo(newAccessCode.getCode());
+    }
+
+    @Test
+    public void shouldPerformBadAccessCodeRequest() {
+        ReflectionTestUtils.setField(accessCodeClient, "accessCode", Optional.of(new AccessCode("123", LocalDateTime.now(), LocalDateTime.now())));
+
+        accessCodeClient.reportBadAccessCode();
+
+        verify(mockRestTemplate).postForLocation(uriCaptor.capture(), any(HttpEntity.class));
+        assertThat(uriCaptor.getValue().getPath()).contains("123");
     }
 
     private ResourceAccessException connectionRefusedException(final String exceptionMessage) {

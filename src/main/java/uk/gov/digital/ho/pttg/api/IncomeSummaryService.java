@@ -61,6 +61,7 @@ public class IncomeSummaryService {
 
             if (context.getRetryCount() > 0) {
                 log.debug("Access Code refresh required");
+                accessCodeClient.reportBadAccessCode();
                 accessCodeClient.loadLatestAccessCode();
             }
 

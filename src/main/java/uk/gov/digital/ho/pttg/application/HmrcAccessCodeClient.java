@@ -11,6 +11,8 @@ import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriBuilderFactory;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
@@ -18,6 +20,7 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 import java.net.URI;
 import java.util.Optional;
 
+import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -31,8 +34,10 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_API_CALL_ATTEMPT;
 @Slf4j
 public class HmrcAccessCodeClient {
     private static final String ACCESS_ENDPOINT_PATH = "/access";
+    private static final String REPORT_ACCESS_ENDPOINT_PATH = "/access/{accessCode}/report";
 
     private final RestTemplate restTemplate;
+    private final String baseAccessCodeUrl;
     private final URI accessUri;
     private final RequestHeaderData requestHeaderData;
     private final RetryTemplate retryTemplate;
@@ -45,6 +50,7 @@ public class HmrcAccessCodeClient {
                                 @Value("${hmrc.access.service.retry.attempts}") int maxRetryAttempts,
                                 @Value("${hmrc.access.service.retry.delay}") long retryDelayInMillis) {
         this.restTemplate = restTemplate;
+        this.baseAccessCodeUrl = baseAccessCodeUrl;
         this.accessUri = URI.create(baseAccessCodeUrl).resolve(ACCESS_ENDPOINT_PATH);
         this.requestHeaderData = requestHeaderData;
 
@@ -70,6 +76,12 @@ public class HmrcAccessCodeClient {
         log.info("Refresh the cached Access Code");
         getAccessCodeWithRetries();
         log.info("Cached Access Code refreshed");
+    }
+
+    public void reportBadAccessCode() {
+        UriBuilderFactory factory = new DefaultUriBuilderFactory();
+        final URI reportUri = factory.expand(baseAccessCodeUrl + REPORT_ACCESS_ENDPOINT_PATH, singletonMap("accessCode", accessCode.get().getCode()));
+        restTemplate.postForLocation(reportUri, getHttpEntity());
     }
 
     private boolean isAccessCodeStale() {
