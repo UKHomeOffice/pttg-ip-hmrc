@@ -9,8 +9,6 @@ import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
@@ -22,13 +20,12 @@ import java.time.LocalDate;
 
 import static java.time.Month.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class HmrcResourceTest {
+public class HmrcResourceDeprecatedGetTest {
 
     private static final String NINO = "QQ123456C";
     private static final String LAST_NAME = "LastName";
@@ -42,46 +39,39 @@ public class HmrcResourceTest {
     @Mock private IncomeSummary mockIncomeSummary;
     @Mock private Appender<ILoggingEvent> mockAppender;
 
-    @Captor private ArgumentCaptor<Individual> captorIndividual;
-
     private HmrcResource hmrcResource;
 
     @Before
     public void setup() {
         hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils);
-        when(mockIncomeSummaryService.getIncomeSummary(eq(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH)), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
+        when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
         when(mockNinoUtils.sanitise(NINO)).thenReturn(NINO);
 
         Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcResource.class);
-        rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
+        rootLogger.setLevel(Level.INFO);
     }
 
     @Test
-    public void shouldUseCollaborators() {
+    public void shouldUseCollaboratorsForGetRequest() {
 
-        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
+        verify(mockIncomeSummaryService).getIncomeSummary(any(Individual.class), eq(FROM_DATE), eq(TO_DATE));
         verify(mockNinoUtils).sanitise(NINO);
-        verify(mockIncomeSummaryService).getIncomeSummary(captorIndividual.capture(), eq(FROM_DATE), eq(TO_DATE));
-
-        assertThat(captorIndividual.getValue().getFirstName()).isEqualTo(FIRST_NAME);
-        assertThat(captorIndividual.getValue().getLastName()).isEqualTo(LAST_NAME);
-        assertThat(captorIndividual.getValue().getNino()).isEqualTo(NINO);
-        assertThat(captorIndividual.getValue().getDateOfBirth()).isEqualTo(DATE_OF_BIRTH);
     }
 
     @Test
-    public void shouldProduceIncomeSummary() {
-        IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+    public void shouldProduceIncomeSummaryForGetRequest() {
+        IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
         assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
     }
 
     @Test
-    public void shouldLogWhenRequestReceived() {
+    public void shouldLogWhenRequestReceivedForGetRequest() {
 
-        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
@@ -92,9 +82,9 @@ public class HmrcResourceTest {
     }
 
     @Test
-    public void shouldLogResponseSuccess() {
+    public void shouldLogResponseSuccessForGetRequest() {
 
-        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        hmrcResource.getHmrcData(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE);
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
