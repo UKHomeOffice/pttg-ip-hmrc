@@ -16,7 +16,7 @@
         <!--This appender is used when logging may include a NINO - NINOs must not be logged in full-->
         <appender name="redactingAppender" class="ch.qos.logback.core.ConsoleAppender">
             <layout class="ch.qos.logback.classic.PatternLayout">
-                <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Z]{2}[0-9]{3})[0-9]{3}[A-D]','$1****'}</Pattern>
+                <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}</Pattern>
             </layout>
         </appender>
     </springProfile>
@@ -39,7 +39,7 @@
                 <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
                     <pattern>
                         {
-                        "message": "%replace(%msg){'([A-Z]{2}[0-9]{3})[0-9]{3}[A-D]','$1****'}"
+                        "message": "%replace(%msg){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}"
                         }
                     </pattern>
                 </provider>
