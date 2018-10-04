@@ -82,12 +82,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(unauthorisedException);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("HmrcUnauthorisedException: any message") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+        assertLoggedMessage("HmrcUnauthorisedException: any message", Level.ERROR, 1);
     }
 
     @Test
@@ -111,12 +106,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHttpClientErrorException);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("HttpClientErrorException: 418 any message") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
+        assertLoggedMessage("HttpClientErrorException: 418 any message", Level.ERROR, 2);
     }
 
     @Test
@@ -139,12 +129,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHttpServerErrorException);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("HttpServerErrorException: any message") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+        assertLoggedMessage("HttpServerErrorException: any message", Level.ERROR, 1);
     }
 
     @Test
@@ -165,12 +150,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Fault Detected:") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+        assertLoggedMessage("Fault Detected:", Level.ERROR, 1);
     }
 
     @Test
@@ -191,12 +171,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
+        assertLoggedMessage("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", Level.ERROR, 0);
     }
 
     @Test
@@ -218,12 +193,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHmrcNotFoundException);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("HmrcNotFoundException: any message") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+        assertLoggedMessage("HmrcNotFoundException: any message", Level.INFO, 1);
     }
 
     @Test
@@ -244,11 +214,16 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockRestClientException);
 
+        assertLoggedMessage("RestClientException:", Level.ERROR, 1);
+    }
+
+    private void assertLoggedMessage(String expectedMessage, Level expectedLogLevel, int expectedEventIndex) {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("RestClientException:") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+            return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
+                    loggingEvent.getLevel().equals(expectedLogLevel) &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[expectedEventIndex]).getFieldName().equals("event_id");
         }));
     }
 }
