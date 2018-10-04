@@ -4,7 +4,7 @@ Interfaces to the HMRC API for Income Proving
 Income Proving API
 =
 
-[![Build Status](https://drone.digital.homeoffice.gov.uk/api/badges/UKHomeOffice/pttg-ip-hmrc/status.svg)](https://drone.digital.homeoffice.gov.uk/UKHomeOffice/pttg-ip-hmrc)
+[![Build Status](https://drone.acp.homeoffice.gov.uk/api/badges/UKHomeOffice/pttg-ip-hmrc/status.svg)](https://drone.acp.homeoffice.gov.uk/UKHomeOffice/pttg-ip-hmrc)
 
 [![Docker Repository on Quay](https://quay.io/repository/ukhomeofficedigital/pttg-ip-hmrc/status "Docker Repository on Quay")](https://quay.io/repository/ukhomeofficedigital/pttg-ip-hmrc)
 

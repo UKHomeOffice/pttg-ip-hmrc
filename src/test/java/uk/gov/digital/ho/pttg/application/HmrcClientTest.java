@@ -1,19 +1,22 @@
 package uk.gov.digital.ho.pttg.application;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.dto.Address;
-import uk.gov.digital.ho.pttg.dto.Employer;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
+import org.springframework.hateoas.Link;
+import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
@@ -244,5 +247,39 @@ public class HmrcClientTest {
         client.addPaymentFrequency(incomes, p);
 
         assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(somePayFrequency);
+    }
+
+    @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void shouldGetSummaryIfConfigNotSelfEmploymentOnly() {
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
+        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
+        IncomeSummaryContext mockIncomeSummaryContext = mock(IncomeSummaryContext.class);
+        when(mockIncomeSummaryContext.needsSelfAssessmentSummaryIncome()).thenReturn(true);
+        when(mockIncomeSummaryContext.getSelfAssessmentLink(any(String.class))).thenReturn(mock(Link.class));
+
+        hmrcClient.getIncomeSummary("some access token", mock(Individual.class), LocalDate.now(), LocalDate.now(), mockIncomeSummaryContext);
+
+        verify(mockIncomeSummaryContext).needsSelfAssessmentSummaryIncome();
+        verify(mockHmrcHateoasClient).getSelfAssessmentSummaryIncome(anyString(), any(Link.class));
+        verify(mockHmrcHateoasClient, times(0)).getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
+
+    }
+
+    @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void shouldGetSelfEmploymentIfConfigIsSelfEmploymentOnly() {
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
+        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", true);
+        IncomeSummaryContext mockIncomeSummaryContext = mock(IncomeSummaryContext.class);
+        when(mockIncomeSummaryContext.needsSelfAssessmentSelfEmploymentIncome()).thenReturn(true);
+        when(mockIncomeSummaryContext.getSelfAssessmentLink(any(String.class))).thenReturn(mock(Link.class));
+
+        hmrcClient.getIncomeSummary("some access token", mock(Individual.class), LocalDate.now(), LocalDate.now(), mockIncomeSummaryContext);
+
+        verify(mockIncomeSummaryContext).needsSelfAssessmentSelfEmploymentIncome();
+        verify(mockHmrcHateoasClient).getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
+        verify(mockHmrcHateoasClient, times(0)).getSelfAssessmentSummaryIncome(anyString(), any(Link.class));
+
     }
 }

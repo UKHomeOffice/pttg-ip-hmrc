@@ -14,6 +14,12 @@ import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.sasummary.Summary;
+import uk.gov.digital.ho.pttg.dto.sasummary.SummarySelfAssessment;
+import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
+import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
+import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
+import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -48,7 +54,8 @@ public class HmrcHateoasClient {
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};
     private static final ParameterizedTypeReference<Resource<PayeIncome>> payeIncomesResourceTypeRef = new ParameterizedTypeReference<Resource<PayeIncome>>() {};
     private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {};
-    private static final ParameterizedTypeReference<Resource<SelfEmployments>> selfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfEmployments>>() {};
+    private static final ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>> saSelfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>>() {};
+    private static final ParameterizedTypeReference<Resource<SummarySelfAssessment>> saSummaryResourceTypeRef = new ParameterizedTypeReference<Resource<SummarySelfAssessment>>() {};
 
     private static final MonthDay END_OF_TAX_YEAR = MonthDay.of(4, 5);
     private static final String QUERY_PARAM_TO_DATE = "toDate";
@@ -91,31 +98,63 @@ public class HmrcHateoasClient {
         return employmentsResource.getContent().getEmployments();
     }
 
-    List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentIncome(String accessToken, Link link) {
+    List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSelfEmploymentIncome(String accessToken, Link link) {
 
         if (link == null) {
             return emptyList();
         }
 
-        log.info("Sending Self Assessment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
-        Resource<SelfEmployments> selfEmploymentsResource =
-                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, selfEmploymentsResourceTypeRef);
-        log.info("Self Assessment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        log.info("Sending Self Assessment self employment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
+        Resource<SelfEmploymentSelfAssessment> selfEmploymentsResource =
+                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSelfEmploymentsResourceTypeRef);
+        log.info("Self Assessment self employment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
 
-        List<TaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
+        List<SelfEmploymentTaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 
-        return groupSelfEmployments(taxReturns);
+        return groupSelfEmploymentIncomes(taxReturns);
     }
 
-    List<AnnualSelfAssessmentTaxReturn> groupSelfEmployments(List<TaxReturn> taxReturns) {
+    List<AnnualSelfAssessmentTaxReturn> groupSelfEmploymentIncomes(List<SelfEmploymentTaxReturn> taxReturns) {
 
         return taxReturns
                 .stream()
-                .map(tr -> new AnnualSelfAssessmentTaxReturn(tr.getTaxYear(),
-                        tr.getSelfEmployments()
+                .map(tr -> AnnualSelfAssessmentTaxReturn.builder()
+                        .taxYear(tr.getTaxYear())
+                        .selfEmploymentProfit(tr.getSelfEmployments()
                                 .stream()
                                 .map(SelfEmployment::getSelfEmploymentProfit)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add)))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSummaryIncome(String accessToken, Link link) {
+
+        if (link == null) {
+            return emptyList();
+        }
+
+        log.info("Sending Self Assessment Summary request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
+        Resource<SummarySelfAssessment> selfAssessmentSummaryResource =
+                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSummaryResourceTypeRef);
+        log.info("Self Assessment summary response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+
+        List<SummaryTaxReturn> taxReturns = selfAssessmentSummaryResource.getContent().getSelfAssessment().getTaxReturns();
+
+        return groupSummaries(taxReturns);
+    }
+
+    List<AnnualSelfAssessmentTaxReturn> groupSummaries(List<SummaryTaxReturn> taxReturns) {
+
+        return taxReturns
+                .stream()
+                .map(tr -> AnnualSelfAssessmentTaxReturn.builder()
+                        .taxYear(tr.getTaxYear())
+                        .summaryIncome(tr.getSummary()
+                                .stream()
+                                .map(Summary::getTotalIncome)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .build())
                 .collect(Collectors.toList());
     }
 

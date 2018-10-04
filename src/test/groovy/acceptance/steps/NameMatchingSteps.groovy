@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.github.tomakehurst.wiremock.verification.LoggedRequest
 import com.jayway.restassured.RestAssured
+import com.jayway.restassured.path.json.JsonPath
 import com.jayway.restassured.response.Response
 import cucumber.api.DataTable
 import cucumber.api.java.After
@@ -18,17 +19,22 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 import groovy.json.JsonOutput
 import net.serenitybdd.core.Serenity
 import org.apache.commons.io.IOUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.util.ReflectionTestUtils
 import uk.gov.digital.ho.pttg.ServiceRunner
+import uk.gov.digital.ho.pttg.application.HmrcClient
 import uk.gov.digital.ho.pttg.dto.Individual
 
 import java.nio.charset.Charset
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
@@ -46,7 +52,8 @@ import static org.junit.Assert.*
         properties = [
                 "pttg.audit.url=http://localhost:1111",
                 "base.hmrc.url=http://localhost:2222",
-                "base.hmrc.access.code.url=http://localhost:3333"
+                "base.hmrc.access.code.url=http://localhost:3333",
+                "hmrc.sa.self-employment-only=false"
         ])
 class NameMatchingSteps {
     private static final RESPONSE_SESSION_KEY = "IndividualMatchingResponse"
@@ -60,6 +67,9 @@ class NameMatchingSteps {
     private static final ACCESS_KEY_MOCK_SERVICE = new WireMockServer(options().port(3333))
 
     private static isSetup = false
+
+    @Autowired
+    private HmrcClient hmrcClient
 
     @LocalServerPort
     private int port
@@ -107,11 +117,32 @@ class NameMatchingSteps {
                 .collect { row -> row.toIndividual() }
 
         for (individual in individuals) {
-            def expectedJson = getIndividualMatchRequestExpectedJson(individual)
 
+            String firstname = individual.getFirstName()
+            String lastname = individual.getLastName()
+
+            // Check if lastname contains spaces
+            Pattern pattern = Pattern.compile("\\s");
+            Matcher matcher = pattern.matcher(lastname);
+            int extraCharacter = 0
+
+            // If surname contains spaces and the first part of the surname is shorter than 3 characters,
+            // add an extra character to the string that the mock will match
+            if (matcher.find() && lastname.split("\\s+")[0].length() < 3) {
+                extraCharacter = 1
+            }
+
+            // Get at least the first letter of the firstname and at least the first three letters of the lastname
+            int nameIndex = Math.min(1, (int) firstname.length())
+            int surnameIndex = Math.min(3 + extraCharacter, (int) lastname.length())
+
+            // Match json on NINO, DOB and with initials of name and surname only
             HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
                     .atPriority(1)
-                    .withRequestBody(equalToJson(expectedJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
+                    .withRequestBody(matchingJsonPath("\$.firstName", matching(firstname.substring(0, nameIndex) + ".*")))
+                    .withRequestBody(matchingJsonPath("\$.lastName", matching(lastname.substring(0, surnameIndex) + ".*")))
+                    .withRequestBody(matchingJsonPath("\$.nino"))
+                    .withRequestBody(matchingJsonPath("\$.dateOfBirth"))
                     .willReturn(aResponse().withBody(buildMatchResponse()).withStatus(HttpStatus.OK.value())
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         }
@@ -143,6 +174,16 @@ class NameMatchingSteps {
 
         def session = Serenity.getCurrentSession()
         session.put(RESPONSE_SESSION_KEY, response)
+    }
+
+    @When('^the service configuration is changed to self assessment summary$')
+    void setConfiguredToSelfAssessmentSummary() {
+        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", true)
+    }
+
+    @When('^the service configuration is changed to self assessment self employment only')
+    void setConfiguredToSelfAssessmentSelEmployedOnly() {
+        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false)
     }
 
     @Then('^the footprint will try the following combination of names in order$')
@@ -182,6 +223,28 @@ class NameMatchingSteps {
         Response response = session.get(RESPONSE_SESSION_KEY) as Response
 
         assertNotNull(response)
+        assertEquals(200, response.getStatusCode())
+    }
+
+    @And('^the self employment profit will be returned from the service$')
+    static void selfEmploymentProfitReturned() throws Throwable {
+        def session = Serenity.getCurrentSession()
+        Response response = session.get(RESPONSE_SESSION_KEY) as Response
+
+        assertNotNull(response)
+        JsonPath jsonPath = new JsonPath(response.asString())
+        assertEquals(10500, jsonPath.getInt("selfAssessment[1].selfEmploymentProfit"))
+        assertEquals(200, response.getStatusCode())
+    }
+
+    @And('^the summary income will be returned from the service$')
+    static void summaryIncomeReturned() throws Throwable {
+        def session = Serenity.getCurrentSession()
+        Response response = session.get(RESPONSE_SESSION_KEY) as Response
+
+        assertNotNull(response)
+        JsonPath jsonPath = new JsonPath(response.asString())
+        assertEquals(30000, jsonPath.getInt("selfAssessment[1].summaryIncome"))
         assertEquals(200, response.getStatusCode())
     }
 
@@ -254,7 +317,7 @@ class NameMatchingSteps {
                 .withBody(buildPayeIncomeResponse())
         ))
 
-        HMRC_MOCK_SERVICE.stubFor(get(urlMatching("/individuals/income/sa.*"))
+        HMRC_MOCK_SERVICE.stubFor(get(urlMatching("/individuals/income/sa\\?.*"))
                 .willReturn(aResponse()
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
@@ -266,6 +329,13 @@ class NameMatchingSteps {
                 .withStatus(200)
                 .withHeader("Content-Type", "application/json")
                 .withBody(buildSaSelfEmploymentResponse())
+        ))
+
+        HMRC_MOCK_SERVICE.stubFor(get(urlMatching("/individuals/income/sa/summary.*"))
+                .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(buildSaSummaryResponse())
         ))
     }
 
@@ -311,6 +381,11 @@ class NameMatchingSteps {
 
     private String buildSaSelfEmploymentResponse() throws IOException {
         return loadJsonFile("incomeSASelfEmploymentsResponse")
+                .replace('${matchId}', MATCH_ID)
+    }
+
+    private String buildSaSummaryResponse() throws IOException {
+        return loadJsonFile("incomeSASummaryResponse")
                 .replace('${matchId}', MATCH_ID)
     }
 }

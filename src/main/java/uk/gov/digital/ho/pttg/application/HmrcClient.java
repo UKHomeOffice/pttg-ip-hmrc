@@ -2,11 +2,9 @@ package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
-import uk.gov.digital.ho.pttg.dto.IncomeSummary;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.dto.*;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -30,7 +28,11 @@ public class HmrcClient {
     private static final String SELF_ASSESSMENT = "selfAssessment";
     private static final String PAYE_INCOME = "paye";
     private static final String PAYE_EMPLOYMENT = "paye";
-    private static final String SELF_EMPLOYMENTS = "selfEmployments";
+    private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
+    private static final String SA_SUMMARY = "summary";
+
+    @Value("${hmrc.sa.self-employment-only:false}")
+    private boolean selfEmploymentOnly;
 
 
     public HmrcClient(HmrcHateoasClient hateoasClient) {
@@ -47,11 +49,18 @@ public class HmrcClient {
 
         log.debug("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
 
+        List<AnnualSelfAssessmentTaxReturn> selfAssessmentIncome;
+        if (selfEmploymentOnly) {
+            selfAssessmentIncome = context.selfAssessmentSelfEmploymentIncome();
+        } else {
+            selfAssessmentIncome = context.selfAssessmentSummaryIncome();
+        }
+
         return new IncomeSummary(
                 context.payeIncome(),
-                context.selfAssessmentIncome(),
+                selfAssessmentIncome,
                 context.employments(),
-                context.individualResource().getContent().getIndividual());
+                context.getIndividual());
     }
 
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -64,25 +73,35 @@ public class HmrcClient {
 
         storePayeIncome(fromDate, toDate, accessToken, context);
         storeEmployments(fromDate, toDate, accessToken, context);
-        storeSelfAssessmentIncome(accessToken, context);
+        if (selfEmploymentOnly) {
+            storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
+        } else {
+            storeSelfAssessmentSummaryIncome(accessToken, context);
+        }
 
     }
 
     private void storeEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
         if (context.needsEmployments()) {
-            context.setEmployments(hateoasClient.getEmployments(fromDate, toDate, accessToken, context.employmentResource().getLink(PAYE_EMPLOYMENT)));
+            context.setEmployments(hateoasClient.getEmployments(fromDate, toDate, accessToken, context.getEmploymentLink(PAYE_EMPLOYMENT)));
         }
     }
 
     private void storePayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
         if (context.needsPayeIncome()) {
-            context.setPayeIncome(hateoasClient.getPayeIncome(fromDate, toDate, accessToken, context.incomeResource().getLink(PAYE_INCOME)));
+            context.setPayeIncome(hateoasClient.getPayeIncome(fromDate, toDate, accessToken, context.getIncomeLink(PAYE_INCOME)));
         }
     }
 
-    private void storeSelfAssessmentIncome(String accessToken, IncomeSummaryContext context) {
-        if (context.needsSelfAssessmentIncome()) {
-            context.setSelfAssessmentIncome(hateoasClient.getSelfAssessmentIncome(accessToken, context.selfAssessmentResource().getLink(SELF_EMPLOYMENTS)));
+    private void storeSelfAssessmentSelfEmploymentIncome(String accessToken, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentSelfEmploymentIncome()) {
+            context.setSelfAssessmentSelfEmploymentIncome(hateoasClient.getSelfAssessmentSelfEmploymentIncome(accessToken, context.getSelfAssessmentLink(SA_SELF_EMPLOYMENTS)));
+        }
+    }
+
+    private void storeSelfAssessmentSummaryIncome(String accessToken, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentSummaryIncome()) {
+            context.setSelfAssessmentSummaryIncome(hateoasClient.getSelfAssessmentSummaryIncome(accessToken, context.getSelfAssessmentLink(SA_SUMMARY)));
         }
     }
 
@@ -94,25 +113,25 @@ public class HmrcClient {
 
     private void storeIndividualResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsIndividualResource()) {
-            context.setIndividualResource(hateoasClient.getIndividualResource(accessToken, context.matchResource().getLink(INDIVIDUAL)));
+            context.setIndividualResource(hateoasClient.getIndividualResource(accessToken, context.getMatchLink(INDIVIDUAL)));
         }
     }
 
     private void storeIncomeResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsIncomeResource()) {
-            context.setIncomeResource(hateoasClient.getIncomeResource(accessToken, context.individualResource().getLink(INCOME)));
+            context.setIncomeResource(hateoasClient.getIncomeResource(accessToken, context.getIndividualLink(INCOME)));
         }
     }
 
     private void storeEmploymentResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsEmploymentResource()) {
-            context.setEmploymentResource(hateoasClient.getEmploymentResource(accessToken, context.individualResource().getLink(EMPLOYMENTS)));
+            context.setEmploymentResource(hateoasClient.getEmploymentResource(accessToken, context.getIndividualLink(EMPLOYMENTS)));
         }
     }
 
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentResource()) {
-            context.setSelfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromDate, toDate, context.incomeResource().getLink(SELF_ASSESSMENT)));
+            context.setSelfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromDate, toDate, context.getIncomeLink(SELF_ASSESSMENT)));
         }
     }
 
