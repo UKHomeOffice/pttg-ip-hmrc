@@ -65,7 +65,7 @@ public class HmrcAccessCodeClient {
 
     public String getAccessCode() {
 
-        if (isAccessCodeStale()) {
+        if (accecssCodeIsStale()) {
             loadLatestAccessCode();
         }
 
@@ -84,7 +84,7 @@ public class HmrcAccessCodeClient {
         restTemplate.postForLocation(reportUri, getHttpEntity());
     }
 
-    private boolean isAccessCodeStale() {
+    private boolean accecssCodeIsStale() {
 
         if (!accessCode.isPresent()) {
             log.debug("No cached Access Code available yet");
