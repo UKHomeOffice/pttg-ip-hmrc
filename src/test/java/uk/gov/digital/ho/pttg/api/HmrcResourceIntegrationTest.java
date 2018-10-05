@@ -428,6 +428,11 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
 
+        hmrcAccecssCodeMockService
+                .expect(requestTo(containsString("/access/" + ACCESS_ID + "/report")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
+
 
         buildAndExpectSuccessfulTraversal();
 
@@ -460,8 +465,8 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withUnauthorizedRequest());
 
-        auditMockService
-                .expect(requestTo(containsString("/audit")))
+        hmrcAccecssCodeMockService
+                .expect(requestTo(containsString("/access/" + ACCESS_ID + "/report")))
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
@@ -469,6 +474,11 @@ public class HmrcResourceIntegrationTest {
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
+
+        auditMockService
+                .expect(requestTo(containsString("/audit")))
+                .andExpect(method(POST))
+                .andRespond(withSuccess());
 
         hmrcApiMockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -611,7 +621,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     private String buildOauthResponse() throws JsonProcessingException {
-        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, LocalDateTime.MAX));
+        return mapper.writeValueAsString(new AccessCode(ACCESS_ID, LocalDateTime.MAX, LocalDateTime.MAX));
     }
 
     private String buildMatchResponse() throws IOException {

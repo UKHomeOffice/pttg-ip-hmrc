@@ -99,9 +99,13 @@ class NameMatchingSteps {
     }
 
     private static void setupAccessCodeStub() {
+        def NOW = LocalDateTime.now()
+        def expiryTime = ISO_LOCAL_DATE_TIME.format(NOW.plusHours(5))
+        def refreshTime = ISO_LOCAL_DATE_TIME.format(NOW.plusHours(5).minusMinutes(1))
         def accessCodeJsonResponse = JsonOutput.toJson([
                 code  : 'TestCode',
-                expiry: ISO_LOCAL_DATE_TIME.format(LocalDateTime.now().plusHours(5))
+                expiry: expiryTime,
+                refreshTime: refreshTime
         ])
         ACCESS_KEY_MOCK_SERVICE.stubFor(get(urlMatching("/access"))
                 .willReturn(aResponse()
