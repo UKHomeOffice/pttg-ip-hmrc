@@ -2,10 +2,7 @@ package uk.gov.digital.ho.pttg.api;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
 import uk.gov.digital.ho.pttg.dto.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
@@ -13,6 +10,7 @@ import uk.gov.digital.ho.pttg.dto.Individual;
 import java.time.LocalDate;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
@@ -27,7 +25,7 @@ public class HmrcResource {
         this.ninoUtils = ninoUtils;
     }
 
-    @RequestMapping(value = "/income", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/income", produces = APPLICATION_JSON_VALUE)
     public IncomeSummary getHmrcData(
             @RequestParam(value = "firstName") String firstName,
             @RequestParam(value = "lastName") String lastName,
@@ -36,16 +34,43 @@ public class HmrcResource {
             @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
-        log.info("Hmrc service invoked for nino {} with date range {} to {}", nino, fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
+        return produceIncomeSummary(
+                individual(
+                        firstName,
+                        lastName,
+                        nino,
+                        dob),
+                fromDate,
+                toDate);
+    }
 
-        String sanitisedNino = ninoUtils.sanitise(nino);
-        ninoUtils.validate(sanitisedNino);
+    @PostMapping(value="/income", produces = APPLICATION_JSON_VALUE)
+    public IncomeSummary getHmrcData(@RequestBody IncomeDataRequest incomeDataRequest) {
 
-        Individual individual = new Individual(firstName, lastName, sanitisedNino, dob);
+        return produceIncomeSummary(
+                individual(
+                        incomeDataRequest.firstName(),
+                        incomeDataRequest.lastName(),
+                        incomeDataRequest.nino(),
+                        incomeDataRequest.dateOfBirth()),
+                incomeDataRequest.fromDate(),
+                incomeDataRequest.toDate());
+    }
+
+    private IncomeSummary produceIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
+
+        log.info("Hmrc service invoked for nino {} with date range {} to {}", individual.getNino(), fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
+
         IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
 
         log.info("Income summary successfully retrieved from HMRC", value(EVENT, HMRC_SERVICE_RESPONSE_SUCCESS));
 
         return incomeSummary;
+    }
+
+    private Individual individual(String firstName, String lastName, String nino, LocalDate dob) {
+        String sanitisedNino = ninoUtils.sanitise(nino);
+        ninoUtils.validate(sanitisedNino);
+        return new Individual(firstName, lastName, sanitisedNino, dob);
     }
 }

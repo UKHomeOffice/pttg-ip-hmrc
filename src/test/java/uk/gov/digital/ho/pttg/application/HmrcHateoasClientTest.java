@@ -9,6 +9,7 @@ import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
@@ -64,6 +66,7 @@ public class HmrcHateoasClientTest {
         Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
+        when(mockNameNormalizer.normalizeNames(any(Individual.class))).thenReturn(individual);
     }
 
     @Test
@@ -374,4 +377,86 @@ public class HmrcHateoasClientTest {
         assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
         assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("7.00"));
         assertThat(saTaxReturns.get(1).getSummaryIncome()).isNull();
-    }}
+    }
+
+    @Test
+    public void shouldNotCallHmrcWithEmptyFirstName() {
+        String anyNino = "nino";
+        LocalDate anyDob = LocalDate.now();
+        NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        Individual individual = new Individual(".", "Jones Smith", anyNino, anyDob);
+        assertThat(nameNormalizer.normalizeNames(individual).getFirstName()).isEqualTo("");
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // Swallow exception that is not of interest to this test
+        }
+
+        ArgumentCaptor<HttpEntity<Individual>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(mockHmrcCallWrapper, atLeastOnce()).exchange(any(URI.class), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), any(ParameterizedTypeReference.class));
+
+        assertEmptyNameNotSentToHmrc(httpEntityArgumentCaptor.getAllValues());
+    }
+
+    @Test
+    public void shouldNotCallHmrcWithEmptyLastName() {
+        String anyNino = "nino";
+        LocalDate anyDob = LocalDate.now();
+        NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        Individual individual = new Individual("Bob John", ".", anyNino, anyDob);
+        assertThat(nameNormalizer.normalizeNames(individual).getLastName()).isEqualTo("");
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // Swallow exception that is not of interest to this test
+        }
+
+        ArgumentCaptor<HttpEntity<Individual>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(mockHmrcCallWrapper, atLeastOnce()).exchange(any(URI.class), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), any(ParameterizedTypeReference.class));
+
+        assertEmptyNameNotSentToHmrc(httpEntityArgumentCaptor.getAllValues());
+    }
+
+    @Test
+    public void shouldLogSkippedCallToHmrcDueToEmptyName() {
+        String anyNino = "nino";
+        LocalDate anyDob = LocalDate.now();
+        NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, "http://something.com/anyurl");
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        Individual individual = new Individual("Bob John", ".", anyNino, anyDob);
+        assertThat(nameNormalizer.normalizeNames(individual).getLastName()).isEqualTo("");
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // Swallow exception that is not of interest to this test
+        }
+
+        verify(mockAppender, atLeastOnce()).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Skipped HMRC call due to Invalid Identity: Normalized name contains a blank name") &&
+                    loggingEvent.getLevel().equals(Level.INFO) &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+        }));
+    }
+
+    private void assertEmptyNameNotSentToHmrc(List<HttpEntity<Individual>> capturedRequestEntities) {
+        assertThat(capturedRequestEntities.stream()
+                .noneMatch(httpEntity -> httpEntity.getBody().getFirstName().equals("")))
+                .isTrue();
+        assertThat(capturedRequestEntities.stream()
+                .noneMatch(httpEntity -> httpEntity.getBody().getLastName().equals("")))
+                .isTrue();
+    }
+}
