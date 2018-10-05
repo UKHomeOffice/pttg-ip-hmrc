@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
@@ -217,8 +218,10 @@ public class HmrcHateoasClient {
                 return matchedIndividual;
 
             } catch (ApplicationExceptions.HmrcNotFoundException ex) {
-                    log.info("Failed to match individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
-                    retries++;
+                log.info("Failed to match individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
+                retries++;
+            } catch (ApplicationExceptions.InvalidIdentityException e) {
+                retries++;
             }
         }
 
@@ -230,6 +233,9 @@ public class HmrcHateoasClient {
 
         Individual individualToMatch = new Individual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
+        if (StringUtils.isBlank(normalizedIndividual.getFirstName()) || StringUtils.isBlank(normalizedIndividual.getLastName())) {
+            throw new ApplicationExceptions.InvalidIdentityException("Normalized name contains a blank name.");
+        }
 
         return hmrcCallWrapper.exchange(
                 URI.create(matchUrl),
