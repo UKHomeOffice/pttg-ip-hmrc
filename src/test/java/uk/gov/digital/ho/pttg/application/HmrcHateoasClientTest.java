@@ -6,7 +6,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
-import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,14 +18,10 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
-import uk.gov.digital.ho.pttg.application.namematching.PersonName;
-import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
@@ -423,6 +418,7 @@ public class HmrcHateoasClientTest {
         } catch (ApplicationExceptions.HmrcNotFoundException e) {
             // Swallow exception that is not of interest to this test
         }
+
         ArgumentCaptor<HttpEntity<Individual>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(mockHmrcCallWrapper, atLeastOnce()).exchange(any(URI.class), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), any(ParameterizedTypeReference.class));
 
@@ -445,6 +441,7 @@ public class HmrcHateoasClientTest {
         } catch (ApplicationExceptions.HmrcNotFoundException e) {
             // Swallow exception that is not of interest to this test
         }
+
         verify(mockAppender, atLeastOnce()).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
