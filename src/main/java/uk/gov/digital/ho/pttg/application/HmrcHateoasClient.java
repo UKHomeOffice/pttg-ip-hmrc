@@ -221,6 +221,7 @@ public class HmrcHateoasClient {
                 log.info("Failed to match individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
                 retries++;
             } catch (ApplicationExceptions.InvalidIdentityException e) {
+                log.info("Skipped HMRC call due to Invalid Identity: {}", e.getMessage(), value(EVENT, HMRC_MATCHING_ATTEMPT_SKIPPED));
                 retries++;
             }
         }
@@ -233,15 +234,19 @@ public class HmrcHateoasClient {
 
         Individual individualToMatch = new Individual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
-        if (StringUtils.isBlank(normalizedIndividual.getFirstName()) || StringUtils.isBlank(normalizedIndividual.getLastName())) {
-            throw new ApplicationExceptions.InvalidIdentityException("Normalized name contains a blank name.");
-        }
+        checkForEmptyNormalizedName(normalizedIndividual);
 
         return hmrcCallWrapper.exchange(
                 URI.create(matchUrl),
                 HttpMethod.POST,
                 createEntity(normalizedIndividual, accessToken),
                 linksResourceTypeRef).getBody();
+    }
+
+    private void checkForEmptyNormalizedName(Individual normalizedIndividual) {
+        if (StringUtils.isBlank(normalizedIndividual.getFirstName()) || StringUtils.isBlank(normalizedIndividual.getLastName())) {
+            throw new ApplicationExceptions.InvalidIdentityException("Normalized name contains a blank name");
+        }
     }
 
     Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
