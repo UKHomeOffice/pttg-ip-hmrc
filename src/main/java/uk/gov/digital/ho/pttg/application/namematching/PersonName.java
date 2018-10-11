@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.tuple.Pair;
 
 @AllArgsConstructor
 @Getter
@@ -14,4 +15,8 @@ import lombok.experimental.Accessors;
 public class PersonName {
     private String firstName;
     private String lastName;
+
+    Pair<String, String> pair() {
+        return Pair.of(firstName, lastName);
+    }
 }

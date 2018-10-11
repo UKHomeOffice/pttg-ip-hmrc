@@ -9,7 +9,8 @@ import java.util.stream.Collectors;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.splitIntoDistinctNames;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.splitTwoIntoDistinctNames;
 
 public class NameMatchingCandidatesService {
     private static final String NAME_SPLITTERS = "-'";
@@ -55,7 +56,7 @@ public class NameMatchingCandidatesService {
     }
 
     private static List<PersonName> generateCandidates(String firstName, String lastName) {
-        List<String> fullListOfNames = splitIntoDistinctNames(firstName, lastName);
+        List<String> fullListOfNames = splitTwoIntoDistinctNames(firstName, lastName);
         List<String> namesToUse = removeAdditionalNamesIfOverMax(fullListOfNames);
 
         int numberOfNames = namesToUse.size();
@@ -72,7 +73,7 @@ public class NameMatchingCandidatesService {
             return candidates;
         }
 
-        List<String> fullListOfNames = splitIntoDistinctNames(firstName, lastName);
+        List<String> fullListOfNames = splitTwoIntoDistinctNames(firstName, lastName);
         List<String> allowedNames = removeAdditionalNamesIfOverMax(fullListOfNames);
 
         List<String> nonSanitisedFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
@@ -152,22 +153,4 @@ public class NameMatchingCandidatesService {
         return newArrayList(concat(firstFourNames, lastThreeNames));
     }
 
-    private static List<String> splitIntoDistinctNames(String firstName, String lastName) {
-        List<String> names = new ArrayList<>();
-
-        names.addAll(splitIntoDistinctNames(firstName));
-        names.addAll(splitIntoDistinctNames(lastName));
-
-        return Collections.unmodifiableList(names);
-    }
-
-    private static List<String> splitIntoDistinctNames(String name) {
-        if (isBlank(name)) {
-            return Collections.emptyList();
-        }
-
-        String[] splitNames = name.trim().split("\\s+");
-
-        return Arrays.asList(splitNames);
-    }
 }
