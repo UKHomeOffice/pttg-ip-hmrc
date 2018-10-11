@@ -13,19 +13,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @RunWith(MockitoJUnitRunner.class)
-public class NameMatchingCandidatesGeneratorTest {
+public class NameMatchingCandidatesServiceTest {
 
     private static final String INCORRECT_ORDER = "The names should be correctly generated in the defined order";
     private static final String INCORRECT_NUMBER_OF_GENERATED_NAMES = "The number of generated names should be as expected";
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldErrorIfNoName() {
-        NameMatchingCandidatesGenerator.generateCandidateNames("", "");
+        NameMatchingCandidatesService.generateCandidateNames("", "");
     }
 
     @Test
     public void shouldDuplicateSingleFirstName() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Mono", "");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Mono", "");
 
         assertThat("There should be a single name", names.size(), is(1));
         assertThat("The first name should be duplicated", names.get(0), is(new PersonName("Mono", "Mono")));
@@ -33,7 +33,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldDuplicateSingleLastName() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("", "Mono");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("", "Mono");
 
         assertThat("There should be a single name", names.size(), is(1));
         assertThat("The last name should be duplicated", names.get(0), is(new PersonName("Mono", "Mono")));
@@ -41,7 +41,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldSwitchSingleFirstAndLastName() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "Bobbins");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur", "Bobbins");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(2));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "Bobbins")));
@@ -50,7 +50,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldTryAllCombinationsOfTwoFirstNames() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur Brian", "Coates");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur Brian", "Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "Coates")));
@@ -63,7 +63,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldTryAllCombinationsOfThreeFirstNames() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur Brian Chris", "Doom");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur Brian Chris", "Doom");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(12));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "Doom")));
@@ -82,7 +82,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldTryAllCombinationsOfFourFirstNames() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur Brian Chris Daniel", "Eccles");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur Brian Chris Daniel", "Eccles");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(20));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "Eccles")));
@@ -109,7 +109,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleExtraWhitespace() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames(" Arthur   Brian   ", " Coates ");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames(" Arthur   Brian   ", " Coates ");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "Coates")));
@@ -122,7 +122,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleMultipleLastNames() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "Brian Coates");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur", "Brian Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(7));
         assertThat("The lastname is used unsplit for the first permutation", names.get(0), is(new PersonName("Arthur", "Brian Coates")));
@@ -137,7 +137,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleHyphenatedNames() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur-Brian", "Coates");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(10));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur-Brian", "Coates")));
@@ -154,7 +154,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleApostrophedNames() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur", "O'Bobbins");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur", "O'Bobbins");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(11));
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "O'Bobbins")));
@@ -172,7 +172,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldHandleHyphensAndApostrophes() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Arthur-Brian", "O'Coates");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "O'Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(19));
 
@@ -199,7 +199,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldUseFirstFourAndLastThreeNamesIfOverSevenProvided() {
-        List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
+        List<PersonName> candidateNames = NameMatchingCandidatesService.generateCandidateNames("A B C D E", "F G H");
 
         assertThat(candidateNames.size(), is(71));
 
@@ -217,7 +217,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldOnlyUseFiveOfSevenNameCandidate() {
-        List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E F G", "Van Halen");
+        List<PersonName> candidateNames = NameMatchingCandidatesService.generateCandidateNames("A B C D E F G", "Van Halen");
 
         List<PersonName> expectedCandidateNames = Arrays.asList(
                 new PersonName("A", "Van"),
@@ -244,7 +244,7 @@ public class NameMatchingCandidatesGeneratorTest {
 
     @Test
     public void shouldUseJoiningInBothNamesWithSuppliedNamesAsFirstAttempt() {
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(53));
 
@@ -256,7 +256,7 @@ public class NameMatchingCandidatesGeneratorTest {
     @Test
     public void shouldGenerateCorrectSurnameCombinationsForMultipleSurnames() {
 
-        List<PersonName> names = NameMatchingCandidatesGenerator.generateCandidatesForMultiWordLastName("A B C", "D E F");
+        List<PersonName> names = NameMatchingCandidatesService.generateCandidatesForMultiWordLastName("A B C", "D E F");
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(22));
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("A B C", "D E F")));

@@ -39,7 +39,7 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGenerator.generateCandidateNames;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService.generateCandidateNames;
 
 @Service
 @Slf4j

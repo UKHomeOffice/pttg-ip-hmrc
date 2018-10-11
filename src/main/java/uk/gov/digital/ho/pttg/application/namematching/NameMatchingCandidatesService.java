@@ -11,7 +11,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class NameMatchingCandidatesGenerator {
+public class NameMatchingCandidatesService {
     private static final String NAME_SPLITTERS = "-'";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
     private static final Integer MAX_NAMES = 7;
