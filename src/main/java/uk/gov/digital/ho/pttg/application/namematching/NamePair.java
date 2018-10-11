@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import java.util.List;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-class NamePair {
+public class NamePair {
     private final int firstNameIndex;
     private final int lastNameIndex;
 
@@ -14,7 +14,7 @@ class NamePair {
         return new NamePair(firstNameIndex, lastNameIndex);
     }
 
-    PersonName calculateName(List<String> names) {
+    public PersonName calculateName(List<String> names) {
         if (firstNameIndex > names.size() - 1) {
             throw new IllegalArgumentException(String.format("Cannot retrieve name in position %d from names %s", firstNameIndex, names.toString()));
         }

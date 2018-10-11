@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class NameMatchingFunctions {
@@ -27,5 +29,21 @@ public class NameMatchingFunctions {
 
         return Collections.unmodifiableList(names);
     }
+
+    public static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {
+        final int MAX_NAMES = 7;
+
+        int numberOfNames = incomingNames.size();
+
+        if (numberOfNames <= MAX_NAMES) {
+            return incomingNames;
+        }
+
+        List<String> firstFourNames = incomingNames.subList(0, 4);
+        List<String> lastThreeNames = incomingNames.subList(numberOfNames - 3, numberOfNames);
+
+        return newArrayList(concat(firstFourNames, lastThreeNames));
+    }
+
 
 }

@@ -6,11 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.splitIntoDistinctNames;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.splitTwoIntoDistinctNames;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.*;
 
 public class NameMatchingCandidatesService {
     private static final String NAME_SPLITTERS = "-'";
@@ -138,19 +135,6 @@ public class NameMatchingCandidatesService {
 
     private static boolean multiPart(String lastName) {
         return lastName.trim().matches(".*\\s+.*");
-    }
-
-    private static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {
-        int numberOfNames = incomingNames.size();
-
-        if (numberOfNames <= MAX_NAMES) {
-            return incomingNames;
-        }
-
-        List<String> firstFourNames = incomingNames.subList(0, 4);
-        List<String> lastThreeNames = incomingNames.subList(numberOfNames - 3, numberOfNames);
-
-        return newArrayList(concat(firstFourNames, lastThreeNames));
     }
 
 }
