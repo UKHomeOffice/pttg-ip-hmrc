@@ -24,9 +24,4 @@ public class NameCombinations implements NameMatchingCandidateGenerator {
                 .map(namePairRule -> namePairRule.calculateName(namesToUse))
                 .collect(toList());
     }
-
-    @Override
-    public boolean appliesTo(String firstName, String lastName) {
-        return true;
-    }
 }

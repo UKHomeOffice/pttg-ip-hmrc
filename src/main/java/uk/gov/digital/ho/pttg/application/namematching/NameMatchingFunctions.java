@@ -10,6 +10,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class NameMatchingFunctions {
+
     public static List<String> splitIntoDistinctNames(String name) {
         if (isBlank(name)) {
             return Collections.emptyList();
@@ -19,7 +20,6 @@ public class NameMatchingFunctions {
 
         return Arrays.asList(splitNames);
     }
-
 
     public static List<String> splitTwoIntoDistinctNames(String firstName, String lastName) {
         List<String> names = new ArrayList<>();

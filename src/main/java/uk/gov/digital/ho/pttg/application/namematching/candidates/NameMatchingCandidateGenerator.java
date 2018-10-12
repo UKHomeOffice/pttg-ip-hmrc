@@ -7,5 +7,5 @@ import java.util.List;
 public interface NameMatchingCandidateGenerator {
 
     List<PersonName> generateCandidates(String firstName, String lastName);
-    boolean appliesTo(String firstName, String lastName);
+
 }

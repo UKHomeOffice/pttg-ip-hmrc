@@ -9,9 +9,4 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     public List<PersonName> generateCandidates(String firstName, String lastName) {
         return null;
     }
-
-    @Override
-    public boolean appliesTo(String firstName, String lastName) {
-        return false;
-    }
 }
