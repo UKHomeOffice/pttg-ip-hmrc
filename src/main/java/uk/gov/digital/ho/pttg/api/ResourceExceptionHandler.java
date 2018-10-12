@@ -48,7 +48,6 @@ class ResourceExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
-
     @ExceptionHandler
     ResponseEntity handle(Exception e) {
         log.error("Fault Detected:", e, value(EVENT, HMRC_SERVICE_RESPONSE_ERROR));
