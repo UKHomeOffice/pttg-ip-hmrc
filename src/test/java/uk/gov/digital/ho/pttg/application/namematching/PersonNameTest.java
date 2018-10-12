@@ -37,4 +37,11 @@ public class PersonNameTest {
         PersonName expected = new PersonName("a", "cde");
         assertThat(inputName.hmrcNameMatchingEquivalent()).isEqualTo(expected);
     }
+
+    @Test
+    public void hmrcEquivalentSurnameShouldUseFirstThreeSignificantSurnameCharacters() {
+        PersonName inputName = new PersonName("a", "cd efg");
+        PersonName expected = new PersonName("a", "cd e");
+        assertThat(inputName.hmrcNameMatchingEquivalent()).isEqualTo(expected);
+    }
 }
