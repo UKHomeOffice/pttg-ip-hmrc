@@ -664,11 +664,6 @@ public class HmrcResourceIntegrationTest {
                 .replace("${matchId}", MATCH_ID);
     }
 
-    private String buildEmptySaResponse() throws IOException {
-        return loadJsonFile("incomeSAResponseEmpty")
-                .replace("${matchId}", MATCH_ID);
-    }
-
     private String buildSaSelfEmploymentResponse() throws IOException {
         return loadJsonFile("incomeSASelfEmploymentsResponse")
                 .replace("${matchId}", MATCH_ID);
