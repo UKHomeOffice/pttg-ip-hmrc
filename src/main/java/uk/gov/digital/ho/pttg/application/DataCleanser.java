@@ -33,7 +33,7 @@ public class DataCleanser {
             int numberToRemove = incomes.size() - incomeZerosRemoved.size();
 
             if (numberToRemove > 0) {
-                log.error("Removing {} incomes (<= 0) from HMRC income response", numberToRemove);
+                log.info("Removing {} incomes (<= 0) from HMRC income response", numberToRemove);
             }
         }
 
