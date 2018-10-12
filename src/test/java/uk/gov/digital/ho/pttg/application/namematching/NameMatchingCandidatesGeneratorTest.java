@@ -203,16 +203,20 @@ public class NameMatchingCandidatesGeneratorTest {
     }
 
     @Test
-    public void shouldUseFirstFourAndLastThreeNamesIfOverSevenProvided() {
+    public void shouldUseEntireMultiWordSurname() {
         List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
-
+        assertThat(INCORRECT_ORDER, candidateNames.get(0), equalTo(new PersonName("A B C D", "F G H")));
         assertThat(candidateNames, hasItems(
-                new PersonName("A B C D", "F G H"),
                 new PersonName("B", "F G H"),
                 new PersonName("C", "F G H"),
                 new PersonName("D", "F G H")
         ));
         assertThat(DEDUPLICATION, candidateNames, not(hasItem(new PersonName("A", "F G H"))));
+    }
+
+    @Test
+    public void shouldUseFirstFourAndLastThreeNamesIfOverSevenProvided() {
+        List<PersonName> candidateNames = NameMatchingCandidatesGenerator.generateCandidateNames("A B C D E", "F G H");
 
         assertThat(candidateNames.stream().noneMatch(candidateName -> candidateName.firstName().equals("E")), is(true));
         assertThat(candidateNames.stream().noneMatch(candidateName -> candidateName.lastName().equals("E")), is(true));
