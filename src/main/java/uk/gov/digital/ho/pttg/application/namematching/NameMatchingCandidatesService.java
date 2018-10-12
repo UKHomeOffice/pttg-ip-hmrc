@@ -2,6 +2,8 @@ package uk.gov.digital.ho.pttg.application.namematching;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -9,18 +11,25 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.*;
 
+@Service
 public class NameMatchingCandidatesService {
     private static final String NAME_SPLITTERS = "-'";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
     private static final Integer MAX_NAMES = 7;
     private static final Integer HMRC_SURNAME_LENGTH = 3;
 
-    public static List<PersonName> generateCandidateNames(String firstName, String lastName) {
+    private NameCombinations nameCombinations;
+
+    public NameMatchingCandidatesService(NameCombinations nameCombinations) {
+        this.nameCombinations = nameCombinations;
+    }
+
+    public List<PersonName> generateCandidateNames(String firstName, String lastName) {
 
         List<PersonName> candidates = new ArrayList<>();
 
         candidates.addAll(generateCandidatesForMultiWordLastName(firstName, lastName));
-        candidates.addAll(generateCandidates(firstName, lastName));
+        candidates.addAll(nameCombinations.generateCandidates(firstName, lastName));
 
         if (namesContainSplitters(firstName, lastName)) {
             candidates.addAll(generateCandidatesWithSplitters(firstName, lastName));
@@ -33,13 +42,13 @@ public class NameMatchingCandidatesService {
         return StringUtils.containsAny(firstName, NAME_SPLITTERS) || StringUtils.containsAny(lastName, NAME_SPLITTERS);
     }
 
-    private static List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
+    private List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
         Set<PersonName> candidateNames = new LinkedHashSet<>();
 
         candidateNames.addAll(generateCandidatesForMultiWordLastName(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
         candidateNames.addAll(generateCandidatesForMultiWordLastName(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
-        candidateNames.addAll(generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
-        candidateNames.addAll(generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
+        candidateNames.addAll(nameCombinations.generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
+        candidateNames.addAll(nameCombinations.generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
 
         return Lists.newArrayList(candidateNames);
     }
@@ -52,18 +61,7 @@ public class NameMatchingCandidatesService {
         return name.replaceAll(NAME_SPLITTER_REGEX, " ");
     }
 
-    private static List<PersonName> generateCandidates(String firstName, String lastName) {
-        List<String> fullListOfNames = splitTwoIntoDistinctNames(firstName, lastName);
-        List<String> namesToUse = removeAdditionalNamesIfOverMax(fullListOfNames);
-
-        int numberOfNames = namesToUse.size();
-        return NamePairRules.forNameCount(numberOfNames)
-                .stream()
-                .map(namePairRule -> namePairRule.calculateName(namesToUse))
-                .collect(toList());
-    }
-
-    public static List<PersonName> generateCandidatesForMultiWordLastName(String firstName, String lastName) {
+    static List<PersonName> generateCandidatesForMultiWordLastName(String firstName, String lastName) {
         List<PersonName> candidates = new ArrayList<>();
 
         if (!multiPart(lastName)) {

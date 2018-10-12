@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
 import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -39,7 +40,6 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService.generateCandidateNames;
 
 @Service
 @Slf4j
@@ -50,6 +50,7 @@ public class HmrcHateoasClient {
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
     private final HmrcCallWrapper hmrcCallWrapper;
+    private NameMatchingCandidatesService nameMatchingCandidatesService;
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {};
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};
@@ -70,11 +71,13 @@ public class HmrcHateoasClient {
             RequestHeaderData requestHeaderData,
             NameNormalizer nameNormalizer,
             HmrcCallWrapper hmrcCallWrapper,
+            NameMatchingCandidatesService nameMatchingCandidatesService,
             @Value("${hmrc.endpoint}") String hmrcUrl
             ) {
         this.requestHeaderData = requestHeaderData;
         this.nameNormalizer = nameNormalizer;
         this.hmrcCallWrapper = hmrcCallWrapper;
+        this.nameMatchingCandidatesService = nameMatchingCandidatesService;
         this.hmrcUrl = hmrcUrl;
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
@@ -205,7 +208,7 @@ public class HmrcHateoasClient {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
-        List<PersonName> candidateNames = generateCandidateNames(individual.getFirstName(), individual.getLastName());
+        List<PersonName> candidateNames =   nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName());
 
         int retries = 0;
 
