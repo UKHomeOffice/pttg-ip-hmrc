@@ -18,28 +18,22 @@ public class PersonName {
 
     PersonName hmrcNameMatchingEquivalent() {
         String firstInitial = firstNLetters(1, this.firstName);
-        String surnameFirstThreeSignificantCharacters = firstNLetters(3, this.lastName);
-        return new PersonName(firstInitial, surnameFirstThreeSignificantCharacters);
+        String surnameStart = firstNLetters(3, this.lastName);
+        return new PersonName(firstInitial, surnameStart);
     }
 
     private String firstNLetters(int n, String name) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            stringBuilder.append(name, i, i + 1);
-            if (countSignificantCharacters(stringBuilder.toString()) >= n) {
+        int endIndex = 0;
+        int significantCharacters = 0;
+        for (char letter : name.toCharArray()) {
+            endIndex++;
+            if (!StringUtils.isWhitespace(String.valueOf(letter))) {
+                significantCharacters++;
+            }
+            if (significantCharacters == n) {
                 break;
             }
         }
-        return stringBuilder.toString();
-    }
-
-    private long countSignificantCharacters(String name) {
-        int total = 0;
-        for (char character : name.toCharArray()) {
-            if (!StringUtils.isWhitespace(String.valueOf(character))) {
-                total++;
-            }
-        }
-        return total;
+        return name.substring(0, endIndex);
     }
 }
