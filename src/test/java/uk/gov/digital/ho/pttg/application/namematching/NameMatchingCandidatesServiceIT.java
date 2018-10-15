@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,7 +21,8 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest(classes = {
         NameMatchingCandidatesService.class,
         NameCombinations.class,
-        MultipleLastNames.class
+        MultipleLastNames.class,
+        SpecialCharacters.class
 })
 public class NameMatchingCandidatesServiceIT {
 
