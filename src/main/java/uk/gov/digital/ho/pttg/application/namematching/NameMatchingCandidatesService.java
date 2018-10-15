@@ -12,7 +12,6 @@ import java.util.*;
 public class NameMatchingCandidatesService {
     private static final String NAME_SPLITTERS = "-'";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
-    private static final Integer MAX_NAMES = 7;
 
     private NameCombinations nameCombinations;
     private MultipleLastNames multipleLastNames;

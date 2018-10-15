@@ -1,12 +1,13 @@
-package uk.gov.digital.ho.pttg.application.namematching;
+package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 
 import java.util.List;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class NamePair {
+class NamePair {
     private final int firstNameIndex;
     private final int lastNameIndex;
 
@@ -14,7 +15,7 @@ public class NamePair {
         return new NamePair(firstNameIndex, lastNameIndex);
     }
 
-    public PersonName calculateName(List<String> names) {
+    PersonName calculateName(List<String> names) {
         if (firstNameIndex > names.size() - 1) {
             throw new IllegalArgumentException(String.format("Cannot retrieve name in position %d from names %s", firstNameIndex, names.toString()));
         }
