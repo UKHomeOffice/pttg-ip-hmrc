@@ -62,7 +62,7 @@ public enum NamePairRules {
         this.namePairs = namePairs;
     }
 
-    public static List<NamePair> forNameCount(int nameCount) {
+    static List<NamePair> forNameCount(int nameCount) {
         validateNameCount(nameCount);
 
         NamePairRules namePairRules = values()[nameCount - 1];
