@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application.namematching;
+package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import com.google.common.collect.ImmutableList;
 

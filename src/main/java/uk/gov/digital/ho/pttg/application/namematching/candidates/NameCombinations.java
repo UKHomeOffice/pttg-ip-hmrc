@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.springframework.stereotype.Component;
-import uk.gov.digital.ho.pttg.application.namematching.NamePairRules;
 import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 
 import java.util.List;
