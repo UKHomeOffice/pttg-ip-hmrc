@@ -43,8 +43,8 @@ public class NameMatchingFunctions {
         return newArrayList(concat(firstFourNames, lastThreeNames));
     }
 
-    static List<PersonName> deduplicate(List<PersonName> candidateNames) {
-        Set<PersonName> seenHmrcEquivalentNames = new HashSet<>();
+    static List<CandidateName> deduplicate(List<CandidateName> candidateNames) {
+        Set<CandidateName> seenHmrcEquivalentNames = new HashSet<>();
         return candidateNames.stream()
                 .filter(name -> seenHmrcEquivalentNames.add(name.hmrcNameMatchingEquivalent()))
                 .collect(Collectors.toList());

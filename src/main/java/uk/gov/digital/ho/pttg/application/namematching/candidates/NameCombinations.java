@@ -1,7 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.springframework.stereotype.Component;
-import uk.gov.digital.ho.pttg.application.namematching.PersonName;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFuncti
 public class NameCombinations implements NameMatchingCandidateGenerator {
 
     @Override
-    public List<PersonName> generateCandidates(String firstName, String lastName) {
+    public List<CandidateName> generateCandidates(String firstName, String lastName) {
         List<String> fullListOfNames = splitTwoIntoDistinctNames(firstName, lastName);
         List<String> namesToUse = removeAdditionalNamesIfOverMax(fullListOfNames);
 

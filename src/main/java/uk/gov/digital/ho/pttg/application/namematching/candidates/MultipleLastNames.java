@@ -2,7 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import uk.gov.digital.ho.pttg.application.namematching.PersonName;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,8 +21,8 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
     private static final Integer HMRC_SURNAME_LENGTH = 3;
 
     @Override
-    public List<PersonName> generateCandidates(String firstName, String lastName) {
-        List<PersonName> candidates = new ArrayList<>();
+    public List<CandidateName> generateCandidates(String firstName, String lastName) {
+        List<CandidateName> candidates = new ArrayList<>();
 
         if (!multiPart(lastName)) {
             return candidates;
@@ -48,7 +48,7 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
         candidates.addAll(
                 listOfFirstNames.stream()
                         .flatMap(eachFirstName -> surnameList.stream()
-                                .map(lastNameCombination -> new PersonName(eachFirstName, lastNameCombination)))
+                                .map(lastNameCombination -> new CandidateName(eachFirstName, lastNameCombination)))
                         .collect(toList())
         );
 
@@ -68,8 +68,8 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
         }
     }
 
-    private static void addFullNameIfNotAlreadyPresent(List<PersonName> candidates, List<String> listOfFirstNames, List<String> listOfLastNames) {
-        PersonName fullname = new PersonName(
+    private static void addFullNameIfNotAlreadyPresent(List<CandidateName> candidates, List<String> listOfFirstNames, List<String> listOfLastNames) {
+        CandidateName fullname = new CandidateName(
                 StringUtils.join(listOfFirstNames, " "),
                 StringUtils.join(listOfLastNames, " ")
         );

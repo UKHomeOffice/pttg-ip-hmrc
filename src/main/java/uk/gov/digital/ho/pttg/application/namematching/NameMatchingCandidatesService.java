@@ -24,9 +24,9 @@ public class NameMatchingCandidatesService {
         this.specialCharacters = specialCharacters;
     }
 
-    public List<PersonName> generateCandidateNames(String firstName, String lastName) {
+    public List<CandidateName> generateCandidateNames(String firstName, String lastName) {
 
-        List<PersonName> candidates = new ArrayList<>();
+        List<CandidateName> candidates = new ArrayList<>();
 
         candidates.addAll(multipleLastNames.generateCandidates(firstName, lastName));
         candidates.addAll(nameCombinations.generateCandidates(firstName, lastName));

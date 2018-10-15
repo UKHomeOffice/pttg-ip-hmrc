@@ -93,57 +93,57 @@ public class NameMatchingFunctionsTest {
 
     @Test
     public void deduplicateSingletonListShouldReturnSingletonList() {
-        List<PersonName> singleName = singletonList(new PersonName("any first name", "any last name"));
+        List<CandidateName> singleName = singletonList(new CandidateName("any first name", "any last name"));
         assertThat(deduplicate(singleName)).isEqualTo(singleName);
     }
 
     @Test
     public void deduplicateTwoDistinctItemListShouldReturnTwoDistinctItemList() {
-        List<PersonName> twoDistinctNames = asList(
-                new PersonName("any first name", "any last name"),
-                new PersonName("other first name", "some other last name")
+        List<CandidateName> twoDistinctNames = asList(
+                new CandidateName("any first name", "any last name"),
+                new CandidateName("other first name", "some other last name")
         );
         assertThat(deduplicate(twoDistinctNames)).isEqualTo(twoDistinctNames);
     }
 
     @Test
     public void deduplicateSameFirstInitialOnlyShouldKeepAll() {
-        List<PersonName> sameFirstInitialNames = asList(
-                new PersonName("any first name", "any last name"),
-                new PersonName("any other first name", "some other last name")
+        List<CandidateName> sameFirstInitialNames = asList(
+                new CandidateName("any first name", "any last name"),
+                new CandidateName("any other first name", "some other last name")
         );
         assertThat(deduplicate(sameFirstInitialNames)).isEqualTo(sameFirstInitialNames);
     }
 
     @Test
     public void deduplicateSameFirstThreeLettersOfSurnameOnlyShouldKeepAll() {
-        List<PersonName> sameFirstInitialNames = asList(
-                new PersonName("any first name", "any last name"),
-                new PersonName("other first name", "any other last name")
+        List<CandidateName> sameFirstInitialNames = asList(
+                new CandidateName("any first name", "any last name"),
+                new CandidateName("other first name", "any other last name")
         );
         assertThat(deduplicate(sameFirstInitialNames)).isEqualTo(sameFirstInitialNames);
     }
 
     @Test
     public void deduplicateShouldRemoveIfSameFirstInitialAndFirstThreeSurnameLetters() {
-        List<PersonName> duplicateNames = asList(
-                new PersonName("any first name", "any last name"),
-                new PersonName("a first name", "any other last name")
+        List<CandidateName> duplicateNames = asList(
+                new CandidateName("any first name", "any last name"),
+                new CandidateName("a first name", "any other last name")
         );
-        List<PersonName> expected = singletonList(new PersonName("any first name", "any last name"));
+        List<CandidateName> expected = singletonList(new CandidateName("any first name", "any last name"));
         assertThat(deduplicate(duplicateNames)).isEqualTo(expected);
     }
 
     @Test
     public void deduplicateShouldKeepInputOrder() {
-        List<PersonName> duplicateNames = asList(
-                new PersonName("some other name", "some other name"),
-                new PersonName("a first name", "any other last name"),
-                new PersonName("any first name", "any last name")
+        List<CandidateName> duplicateNames = asList(
+                new CandidateName("some other name", "some other name"),
+                new CandidateName("a first name", "any other last name"),
+                new CandidateName("any first name", "any last name")
         );
-        List<PersonName> expected = asList(
-                new PersonName("some other name", "some other name"),
-                new PersonName("a first name", "any other last name")
+        List<CandidateName> expected = asList(
+                new CandidateName("some other name", "some other name"),
+                new CandidateName("a first name", "any other last name")
         );
         assertThat(deduplicate(duplicateNames)).isEqualTo(expected);
     }

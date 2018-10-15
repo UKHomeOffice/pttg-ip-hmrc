@@ -35,131 +35,131 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldHandleMultipleLastNames() {
-        List<PersonName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "Brian Coates");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "Brian Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
-        assertThat("The lastname is used unsplit for the first permutation", names.get(0), is(new PersonName("Arthur", "Brian Coates")));
-        assertThat(INCORRECT_ORDER, names.get(1), is(new PersonName("Arthur", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("Brian", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("Coates", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("Coates", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("Brian", "Arthur")));
+        assertThat("The lastname is used unsplit for the first permutation", names.get(0), is(new CandidateName("Arthur", "Brian Coates")));
+        assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("Arthur", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Brian", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Coates", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("Coates", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("Brian", "Arthur")));
 
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("Arthur", "Brian"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("Arthur", "Brian"))));
 
     }
 
     @Test
     public void shouldHandleHyphenatedNames() {
-        List<PersonName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "Coates");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
-        assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur-Brian", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(1), is(new PersonName("Coates", "Arthur-Brian")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("Brian", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("Coates", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("Arthur", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("Brian", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur-Brian", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("Coates", "Arthur-Brian")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Brian", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Coates", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("Arthur", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("Brian", "Arthur")));
 
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("ArthurBrian", "Coates"))));
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("Coates", "ArthurBrian"))));
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("Arthur", "Coates"))));
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("Coates", "Arthur"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("ArthurBrian", "Coates"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("Coates", "ArthurBrian"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("Arthur", "Coates"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("Coates", "Arthur"))));
     }
 
     @Test
     public void shouldHandleApostrophedNames() {
-        List<PersonName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "O'Bobbins");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "O'Bobbins");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(9));
-        assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur", "O'Bobbins")));
-        assertThat(INCORRECT_ORDER, names.get(1), is(new PersonName("O'Bobbins", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("Arthur", "O Bobbins")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("Arthur", "OBobbins")));
-        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("Arthur", "Bobbins")));
-        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("O", "Bobbins")));
-        assertThat(INCORRECT_ORDER, names.get(6), is(new PersonName("Bobbins", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(7), is(new PersonName("Bobbins", "O")));
-        assertThat(INCORRECT_ORDER, names.get(8), is(new PersonName("Arthur", "O")));
+        assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "O'Bobbins")));
+        assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("O'Bobbins", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur", "O Bobbins")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Arthur", "OBobbins")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("Arthur", "Bobbins")));
+        assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("O", "Bobbins")));
+        assertThat(INCORRECT_ORDER, names.get(6), is(new CandidateName("Bobbins", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(7), is(new CandidateName("Bobbins", "O")));
+        assertThat(INCORRECT_ORDER, names.get(8), is(new CandidateName("Arthur", "O")));
 
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("OBobbins", "Arthur"))));
-        assertThat(DEDUPLICATION, names, not(contains(new PersonName("O", "Arthur"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("OBobbins", "Arthur"))));
+        assertThat(DEDUPLICATION, names, not(contains(new CandidateName("O", "Arthur"))));
     }
 
     @Test
     public void shouldHandleHyphensAndApostrophes() {
-        List<PersonName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "O'Coates");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "O'Coates");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(16));
 
-        assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Arthur-Brian", "O'Coates")));
-        assertThat(INCORRECT_ORDER, names.get(1), is(new PersonName("O'Coates", "Arthur-Brian")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new PersonName("Arthur Brian", "O Coates")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new PersonName("Brian", "O Coates")));
-        assertThat(INCORRECT_ORDER, names.get(4), is(new PersonName("ArthurBrian", "OCoates")));
-        assertThat(INCORRECT_ORDER, names.get(5), is(new PersonName("Arthur", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(6), is(new PersonName("Brian", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(7), is(new PersonName("O", "Coates")));
-        assertThat(INCORRECT_ORDER, names.get(8), is(new PersonName("Arthur", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(9), is(new PersonName("Arthur", "O")));
-        assertThat(INCORRECT_ORDER, names.get(10), is(new PersonName("Brian", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(11), is(new PersonName("Coates", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(12), is(new PersonName("Brian", "O")));
-        assertThat(INCORRECT_ORDER, names.get(13), is(new PersonName("O", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(14), is(new PersonName("Coates", "Brian")));
-        assertThat(INCORRECT_ORDER, names.get(15), is(new PersonName("Coates", "O")));
+        assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur-Brian", "O'Coates")));
+        assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("O'Coates", "Arthur-Brian")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur Brian", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Brian", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("ArthurBrian", "OCoates")));
+        assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("Arthur", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(6), is(new CandidateName("Brian", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(7), is(new CandidateName("O", "Coates")));
+        assertThat(INCORRECT_ORDER, names.get(8), is(new CandidateName("Arthur", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(9), is(new CandidateName("Arthur", "O")));
+        assertThat(INCORRECT_ORDER, names.get(10), is(new CandidateName("Brian", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(11), is(new CandidateName("Coates", "Arthur")));
+        assertThat(INCORRECT_ORDER, names.get(12), is(new CandidateName("Brian", "O")));
+        assertThat(INCORRECT_ORDER, names.get(13), is(new CandidateName("O", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(14), is(new CandidateName("Coates", "Brian")));
+        assertThat(INCORRECT_ORDER, names.get(15), is(new CandidateName("Coates", "O")));
 
-        assertThat(DEDUPLICATION, names, not(is(new PersonName("Arthur", "O Coates"))));
-        assertThat(DEDUPLICATION, names, not(is(new PersonName("OCoates", "ArthurBrian"))));
-        assertThat(DEDUPLICATION, names, not(is(new PersonName("O", "Arthur"))));
+        assertThat(DEDUPLICATION, names, not(is(new CandidateName("Arthur", "O Coates"))));
+        assertThat(DEDUPLICATION, names, not(is(new CandidateName("OCoates", "ArthurBrian"))));
+        assertThat(DEDUPLICATION, names, not(is(new CandidateName("O", "Arthur"))));
     }
 
     @Test
     public void shouldOnlyUseFiveOfSevenNameCandidate() {
-        List<PersonName> candidateNames = nameMatchingCandidatesService.generateCandidateNames("A B C D E F G", "Van Halen");
+        List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames("A B C D E F G", "Van Halen");
 
-        List<PersonName> expectedCandidateNames = Arrays.asList(
-                new PersonName("A", "Van"),
-                new PersonName("B", "Van"),
-                new PersonName("C", "Van"),
-                new PersonName("D", "Van"),
-                new PersonName("G", "Van"),
-                new PersonName("A", "Halen"),
-                new PersonName("B", "Halen"),
-                new PersonName("C", "Halen"),
-                new PersonName("D", "Halen"),
-                new PersonName("G", "Halen")
+        List<CandidateName> expectedCandidateNames = Arrays.asList(
+                new CandidateName("A", "Van"),
+                new CandidateName("B", "Van"),
+                new CandidateName("C", "Van"),
+                new CandidateName("D", "Van"),
+                new CandidateName("G", "Van"),
+                new CandidateName("A", "Halen"),
+                new CandidateName("B", "Halen"),
+                new CandidateName("C", "Halen"),
+                new CandidateName("D", "Halen"),
+                new CandidateName("G", "Halen")
         );
 
-        for (PersonName expectedCandidateName : expectedCandidateNames) {
+        for (CandidateName expectedCandidateName : expectedCandidateNames) {
             assertThat(containsHmrcEquivalentName(candidateNames, expectedCandidateName), is(true));
         }
 
-        assertThat(candidateNames.contains(new PersonName("E", "Van")), is(false));
-        assertThat(candidateNames.contains(new PersonName("F", "Van")), is(false));
-        assertThat(candidateNames.contains(new PersonName("E", "Halen")), is(false));
-        assertThat(candidateNames.contains(new PersonName("F", "Halen")), is(false));
+        assertThat(candidateNames.contains(new CandidateName("E", "Van")), is(false));
+        assertThat(candidateNames.contains(new CandidateName("F", "Van")), is(false));
+        assertThat(candidateNames.contains(new CandidateName("E", "Halen")), is(false));
+        assertThat(candidateNames.contains(new CandidateName("F", "Halen")), is(false));
     }
 
     @Test
     public void shouldUseJoiningInBothNamesWithSuppliedNamesAsFirstAttempt() {
-        List<PersonName> names = nameMatchingCandidatesService.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
 
-        assertThat(INCORRECT_ORDER, names.get(0), is(new PersonName("Bob-Brian", "Hill O'Coates-Smith")));
+        assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Bob-Brian", "Hill O'Coates-Smith")));
 
         Assertions.assertThat(names).doesNotHaveDuplicates();
         assertThat(DEDUPLICATION, containsHmrcDuplicateNames(names), is(false));
     }
 
-    private boolean containsHmrcEquivalentName(Collection<PersonName> candidateNames, PersonName expectedName) {
+    private boolean containsHmrcEquivalentName(Collection<CandidateName> candidateNames, CandidateName expectedName) {
         return candidateNames.stream()
                 .anyMatch(name -> name.hmrcNameMatchingEquivalent().equals(expectedName.hmrcNameMatchingEquivalent()));
     }
 
-    private boolean containsHmrcDuplicateNames(Collection<PersonName> candidateNames) {
+    private boolean containsHmrcDuplicateNames(Collection<CandidateName> candidateNames) {
         int totalNames = candidateNames.size();
         long totalDedupedNames = candidateNames.stream()
-                .map(PersonName::hmrcNameMatchingEquivalent)
+                .map(CandidateName::hmrcNameMatchingEquivalent)
                 .distinct()
                 .count();
         return totalNames > totalDedupedNames;
