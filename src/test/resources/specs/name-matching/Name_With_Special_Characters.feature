@@ -162,13 +162,11 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Then the footprint will try the following combination of names in order
       | First name | Last name | Date of Birth | nino        |
       | Pas Alb    | R De Fey  | 1987-12-10    | SE 123456 B |
-      | Pas        | R De Fey  | 1987-12-10    | SE 123456 B |
-      | Pas        | R De      | 1987-12-10    | SE 123456 B |
       | Pas        | R Fey     | 1987-12-10    | SE 123456 B |
       | Pas        | De R      | 1987-12-10    | SE 123456 B |
       | Pas        | De Fey    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 6 times
+    And HMRC was called 4 times
 
 
   @name_matching
@@ -191,7 +189,6 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | Pas        | Fey            | 1987-12-10    | SE 123456 B |
       | Alb        | Fey            | 1987-12-10    | SE 123456 B |
       | De         | Fey            | 1987-12-10    | SE 123456 B |
-      | R          | Pas            | 1987-12-10    | SE 123456 B |
       | R          | Alb            | 1987-12-10    | SE 123456 B |
       | R          | De             | 1987-12-10    | SE 123456 B |
       | Pas        | R              | 1987-12-10    | SE 123456 B |
@@ -208,4 +205,4 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | Fey        | Alb            | 1987-12-10    | SE 123456 B |
       | Fey        | De             | 1987-12-10    | SE 123456 B |
     Then a not matched response is returned
-    And HMRC was called 24 times
+    And HMRC was called 23 times

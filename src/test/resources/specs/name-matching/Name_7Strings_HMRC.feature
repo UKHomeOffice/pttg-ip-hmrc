@@ -33,7 +33,6 @@ Feature: Name matching with 7 name strings
     Then the footprint will try the following combination of names in order
       | First name      | Last name   | Date of Birth | nino        |
       | Aaa Bbb Ccc Ddd | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
-      | Aaa             | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
       | Bbb             | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
       | Ccc             | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
       | Ddd             | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
@@ -46,22 +45,18 @@ Feature: Name matching with 7 name strings
       | Aaa             | Bbb         | 1987-12-10    | SE 123456 B |
       | Aaa             | Ccc         | 1987-12-10    | SE 123456 B |
       | Aaa             | Ddd         | 1987-12-10    | SE 123456 B |
-      | Aaa             | Eee         | 1987-12-10    | SE 123456 B |
       | Aaa             | Fff         | 1987-12-10    | SE 123456 B |
       | Bbb             | Aaa         | 1987-12-10    | SE 123456 B |
       | Bbb             | Ccc         | 1987-12-10    | SE 123456 B |
       | Bbb             | Ddd         | 1987-12-10    | SE 123456 B |
-      | Bbb             | Eee         | 1987-12-10    | SE 123456 B |
       | Bbb             | Fff         | 1987-12-10    | SE 123456 B |
       | Ccc             | Aaa         | 1987-12-10    | SE 123456 B |
       | Ccc             | Bbb         | 1987-12-10    | SE 123456 B |
       | Ccc             | Ddd         | 1987-12-10    | SE 123456 B |
-      | Ccc             | Eee         | 1987-12-10    | SE 123456 B |
       | Ccc             | Fff         | 1987-12-10    | SE 123456 B |
       | Ddd             | Aaa         | 1987-12-10    | SE 123456 B |
       | Ddd             | Bbb         | 1987-12-10    | SE 123456 B |
       | Ddd             | Ccc         | 1987-12-10    | SE 123456 B |
-      | Ddd             | Eee         | 1987-12-10    | SE 123456 B |
       | Ddd             | Fff         | 1987-12-10    | SE 123456 B |
       | Eee             | Aaa         | 1987-12-10    | SE 123456 B |
       | Eee             | Bbb         | 1987-12-10    | SE 123456 B |
@@ -83,7 +78,7 @@ Feature: Name matching with 7 name strings
 
 
   @name_matching
-  Scenario: Applicant with 7 names is matched in HMRC after trying 38 name combinations
+  Scenario: Applicant with 7 names is matched in HMRC after trying 34 name combinations
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino        |
       | Fff        | Ccc       | 1987-12-10    | SE 123456 B |
@@ -93,7 +88,7 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10      |
       | nino          | SE 123456 B     |
     Then a Matched response will be returned from the service
-    And HMRC was called 39 times
+    And HMRC was called 34 times
 
 
   @name_matching
@@ -107,7 +102,7 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10      |
       | nino          | SE 123456 B     |
     Then a not matched response is returned
-    And HMRC was called 47 times
+    And HMRC was called 42 times
 
 
   @name_matching
@@ -121,7 +116,7 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10                        |
       | nino          | SE 123456 B                       |
     Then a Matched response will be returned from the service
-    And HMRC was called 11 times
+    And HMRC was called 10 times
 
 
   @name_matching
@@ -135,7 +130,7 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10                        |
       | nino          | SE 123456 B                       |
     Then a Matched response will be returned from the service
-    And HMRC was called 7 times
+    And HMRC was called 6 times
 
   @name_matching
   Scenario: Applicant with a hyphenated first name is matched in HMRC on the hyphenated version of the name
@@ -148,7 +143,7 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10                        |
       | nino          | SE 123456 B                       |
     Then a Matched response will be returned from the service
-    And HMRC was called 7 times
+    And HMRC was called 6 times
 
   @name_matching
   Scenario: Applicant with a hyphenated last name is matched in HMRC on the hyphenated version of the name
@@ -175,4 +170,4 @@ Feature: Name matching with 7 name strings
       | Date of Birth | 1987-12-10                        |
       | nino          | SE 123456 B                       |
     Then a not matched response is returned
-    And HMRC was called 47 times
+    And HMRC was called 42 times

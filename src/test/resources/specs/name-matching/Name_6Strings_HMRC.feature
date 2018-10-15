@@ -14,7 +14,6 @@ Feature: Name matching with 6 name strings
     Then the footprint will try the following combination of names in order
       | First name  | Last name   | Date of Birth | nino        |
       | Aaa Bbb Ccc | Ddd Eee Fff | 1987-12-10    | SE 123456 B |
-      | Aaa         | Ddd Eee Fff | 1987-12-10    | SE 123456 B |
       | Bbb         | Ddd Eee Fff | 1987-12-10    | SE 123456 B |
       | Ccc         | Ddd Eee Fff | 1987-12-10    | SE 123456 B |
       | Aaa         | Fff         | 1987-12-10    | SE 123456 B |
@@ -23,15 +22,12 @@ Feature: Name matching with 6 name strings
       | Ddd         | Fff         | 1987-12-10    | SE 123456 B |
       | Aaa         | Bbb         | 1987-12-10    | SE 123456 B |
       | Aaa         | Ccc         | 1987-12-10    | SE 123456 B |
-      | Aaa         | Ddd         | 1987-12-10    | SE 123456 B |
       | Aaa         | Eee         | 1987-12-10    | SE 123456 B |
       | Bbb         | Aaa         | 1987-12-10    | SE 123456 B |
       | Bbb         | Ccc         | 1987-12-10    | SE 123456 B |
-      | Bbb         | Ddd         | 1987-12-10    | SE 123456 B |
       | Bbb         | Eee         | 1987-12-10    | SE 123456 B |
       | Ccc         | Aaa         | 1987-12-10    | SE 123456 B |
       | Ccc         | Bbb         | 1987-12-10    | SE 123456 B |
-      | Ccc         | Ddd         | 1987-12-10    | SE 123456 B |
       | Ccc         | Eee         | 1987-12-10    | SE 123456 B |
       | Ddd         | Aaa         | 1987-12-10    | SE 123456 B |
       | Ddd         | Bbb         | 1987-12-10    | SE 123456 B |
@@ -48,4 +44,4 @@ Feature: Name matching with 6 name strings
       | Fff         | Ddd         | 1987-12-10    | SE 123456 B |
       | Fff         | Eee         | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 34 times
+    And HMRC was called 30 times

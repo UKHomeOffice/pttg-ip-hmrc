@@ -10,6 +10,7 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesGeneratorFunctions.deduplicate;
 
 public class NameMatchingCandidatesGenerator {
     private static final String NAME_SPLITTERS = "-'";
@@ -28,7 +29,7 @@ public class NameMatchingCandidatesGenerator {
             candidates.addAll(generateCandidatesWithSplitters(firstName, lastName));
         }
 
-        return Collections.unmodifiableList(candidates);
+        return Collections.unmodifiableList(deduplicate(candidates));
     }
 
     private static boolean namesContainSplitters(String firstName, String lastName) {
