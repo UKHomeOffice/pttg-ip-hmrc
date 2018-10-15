@@ -1,7 +1,8 @@
-package uk.gov.digital.ho.pttg.application.namematching;
+package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import uk.gov.digital.ho.pttg.application.namematching.PersonName;
 
 import java.util.List;
 
