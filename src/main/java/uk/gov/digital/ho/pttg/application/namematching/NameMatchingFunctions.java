@@ -1,9 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
@@ -43,6 +41,13 @@ public class NameMatchingFunctions {
         List<String> lastThreeNames = incomingNames.subList(numberOfNames - 3, numberOfNames);
 
         return newArrayList(concat(firstFourNames, lastThreeNames));
+    }
+
+    static List<PersonName> deduplicate(List<PersonName> candidateNames) {
+        Set<PersonName> seenHmrcEquivalentNames = new HashSet<>();
+        return candidateNames.stream()
+                .filter(name -> seenHmrcEquivalentNames.add(name.hmrcNameMatchingEquivalent()))
+                .collect(Collectors.toList());
     }
 
 

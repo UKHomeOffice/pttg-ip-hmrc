@@ -8,6 +8,8 @@ import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinatio
 
 import java.util.*;
 
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.deduplicate;
+
 @Service
 public class NameMatchingCandidatesService {
     private static final String NAME_SPLITTERS = "-'";
@@ -33,7 +35,7 @@ public class NameMatchingCandidatesService {
             candidates.addAll(generateCandidatesWithSplitters(firstName, lastName));
         }
 
-        return Collections.unmodifiableList(candidates);
+        return Collections.unmodifiableList(deduplicate(candidates));
     }
 
     private static boolean namesContainSplitters(String firstName, String lastName) {
