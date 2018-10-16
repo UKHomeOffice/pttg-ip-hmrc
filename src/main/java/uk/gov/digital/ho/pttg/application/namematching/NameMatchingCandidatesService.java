@@ -1,9 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.springframework.stereotype.Service;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,11 +12,11 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFuncti
 @Service
 public class NameMatchingCandidatesService {
 
-    private NameCombinations nameCombinations;
-    private MultipleLastNames multipleLastNames;
-    private SpecialCharacters specialCharacters;
+    private NameMatchingCandidateGenerator nameCombinations;
+    private NameMatchingCandidateGenerator multipleLastNames;
+    private NameMatchingCandidateGenerator specialCharacters;
 
-    public NameMatchingCandidatesService(NameCombinations nameCombinations, MultipleLastNames multipleLastNames, SpecialCharacters specialCharacters) {
+    public NameMatchingCandidatesService(NameMatchingCandidateGenerator nameCombinations, NameMatchingCandidateGenerator multipleLastNames, NameMatchingCandidateGenerator specialCharacters) {
         this.nameCombinations = nameCombinations;
         this.multipleLastNames = multipleLastNames;
         this.specialCharacters = specialCharacters;

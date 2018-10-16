@@ -35,7 +35,7 @@ public class InputNamesTest {
     }
 
     @Test
-    public void multiPartLastNameFirstNameIIrrelevant() {
+    public void multiPartLastNameFirstNameIsIrrelevant() {
         InputNames inputNames = new InputNames("firstname1 firstname2 firstname3", "any-lastname");
 
         assertThat(inputNames.multiPartLastName()).isFalse();

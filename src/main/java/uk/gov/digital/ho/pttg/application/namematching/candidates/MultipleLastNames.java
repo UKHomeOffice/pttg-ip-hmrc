@@ -62,7 +62,7 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
     }
 
     private static List<String> generateLastNameCombinations(List<String> lastNames) {
-        final Integer HMRC_SURNAME_LENGTH = 3;
+        final int HMRC_SURNAME_LENGTH = 3;
 
         return lastNames.stream()
                 .filter(lastName -> lastName.length() < HMRC_SURNAME_LENGTH)

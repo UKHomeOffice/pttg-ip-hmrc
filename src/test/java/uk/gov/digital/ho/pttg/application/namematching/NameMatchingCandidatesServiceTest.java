@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -7,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters;
 
 import java.util.Arrays;
@@ -20,7 +22,6 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class NameMatchingCandidatesServiceTest {
 
-    @InjectMocks
     private NameMatchingCandidatesService nameMatchingCandidatesService;
 
     @Mock
@@ -29,6 +30,11 @@ public class NameMatchingCandidatesServiceTest {
     private MultipleLastNames multipleLastNames;
     @Mock
     private SpecialCharacters specialCharacters;
+
+    @Before
+    public void setUp() {
+        nameMatchingCandidatesService = new NameMatchingCandidatesService(nameCombinations, multipleLastNames, specialCharacters);
+    }
 
     @Test
     public void attemptsAllCandidateGenerators() {
@@ -42,7 +48,6 @@ public class NameMatchingCandidatesServiceTest {
     }
 
     @Test
-
     public void duplicateNamesAreRemoved() {
         List<CandidateName> nameCombinationCandidateNames =
                 Arrays.asList(
