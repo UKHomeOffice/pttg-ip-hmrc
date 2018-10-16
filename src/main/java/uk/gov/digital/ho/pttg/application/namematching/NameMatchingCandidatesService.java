@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.deduplicate;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidateServiceFunctions.deduplicate;
 
 @Service
 public class NameMatchingCandidatesService {

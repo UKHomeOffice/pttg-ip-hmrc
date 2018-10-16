@@ -7,7 +7,7 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.removeAdditionalNamesIfOverMax;
+import static uk.gov.digital.ho.pttg.application.namematching.CandidateFunctions.removeAdditionalNamesIfOverMax;
 
 @Component
 public class NameCombinations implements NameMatchingCandidateGenerator {

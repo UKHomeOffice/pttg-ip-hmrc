@@ -1,21 +1,9 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-public class NameMatchingFunctions {
-
-    static List<String> splitIntoDistinctNames(String name) {
-        if (isBlank(name)) {
-            return Collections.emptyList();
-        }
-
-        String[] splitNames = name.trim().split("\\s+");
-
-        return Arrays.asList(splitNames);
-    }
+public class CandidateFunctions {
 
     public static InputNames removeAdditionalNamesIfOverMax(InputNames inputNames) {
         final int MAX_NAMES = 7;
@@ -37,13 +25,4 @@ public class NameMatchingFunctions {
 
         return new InputNames(firstNames, lastNames);
     }
-
-    static List<CandidateName> deduplicate(List<CandidateName> candidateNames) {
-        Set<CandidateName> seenHmrcEquivalentNames = new HashSet<>();
-        return candidateNames.stream()
-                .filter(name -> seenHmrcEquivalentNames.add(name.hmrcNameMatchingEquivalent()))
-                .collect(Collectors.toList());
-    }
-
-
 }
