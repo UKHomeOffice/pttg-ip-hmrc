@@ -45,45 +45,25 @@ public class NameMatchingFunctionsTest {
     }
 
     @Test
-    public void splitTwoIntoDistinctNames_singleNames() {
-        List<String> splitNames = NameMatchingFunctions.splitTwoIntoDistinctNames("first", "last");
-
-        assertThat(splitNames.size()).isEqualTo(2);
-        assertThat(splitNames.get(0)).isEqualTo("first");
-        assertThat(splitNames.get(1)).isEqualTo("last");
-    }
-
-    @Test
-    public void splitTwoIntoDistinctNames_multipleNames() {
-        List<String> splitNames = NameMatchingFunctions.splitTwoIntoDistinctNames("one two three", "four five six seven");
-
-        assertThat(splitNames.size()).isEqualTo(7);
-        assertThat(splitNames.get(0)).isEqualTo("one");
-
-        assertThat(splitNames.get(4)).isEqualTo("five");
-        assertThat(splitNames.get(6)).isEqualTo("seven");
-    }
-
-    @Test
     public void removeAdditionalNamesOverMax_belowMax() {
-        List<String> afterRemoved = NameMatchingFunctions.removeAdditionalNamesIfOverMax(Arrays.asList("one", "two", "three", "four", "five", "six", "seven"));
+        InputNames afterRemoved = NameMatchingFunctions.removeAdditionalNamesIfOverMax(new InputNames(Arrays.asList("one", "two", "three", "four"), Arrays.asList("five", "six", "seven")));
 
         assertThat(afterRemoved.size()).isEqualTo(7);
-        assertThat(afterRemoved.get(0)).isEqualTo("one");
-        assertThat(afterRemoved.get(3)).isEqualTo("four");
-        assertThat(afterRemoved.get(4)).isEqualTo("five");
-        assertThat(afterRemoved.get(6)).isEqualTo("seven");
+        assertThat(afterRemoved.allNames().get(0)).isEqualTo("one");
+        assertThat(afterRemoved.allNames().get(3)).isEqualTo("four");
+        assertThat(afterRemoved.allNames().get(4)).isEqualTo("five");
+        assertThat(afterRemoved.allNames().get(6)).isEqualTo("seven");
     }
 
     @Test
     public void removeAdditionalNamesOverMax_overMax() {
-        List<String> afterRemoved = NameMatchingFunctions.removeAdditionalNamesIfOverMax(Arrays.asList("one", "two", "three", "four", "extra-one", "extra-two", "five", "six", "seven"));
+        InputNames afterRemoved = NameMatchingFunctions.removeAdditionalNamesIfOverMax(new InputNames(Arrays.asList("one", "two", "three", "four", "extra-one"), Arrays.asList("five", "six", "seven")));
 
         assertThat(afterRemoved.size()).isEqualTo(7);
-        assertThat(afterRemoved.get(0)).isEqualTo("one");
-        assertThat(afterRemoved.get(3)).isEqualTo("four");
-        assertThat(afterRemoved.get(4)).isEqualTo("five");
-        assertThat(afterRemoved.get(6)).isEqualTo("seven");
+        assertThat(afterRemoved.allNames().get(0)).isEqualTo("one");
+        assertThat(afterRemoved.allNames().get(3)).isEqualTo("four");
+        assertThat(afterRemoved.allNames().get(4)).isEqualTo("five");
+        assertThat(afterRemoved.allNames().get(6)).isEqualTo("seven");
     }
 
     @Test

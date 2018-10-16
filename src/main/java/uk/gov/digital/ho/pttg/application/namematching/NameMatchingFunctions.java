@@ -3,13 +3,11 @@ package uk.gov.digital.ho.pttg.application.namematching;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class NameMatchingFunctions {
 
-    public static List<String> splitIntoDistinctNames(String name) {
+    static List<String> splitIntoDistinctNames(String name) {
         if (isBlank(name)) {
             return Collections.emptyList();
         }
@@ -19,28 +17,25 @@ public class NameMatchingFunctions {
         return Arrays.asList(splitNames);
     }
 
-    public static List<String> splitTwoIntoDistinctNames(String firstName, String lastName) {
-        List<String> names = new ArrayList<>();
-
-        names.addAll(splitIntoDistinctNames(firstName));
-        names.addAll(splitIntoDistinctNames(lastName));
-
-        return Collections.unmodifiableList(names);
-    }
-
-    public static List<String> removeAdditionalNamesIfOverMax(List<String> incomingNames) {
+    public static InputNames removeAdditionalNamesIfOverMax(InputNames inputNames) {
         final int MAX_NAMES = 7;
+        final int MAX_LAST_NAMES = 3;
 
-        int numberOfNames = incomingNames.size();
-
-        if (numberOfNames <= MAX_NAMES) {
-            return incomingNames;
+        if (inputNames.size() <= MAX_NAMES) {
+            return inputNames;
         }
 
-        List<String> firstFourNames = incomingNames.subList(0, 4);
-        List<String> lastThreeNames = incomingNames.subList(numberOfNames - 3, numberOfNames);
+        List<String> lastNames =
+                inputNames.lastNames().stream()
+                        .limit(MAX_LAST_NAMES)
+                        .collect(Collectors.toList());
 
-        return newArrayList(concat(firstFourNames, lastThreeNames));
+        List<String> firstNames =
+                inputNames.firstNames().stream()
+                        .limit(MAX_NAMES - lastNames.size())
+                        .collect(Collectors.toList());
+
+        return new InputNames(firstNames, lastNames);
     }
 
     static List<CandidateName> deduplicate(List<CandidateName> candidateNames) {

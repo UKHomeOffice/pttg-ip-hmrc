@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class MultipleLastNamesTest {
     @Test
     public void shouldGenerateCorrectSurnameCombinationsForMultipleSurnames() {
 
-        List<CandidateName> names = multipleLastNames.generateCandidates("A B C", "D E F");
+        List<CandidateName> names = multipleLastNames.generateCandidates(new InputNames("A B C", "D E F"));
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(22));
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("A B C", "D E F")));

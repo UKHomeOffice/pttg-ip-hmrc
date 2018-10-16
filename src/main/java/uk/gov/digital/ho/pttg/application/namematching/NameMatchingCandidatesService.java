@@ -24,13 +24,15 @@ public class NameMatchingCandidatesService {
         this.specialCharacters = specialCharacters;
     }
 
-    public List<CandidateName> generateCandidateNames(String firstName, String lastName) {
+    public List<CandidateName> generateCandidateNames(String firstNames, String lastNames) {
 
         List<CandidateName> candidates = new ArrayList<>();
 
-        candidates.addAll(multipleLastNames.generateCandidates(firstName, lastName));
-        candidates.addAll(nameCombinations.generateCandidates(firstName, lastName));
-        candidates.addAll(specialCharacters.generateCandidates(firstName, lastName));
+        InputNames inputNames = new InputNames(firstNames, lastNames);
+
+        candidates.addAll(multipleLastNames.generateCandidates(inputNames));
+        candidates.addAll(nameCombinations.generateCandidates(inputNames));
+        candidates.addAll(specialCharacters.generateCandidates(inputNames));
 
         return Collections.unmodifiableList(deduplicate(candidates));
     }

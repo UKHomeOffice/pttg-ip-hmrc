@@ -3,97 +3,73 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.removeAdditionalNamesIfOverMax;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.splitIntoDistinctNames;
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.splitTwoIntoDistinctNames;
 
 @Component
 public class MultipleLastNames implements NameMatchingCandidateGenerator {
 
-    private static final Integer HMRC_SURNAME_LENGTH = 3;
 
     @Override
-    public List<CandidateName> generateCandidates(String firstName, String lastName) {
+    public List<CandidateName> generateCandidates(InputNames inputNames) {
         List<CandidateName> candidates = new ArrayList<>();
 
-        if (!multiPart(lastName)) {
+        if (!inputNames.multiPartLastName()) {
             return candidates;
         }
 
-        List<String> fullListOfNames = splitTwoIntoDistinctNames(firstName, lastName);
-        List<String> allowedNames = removeAdditionalNamesIfOverMax(fullListOfNames);
+        InputNames largestAllowedName = removeAdditionalNamesIfOverMax(inputNames);
 
-        List<String> nonSanitisedFirstNames = new ArrayList<>(splitIntoDistinctNames(firstName));
-        List<String> nonSanitisedLastNames = new ArrayList<>(splitIntoDistinctNames(lastName));
-
-        List<String> listOfFirstNames = removeInvalidItems(nonSanitisedFirstNames, allowedNames);
-        List<String> listOfLastNames = removeInvalidItems(nonSanitisedLastNames, allowedNames);
-
-        List<String> surnameCombinationList = generateSurnameCombinations(listOfLastNames);
+        List<String> lastNameCombinations = generateLastNameCombinations(largestAllowedName.lastNames());
 
         // By default add to the list the whole allowed surname if more than 3 parts are present
         // as it won't have been covered by the previous combinations
-        addMultiPartSurnameToCombination(surnameCombinationList, listOfLastNames);
-
-        final List<String> surnameList = new ArrayList<>(surnameCombinationList);
+        addMultiPartLastNameToCombination(lastNameCombinations, largestAllowedName.lastNames());
 
         candidates.addAll(
-                listOfFirstNames.stream()
-                        .flatMap(eachFirstName -> surnameList.stream()
-                                .map(lastNameCombination -> new CandidateName(eachFirstName, lastNameCombination)))
+                largestAllowedName.firstNames().stream()
+                        .flatMap(firstName -> lastNameCombinations.stream()
+                                .map(lastNameCombination -> new CandidateName(firstName, lastNameCombination)))
                         .collect(toList())
         );
 
-        addFullNameIfNotAlreadyPresent(candidates, listOfFirstNames, listOfLastNames);
+        addFullNameIfNotAlreadyPresent(candidates, largestAllowedName);
 
         return candidates;
 
     }
 
-    private static boolean multiPart(String lastName) {
-        return lastName.trim().matches(".*\\s+.*");
-    }
+    private static void addMultiPartLastNameToCombination(List<String> lastNameCombinations, List<String> listOfLastNames) {
+        final int MIN_NAMES_FOR_MULTIPART = 3;
 
-    private static void addMultiPartSurnameToCombination(List<String> surnameCombinationList, List<String> listOfLastNames) {
-        if (listOfLastNames.size() > 2) {
-            surnameCombinationList.add(0, StringUtils.join(listOfLastNames, " "));
+        if (listOfLastNames.size() >= MIN_NAMES_FOR_MULTIPART) {
+            lastNameCombinations.add(0, StringUtils.join(listOfLastNames, " "));
         }
     }
 
-    private static void addFullNameIfNotAlreadyPresent(List<CandidateName> candidates, List<String> listOfFirstNames, List<String> listOfLastNames) {
-        CandidateName fullname = new CandidateName(
-                StringUtils.join(listOfFirstNames, " "),
-                StringUtils.join(listOfLastNames, " ")
-        );
-        if (!candidates.contains(fullname)) {
-            candidates.add(0, fullname);
+    private static void addFullNameIfNotAlreadyPresent(List<CandidateName> candidates, InputNames inputNames) {
+        CandidateName fullName = new CandidateName(inputNames.fullFirstName(), inputNames.fullLastName());
+
+        if (!candidates.contains(fullName)) {
+            candidates.add(0, fullName);
         }
     }
 
-    private static List<String> generateSurnameCombinations(List<String> listOfLastNames) {
-        return listOfLastNames.stream()
-                .filter(surname -> surname.length() < HMRC_SURNAME_LENGTH)
+    private static List<String> generateLastNameCombinations(List<String> lastNames) {
+        final Integer HMRC_SURNAME_LENGTH = 3;
+
+        return lastNames.stream()
+                .filter(lastName -> lastName.length() < HMRC_SURNAME_LENGTH)
                 .distinct()
-                .flatMap(surname1 -> listOfLastNames.stream()
-                        .filter(surname2 -> !surname1.equals(surname2))
-                        .map(surname2 -> surname1 + " " + surname2))
+                .flatMap(lastName1 -> lastNames.stream()
+                        .filter(lastName2 -> !lastName1.equals(lastName2))
+                        .map(lastName2 -> lastName1 + " " + lastName2))
                 .collect(Collectors.toList());
     }
-
-    private static List<String> removeInvalidItems(List<String> firstName, List<String> allowedItems) {
-        Set<String> availableItems = new HashSet<>(allowedItems);
-
-        return firstName.stream()
-                .filter(availableItems::contains)
-                .collect(toList());
-    }
-
 }

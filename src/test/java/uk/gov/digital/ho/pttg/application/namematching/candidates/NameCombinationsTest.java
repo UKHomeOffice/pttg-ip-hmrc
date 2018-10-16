@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.List;
 
@@ -20,12 +21,12 @@ public class NameCombinationsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldErrorIfNoName() {
-        nameCombinations.generateCandidates("", "");
+        nameCombinations.generateCandidates(new InputNames("", ""));
     }
 
     @Test
     public void shouldDuplicateSingleFirstName() {
-        List<CandidateName> names = nameCombinations.generateCandidates("Mono", "");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Mono", ""));
 
         assertThat("There should be a single name", names.size(), is(1));
         assertThat("The first name should be duplicated", names.get(0), is(new CandidateName("Mono", "Mono")));
@@ -33,7 +34,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldDuplicateSingleLastName() {
-        List<CandidateName> names = nameCombinations.generateCandidates("", "Mono");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("", "Mono"));
 
         assertThat("There should be a single name", names.size(), is(1));
         assertThat("The last name should be duplicated", names.get(0), is(new CandidateName("Mono", "Mono")));
@@ -41,7 +42,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldSwitchSingleFirstAndLastName() {
-        List<CandidateName> names = nameCombinations.generateCandidates("Arthur", "Bobbins");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur", "Bobbins"));
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(2));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "Bobbins")));
@@ -50,7 +51,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldTryAllCombinationsOfTwoFirstNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates("Arthur Brian", "Coates");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian", "Coates"));
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "Coates")));
@@ -63,7 +64,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldTryAllCombinationsOfThreeFirstNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates("Arthur Brian Chris", "Doom");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian Chris", "Doom"));
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(12));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "Doom")));
@@ -82,7 +83,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldTryAllCombinationsOfFourFirstNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates("Arthur Brian Chris Daniel", "Eccles");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian Chris Daniel", "Eccles"));
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(20));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "Eccles")));
@@ -109,7 +110,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldHandleExtraWhitespace() {
-        List<CandidateName> names = nameCombinations.generateCandidates(" Arthur   Brian   ", " Coates ");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames(" Arthur   Brian   ", " Coates "));
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "Coates")));
@@ -122,7 +123,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldHandleMultipleLastNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates("Arthur", "Brian Coates");
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur", "Brian Coates"));
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "Coates")));

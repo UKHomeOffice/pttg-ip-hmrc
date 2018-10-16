@@ -123,22 +123,22 @@ public class NameMatchingCandidatesServiceIT {
                 new CandidateName("B", "Van"),
                 new CandidateName("C", "Van"),
                 new CandidateName("D", "Van"),
-                new CandidateName("G", "Van"),
+                new CandidateName("E", "Van"),
                 new CandidateName("A", "Halen"),
                 new CandidateName("B", "Halen"),
                 new CandidateName("C", "Halen"),
                 new CandidateName("D", "Halen"),
-                new CandidateName("G", "Halen")
+                new CandidateName("E", "Halen")
         );
 
         for (CandidateName expectedCandidateName : expectedCandidateNames) {
             assertThat(containsHmrcEquivalentName(candidateNames, expectedCandidateName), is(true));
         }
 
-        assertThat(candidateNames.contains(new CandidateName("E", "Van")), is(false));
         assertThat(candidateNames.contains(new CandidateName("F", "Van")), is(false));
-        assertThat(candidateNames.contains(new CandidateName("E", "Halen")), is(false));
+        assertThat(candidateNames.contains(new CandidateName("G", "Van")), is(false));
         assertThat(candidateNames.contains(new CandidateName("F", "Halen")), is(false));
+        assertThat(candidateNames.contains(new CandidateName("G", "Halen")), is(false));
     }
 
     @Test
