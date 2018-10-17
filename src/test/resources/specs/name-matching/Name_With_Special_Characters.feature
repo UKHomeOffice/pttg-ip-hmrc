@@ -10,8 +10,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant with a hyphenated name
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Aaa        | Bb-Ccc    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Aaa        | Bb-Ccc    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa         |
       | Last name     | Bb-Ccc      |
@@ -27,8 +27,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant with a hyphenated name and surname
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Aa-Bbb     | Cc-Ddd    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Aa-Bbb     | Cc-Ddd    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Cc-Ddd      |
       | Last name     | Aa-Bbb      |
@@ -45,8 +45,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant with a hyphenated surname is matched when more than the original names are sent via the API
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Aaa        | Bb-       | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Aaa        | Bb-       | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa         |
       | Last name     | Bb- Ccc     |
@@ -62,8 +62,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant enters hyphen when name does not contain a hyphen
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Aaa        | Bb Ccc    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa         |
       | Last name     | Bb-Ccc      |
@@ -81,8 +81,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant enters hyphen when name does not contain a hyphen
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Bb         | Aaa       | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Bb         | Aaa       | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa         |
       | Last name     | Bb-Ccc      |
@@ -99,8 +99,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant with a name containing an apostrophe
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Aaa        | Bb'Ccc    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Aaa        | Bb'Ccc    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa         |
       | Last name     | Bb'Ccc      |
@@ -116,8 +116,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant enters apostrophe when name does not contain an apostrophe
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Aaa        | Bb Ccc    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa         |
       | Last name     | Bb'Ccc      |
@@ -135,8 +135,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant with multiple surnames containing one letter in the surname
     Given HMRC has the following individual records
-      | First name   | Last name   | Date of Birth | nino        |
-      | Joseph James | R De Bloggs | 1987-12-10    | SE 123456 B |
+      | First name   | Last name   | Date of Birth | nino      |
+      | Joseph James | R De Bloggs | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Joseph James |
       | Last name     | R De Bloggs  |
@@ -152,8 +152,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant with multiple surnames containing two letters in the surname
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Pas Alb    | De Fey    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Pas Alb    | De Fey    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Pas Alb     |
       | Last name     | R De Fey    |
@@ -172,8 +172,8 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
   @name_matching
   Scenario: Applicant is not matched with multiple surnames containing one letter name
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Pas Alb    | De Fey    | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Pas Alb    | De Fey    | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | R              |
       | Last name     | Pas Alb De Fey |

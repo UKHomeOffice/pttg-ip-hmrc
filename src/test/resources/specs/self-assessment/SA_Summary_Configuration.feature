@@ -11,8 +11,8 @@ Feature: Self Assessment Summary or Self Employment only configuration
 
   Scenario: Self Assessment summary is returned by default
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Adam       | Ball      | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Adam       | Ball      | 1987-12-10    | SE123456B |
 
     When the applicant submits the following data to the RPS service
       | First name    | Adam        |
@@ -24,8 +24,8 @@ Feature: Self Assessment Summary or Self Employment only configuration
 
   Scenario: Self Assessment self employment is returned when the configuration property is true
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Adam       | Ball      | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Adam       | Ball      | 1987-12-10    | SE123456B |
     And the service configuration is changed to self assessment summary
 
     When the applicant submits the following data to the RPS service
