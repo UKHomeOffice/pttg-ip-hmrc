@@ -77,6 +77,8 @@ configurations {
 
 dependencies {
 
+  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.16.12'
+
   compile group: 'org.springframework.boot',  name: 'spring-boot-starter-web'
   compile group: 'org.springframework.boot',  name: 'spring-boot-starter-jetty'
   compile group: 'org.springframework.boot',  name: 'spring-boot-starter-actuator'
@@ -96,7 +98,7 @@ dependencies {
   compile group: 'me.xuender', name: 'unidecode', version: '0.0.7'
 
   compileOnly group: 'org.springframework.boot',  name: 'spring-boot-devtools'
-  compileOnly 'org.projectlombok:lombok:1.16.12'
+  compileOnly group:  'org.projectlombok',            name: 'lombok',                     version: '1.16.12'
 
   testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
   testCompile group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.1u2'
