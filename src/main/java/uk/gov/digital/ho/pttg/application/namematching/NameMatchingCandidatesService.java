@@ -1,64 +1,38 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingFunctions.deduplicate;
+import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidateServiceFunctions.deduplicate;
 
 @Service
 public class NameMatchingCandidatesService {
-    private static final String NAME_SPLITTERS = "-'";
-    private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
 
-    private NameCombinations nameCombinations;
-    private MultipleLastNames multipleLastNames;
+    private NameMatchingCandidateGenerator nameCombinations;
+    private NameMatchingCandidateGenerator multipleLastNames;
+    private NameMatchingCandidateGenerator specialCharacters;
 
-    public NameMatchingCandidatesService(NameCombinations nameCombinations, MultipleLastNames multipleLastNames) {
+    public NameMatchingCandidatesService(NameMatchingCandidateGenerator nameCombinations, NameMatchingCandidateGenerator multipleLastNames, NameMatchingCandidateGenerator specialCharacters) {
         this.nameCombinations = nameCombinations;
         this.multipleLastNames = multipleLastNames;
+        this.specialCharacters = specialCharacters;
     }
 
-    public List<PersonName> generateCandidateNames(String firstName, String lastName) {
+    public List<CandidateName> generateCandidateNames(String firstNames, String lastNames) {
 
-        List<PersonName> candidates = new ArrayList<>();
+        List<CandidateName> candidates = new ArrayList<>();
 
-        candidates.addAll(multipleLastNames.generateCandidates(firstName, lastName));
-        candidates.addAll(nameCombinations.generateCandidates(firstName, lastName));
+        InputNames inputNames = new InputNames(firstNames, lastNames);
 
-        if (namesContainSplitters(firstName, lastName)) {
-            candidates.addAll(generateCandidatesWithSplitters(firstName, lastName));
-        }
+        candidates.addAll(multipleLastNames.generateCandidates(inputNames));
+        candidates.addAll(nameCombinations.generateCandidates(inputNames));
+        candidates.addAll(specialCharacters.generateCandidates(inputNames));
 
         return Collections.unmodifiableList(deduplicate(candidates));
     }
-
-    private static boolean namesContainSplitters(String firstName, String lastName) {
-        return StringUtils.containsAny(firstName, NAME_SPLITTERS) || StringUtils.containsAny(lastName, NAME_SPLITTERS);
-    }
-
-    private List<PersonName> generateCandidatesWithSplitters(String firstName, String lastName) {
-        Set<PersonName> candidateNames = new LinkedHashSet<>();
-
-        candidateNames.addAll(multipleLastNames.generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
-        candidateNames.addAll(multipleLastNames.generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
-        candidateNames.addAll(nameCombinations.generateCandidates(nameWithSplittersRemoved(firstName), nameWithSplittersRemoved(lastName)));
-        candidateNames.addAll(nameCombinations.generateCandidates(nameWithSplittersReplacedBySpaces(firstName), nameWithSplittersReplacedBySpaces(lastName)));
-
-        return Lists.newArrayList(candidateNames);
-    }
-
-    private static String nameWithSplittersRemoved(String name) {
-        return name.replaceAll(NAME_SPLITTER_REGEX, "");
-    }
-
-    private static String nameWithSplittersReplacedBySpaces(String name) {
-        return name.replaceAll(NAME_SPLITTER_REGEX, " ");
-    }
-
 
 }

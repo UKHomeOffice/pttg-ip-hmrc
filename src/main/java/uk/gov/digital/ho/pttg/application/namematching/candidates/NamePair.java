@@ -2,7 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import uk.gov.digital.ho.pttg.application.namematching.PersonName;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 
 import java.util.List;
 
@@ -15,14 +15,14 @@ class NamePair {
         return new NamePair(firstNameIndex, lastNameIndex);
     }
 
-    PersonName calculateName(List<String> names) {
+    CandidateName calculateName(List<String> names) {
         if (firstNameIndex > names.size() - 1) {
             throw new IllegalArgumentException(String.format("Cannot retrieve name in position %d from names %s", firstNameIndex, names.toString()));
         }
         if (lastNameIndex > names.size() - 1) {
             throw new IllegalArgumentException(String.format("Cannot retrieve name in position %d from names %s", lastNameIndex, names.toString()));
         }
-        return new PersonName(names.get(firstNameIndex), names.get(lastNameIndex));
+        return new CandidateName(names.get(firstNameIndex), names.get(lastNameIndex));
     }
 
 }

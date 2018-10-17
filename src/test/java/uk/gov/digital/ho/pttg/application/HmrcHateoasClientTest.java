@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
-import uk.gov.digital.ho.pttg.application.namematching.PersonName;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -70,7 +70,7 @@ public class HmrcHateoasClientTest {
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
         when(mockNameNormalizer.normalizeNames(any(Individual.class))).thenReturn(individual);
-        List<PersonName> defaultCandidateNames = Arrays.asList(new PersonName("somefirstname", "somelastname"), new PersonName("somelastname", "somefirstname"));
+        List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
         when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(defaultCandidateNames);
     }
 
@@ -436,7 +436,7 @@ public class HmrcHateoasClientTest {
         LocalDate anyDob = LocalDate.now();
         NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(Arrays.asList(new PersonName("Bob John", ".")));
+        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(Arrays.asList(new CandidateName("Bob John", ".")));
 
         Individual individual = new Individual("Bob John", ".", anyNino, anyDob);
         assertThat(nameNormalizer.normalizeNames(individual).getLastName()).isEqualTo("");
