@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -106,6 +107,7 @@ public class MultipleLastNamesFunctionsTest {
     }
     
     @Test
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void addFullNameIfNotAlreadyPresentNoSideEffects() {
         List<CandidateName> candidateNames = Collections.singletonList(new CandidateName("firstname1", "lastname1"));
 

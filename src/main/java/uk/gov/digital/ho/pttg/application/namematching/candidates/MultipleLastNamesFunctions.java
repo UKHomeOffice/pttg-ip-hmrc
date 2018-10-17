@@ -1,7 +1,5 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
@@ -9,7 +7,6 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
