@@ -173,8 +173,8 @@ public class NameMatchingSteps {
                                           .willReturn(aFailedMatchResponse()));
     }
 
-    @When("^the applicant submits the following data to the RPS service$")
-    public void theApplicantSubmitsTheFollowingDataToTheRPSService(DataTable dataTable) {
+    @When("^an income request is made with the following identity$")
+    public void anIncomeRequestIsMadeWithTheFollowingIdentity(DataTable dataTable) {
 
         Map<String, String> individualMap = dataTable.asMap(String.class, String.class);
         IndividualRow individualRow = IndividualRow.fromMap(individualMap);
@@ -207,8 +207,8 @@ public class NameMatchingSteps {
         ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
     }
 
-    @Then("^the footprint will try the following combination of names in order$")
-    public void theFootprintWillTryTheFollowingCombinationOfNamesInOrder(DataTable dataTable) {
+    @Then("^the following identities will be tried in this order$")
+    public void theFollowingIdentitiesWillBeTriedInThisOrder(DataTable dataTable) {
 
         List<Individual> individuals = dataTable.asList(IndividualRow.class)
                                                .stream()
