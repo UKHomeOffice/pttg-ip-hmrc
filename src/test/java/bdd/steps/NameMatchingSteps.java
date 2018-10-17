@@ -21,10 +21,12 @@ import net.serenitybdd.core.SessionMap;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
@@ -42,24 +44,22 @@ import java.util.regex.Pattern;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.jayway.restassured.RestAssured.given;
-import static java.time.format.DateTimeFormatter.ISO_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.time.format.DateTimeFormatter.*;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 
-//@RunWith(SpringRunner.class)
 @SuppressFBWarnings({
         "SE_NO_SERIALVERSIONID",
         "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"})
-//@SpringBootTest(classes = ServiceRunner.class,
-//        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-//        properties = {
-//        "pttg.audit.url=http://localhost:1111",
-//        "base.hmrc.url=http://localhost:2222",
-//        "base.hmrc.access.code.url=http://localhost:3333",
-//        "hmrc.sa.self-employment-only=false"
-//        })
-public class NameMatchingSteps extends SpringBootBaseIntegrationTest {
+@SpringBootTest(classes = ServiceRunner.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+        "pttg.audit.url=http://localhost:1111",
+        "base.hmrc.url=http://localhost:2222",
+        "base.hmrc.access.code.url=http://localhost:3333",
+        "hmrc.sa.self-employment-only=false"
+        })
+public class NameMatchingSteps {
     private static final String INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY = "IndividualMatchingResponse";
     private static final boolean IGNORE_JSON_ARRAY_ORDER = true;
     private static final boolean IGNORE_EXTRA_ELEMENTS = true;
@@ -157,16 +157,15 @@ public class NameMatchingSteps extends SpringBootBaseIntegrationTest {
 
             // Match json on NINO, DOB and with initials of name and surname only
             HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
-                                          .atPriority(1)
-//                                          .withRequestBody(matchingJsonPath("$.nino", equalTo(individual.getNino())))
-                                          .withRequestBody(matchingJsonPath("$.nino"))
-                                          .withRequestBody(matchingJsonPath("$.dateOfBirth"))
-                                            .withRequestBody(matchingJsonPath("$.firstName", matching(firstname.substring(0, nameIndex) + ".*")))
-//                                            .withRequestBody(matchingJsonPath("$.lastName", matching(lastname.substring(0, surnameIndex) + ".*")))
-                                                                    .willReturn(aResponse()
-                                                                        .withBody(buildMatchResponse())
-                                                                        .withStatus(HttpStatus.OK.value())
-                                                                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)));
+                                              .atPriority(1)
+                                              .withRequestBody(matchingJsonPath("$.nino", equalTo(individual.getNino())))
+                                              .withRequestBody(matchingJsonPath("$.dateOfBirth", equalTo(ISO_LOCAL_DATE.format(individual.getDateOfBirth()))))
+                                              .withRequestBody(matchingJsonPath("$.firstName", matching(firstname.substring(0, nameIndex) + ".*")))
+                                              .withRequestBody(matchingJsonPath("$.lastName", matching(lastname.substring(0, surnameIndex) + ".*")))
+                                              .willReturn(aResponse()
+                                                                  .withBody(buildMatchResponse())
+                                                                  .withStatus(HttpStatus.OK.value())
+                                                                  .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)));
         }
 
         HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
@@ -316,7 +315,7 @@ public class NameMatchingSteps extends SpringBootBaseIntegrationTest {
     }
 
     private void setupStubsForOtherHmrcCalls() throws IOException {
-        HMRC_MOCK_SERVICE.stubFor(get(urlMatching(String.format("$%s.*", INDIVIDUAL_MATCHING_ENDPOINT)))
+        HMRC_MOCK_SERVICE.stubFor(get(urlMatching(String.format("%s.*", INDIVIDUAL_MATCHING_ENDPOINT)))
                                           .willReturn(aResponse()
                                                               .withStatus(200)
                                                               .withHeader("Content-Type", "application/json")
