@@ -4,7 +4,7 @@ Feature: Name matching with 6 name strings
   @name_matching
   Scenario: applicant with 6 names is matched on the last combination
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
+      | First name | Last name | Date of Birth | nino      |
       | Fff        | Eee       | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa Bbb Ccc |
