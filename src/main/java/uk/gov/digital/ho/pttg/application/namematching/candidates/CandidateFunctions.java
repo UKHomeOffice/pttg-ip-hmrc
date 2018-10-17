@@ -1,4 +1,6 @@
-package uk.gov.digital.ho.pttg.application.namematching;
+package uk.gov.digital.ho.pttg.application.namematching.candidates;
+
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.List;
 import java.util.stream.Collectors;

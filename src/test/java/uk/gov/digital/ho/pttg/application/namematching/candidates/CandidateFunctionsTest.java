@@ -8,7 +8,7 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.digital.ho.pttg.application.namematching.CandidateFunctions.removeAdditionalNamesIfOverMax;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.CandidateFunctions.removeAdditionalNamesIfOverMax;
 
 @RunWith(JUnit4.class)
 public class CandidateFunctionsTest {

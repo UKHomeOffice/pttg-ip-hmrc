@@ -7,7 +7,7 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.ArrayList;
 import java.util.List;
 
-import static uk.gov.digital.ho.pttg.application.namematching.CandidateFunctions.removeAdditionalNamesIfOverMax;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.CandidateFunctions.removeAdditionalNamesIfOverMax;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.*;
 
 @Component
