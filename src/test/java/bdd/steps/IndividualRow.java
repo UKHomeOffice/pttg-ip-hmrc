@@ -2,6 +2,7 @@ package bdd.steps;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import static java.time.format.DateTimeFormatter.ISO_DATE;
 
 @AllArgsConstructor
 @Getter
+@Accessors(fluent = true)
 class IndividualRow {
 
     private String firstName;

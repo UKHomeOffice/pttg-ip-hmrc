@@ -181,10 +181,10 @@ public class NameMatchingSteps {
 
         LocalDate now = LocalDate.now();
         Map<String, String> requestBody = ImmutableMap.of(
-            "nino", individualRow.getNino(),
-            "firstName", individualRow.getFirstName(),
-            "lastName", individualRow.getLastName(),
-            "dateOfBirth", individualRow.getDateOfBirth(),
+            "nino", individualRow.nino(),
+            "firstName", individualRow.firstName(),
+            "lastName", individualRow.lastName(),
+            "dateOfBirth", individualRow.dateOfBirth(),
             "fromDate", now.format(ISO_DATE)
         );
 
