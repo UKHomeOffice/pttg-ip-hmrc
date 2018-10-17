@@ -252,12 +252,21 @@ public class NameMatchingSteps {
     }
 
     @And("^a Matched response will be returned from the service$")
-        public void aMatchedResponseWillBeReturnedFromTheService() {
+    public void aMatchedResponseWillBeReturnedFromTheService() {
 
         Response response = getIndividualMatchingResponse();
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode());
+    }
+
+    @And("^a Matched response will not be returned from the service$")
+    public void aMatchedResponseWillNotBeReturnedFromTheService() {
+
+        Response response = getIndividualMatchingResponse();
+
+        assertNotNull(response);
+        assertEquals(404, response.getStatusCode());
     }
 
     @And("^the self employment profit will be returned from the service$")
