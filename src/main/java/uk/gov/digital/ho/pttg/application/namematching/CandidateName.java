@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.StringUtils;
 
 @AllArgsConstructor
@@ -13,18 +12,14 @@ import org.apache.commons.lang3.StringUtils;
 @Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
-public class PersonName {
+public class CandidateName {
     private String firstName;
     private String lastName;
 
-    Pair<String, String> pair() {
-        return Pair.of(firstName, lastName);
-    }
-
-    PersonName hmrcNameMatchingEquivalent() {
+    CandidateName hmrcNameMatchingEquivalent() {
         String firstInitial = firstNLetters(1, this.firstName);
         String surnameStart = firstNLetters(3, this.lastName);
-        return new PersonName(firstInitial, surnameStart);
+        return new CandidateName(firstInitial, surnameStart);
     }
 
     private String firstNLetters(int n, String name) {

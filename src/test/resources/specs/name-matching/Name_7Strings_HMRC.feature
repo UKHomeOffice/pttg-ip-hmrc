@@ -23,8 +23,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with 7 names is matched in HMRC on the last combination
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Ggg        | Fff       | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Ggg        | Fff       | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa Bbb Ccc Ddd |
       | Last name     | Eee Fff Ggg     |
@@ -80,8 +80,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with 7 names is matched in HMRC after trying 34 name combinations
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Fff        | Ccc       | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Fff        | Ccc       | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa Bbb Ccc Ddd |
       | Last name     | Eee Fff Ggg     |
@@ -94,8 +94,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with 7 names and is not found in HMRC after trying all possible combinations
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Iii        | Fff       | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Iii        | Fff       | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Aaa Bbb Ccc Ddd |
       | Last name     | Eee Fff Ggg     |
@@ -108,8 +108,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with 7 names is matched in HMRC after trying 10 name combinations
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Gonzalo    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Gonzalo    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Ali Bob-Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
@@ -122,8 +122,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with a hyphenated name is matched in HMRC on the concatenated version of the name
     Given HMRC has the following individual records
-      | First name    | Last name | Date of Birth | nino        |
-      | BobChicharito | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name    | Last name | Date of Birth | nino      |
+      | BobChicharito | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Ali Bob-Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
@@ -135,8 +135,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with a hyphenated first name is matched in HMRC on the hyphenated version of the name
     Given HMRC has the following individual records
-      | First name     | Last name | Date of Birth | nino        |
-      | Bob-Chicharito | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name     | Last name | Date of Birth | nino      |
+      | Bob-Chicharito | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Ali Bob-Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
@@ -148,8 +148,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with a hyphenated last name is matched in HMRC on the hyphenated version of the name
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Bob        | El-Mohtar | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Bob        | El-Mohtar | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Bob         |
       | Last name     | El-Mohtar   |
@@ -162,8 +162,8 @@ Feature: Name matching with 7 name strings
   @name_matching
   Scenario: Applicant with more than 7 names only uses the first 4 and the last 3 names for matching in HMRC
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Ali Bob Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |

@@ -2,8 +2,8 @@ Feature: Name matching does not attempt matches that are duplicates from HMRC's 
 
   Scenario: First names starting with same letter does not produce duplicate matching calls to HMRC.
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Bert       | Evans     | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Bert       | Evans     | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Alex Andrew |
       | Last name     | Evans       |
@@ -20,8 +20,8 @@ Feature: Name matching does not attempt matches that are duplicates from HMRC's 
 
   Scenario: Surnames with same first three letters does not produce duplicate matching calls to HMRC.
     Given HMRC has the following individual records
-      | First name | Last name   | Date of Birth | nino        |
-      | Bert       | Smith Terry | 1987-12-10    | SE 123456 B |
+      | First name | Last name   | Date of Birth | nino      |
+      | Bert       | Smith Terry | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Bert             |
       | Last name     | Roberts Robinson |
