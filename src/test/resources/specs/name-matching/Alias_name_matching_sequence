@@ -94,7 +94,7 @@ Feature: name sequence when making calls
       | nino          | SE 123456 B |
     Then the footprint will try the following combination of names in order
       | First name  | Last name | Date of Birth | nino        |
-      | Aaa Bbb Ccc | Ddd Eee   | 1987-12-10    | SE 123456 B | # Check
+      | Aaa Bbb Ccc | Ddd Eee   | 1987-12-10    | SE 123456 B |
       | Aaa         | Eee       | 1987-12-10    | SE 123456 B |
       | Bbb         | Eee       | 1987-12-10    | SE 123456 B |
       | Ccc         | Eee       | 1987-12-10    | SE 123456 B |
