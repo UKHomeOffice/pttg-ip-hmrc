@@ -60,7 +60,7 @@ public class HmrcResourceTest {
     @Test
     public void shouldUseCollaborators() {
 
-        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, null));
 
         verify(mockNinoUtils).sanitise(NINO);
         verify(mockIncomeSummaryService).getIncomeSummary(captorIndividual.capture(), eq(FROM_DATE), eq(TO_DATE));
@@ -73,7 +73,7 @@ public class HmrcResourceTest {
 
     @Test
     public void shouldProduceIncomeSummary() {
-        IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        IncomeSummary actualIncomeSummary = hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, null));
 
         assertThat(actualIncomeSummary).isEqualTo(mockIncomeSummary);
     }
@@ -81,7 +81,7 @@ public class HmrcResourceTest {
     @Test
     public void shouldLogWhenRequestReceived() {
 
-        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, null));
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
@@ -94,7 +94,7 @@ public class HmrcResourceTest {
     @Test
     public void shouldLogResponseSuccess() {
 
-        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE));
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, null));
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
