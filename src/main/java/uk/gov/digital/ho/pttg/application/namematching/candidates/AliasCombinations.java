@@ -18,11 +18,11 @@ public class AliasCombinations implements NameMatchingCandidateGenerator {
             return candidateNames;
         }
 
-        candidateNames.addAll(nonAliasFirstNamesAndLastNameCombinations(inputNames.allNonAliasNames(), inputNames.lastNames()));
+        candidateNames.addAll(nonAliasFirstNamesAndLastNameCombinations(inputNames));
 
-        candidateNames.addAll(nonAliasFirstAliasLastCombinations(inputNames.allNonAliasNames(), inputNames.aliasSurnames()));
+        candidateNames.addAll(nonAliasFirstAliasLastCombinations(inputNames));
 
-        candidateNames.addAll(firstNameCombinations(inputNames.firstNames()));
+        candidateNames.addAll(firstNameCombinations(inputNames));
 
         candidateNames.addAll(nonAliasSurnameAsFirstNameCombinations(inputNames));
 

@@ -14,7 +14,6 @@ public class AliasCombinationsTest {
 
     private AliasCombinations aliasCombinations = new AliasCombinations();
 
-
     @Test
     public void shouldReturnEmptyListWhenNoAliasSurnames() {
         InputNames inputNamesWithoutAlias = new InputNames("A B", "C", "");

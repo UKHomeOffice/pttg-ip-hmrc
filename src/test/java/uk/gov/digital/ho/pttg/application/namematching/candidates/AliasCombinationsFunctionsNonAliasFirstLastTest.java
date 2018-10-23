@@ -2,6 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.junit.Test;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.List;
 
@@ -12,38 +13,41 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinationsFunctions.nonAliasFirstNamesAndLastNameCombinations;
 
 public class AliasCombinationsFunctionsNonAliasFirstLastTest {
+
     @Test
     public void shouldReturnEmptyListForEmptyInputs() {
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(emptyList(), emptyList())).isEqualTo(emptyList());
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(singletonList("somename"), emptyList())).isEqualTo(emptyList());
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(emptyList(), singletonList("somename"))).isEqualTo(emptyList());
+        InputNames allEmpty = new InputNames("", "", "");
+        InputNames emptyFirstName = new InputNames("", "somename", "somename");
+        InputNames emptyLastName = new InputNames("somename", "", "somename");
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(allEmpty)).isEqualTo(emptyList());
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(emptyFirstName)).isEqualTo(emptyList());
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(emptyLastName)).isEqualTo(emptyList());
     }
 
     @Test
     public void combinationsForOneFirstNameOneLastName() {
-        List<String> lastNames = singletonList("Smith");
-        List<String> allNames = asList("John", "Smith");
+        InputNames inputNames = new InputNames("John", "Smith");
+
         List<CandidateName> expected = singletonList(new CandidateName("John", "Smith"));
 
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(inputNames)).isEqualTo(expected);
     }
 
     @Test
     public void combinationsForTwoFirstNameOneLastName() {
-        List<String> lastNames = singletonList("Smith");
-        List<String> allNames = asList("John", "David", "Smith");
+        InputNames inputNames = new InputNames("John David", "Smith");
         List<CandidateName> expected = asList(
                 new CandidateName("John", "Smith"),
                 new CandidateName("David", "Smith")
         );
 
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(inputNames)).isEqualTo(expected);
     }
 
     @Test
     public void combinationsForOneFirstNameTwoLastNames() {
-        List<String> lastNames = asList("Smith", "Evans");
-        List<String> allNames = asList("John", "Smith", "Evans");
+        InputNames inputNames = new InputNames("John", "Smith Evans");
+
         List<CandidateName> expected = asList(
                 new CandidateName("John", "Evans"),
                 new CandidateName("Smith", "Evans"),
@@ -51,13 +55,13 @@ public class AliasCombinationsFunctionsNonAliasFirstLastTest {
                 new CandidateName("Evans", "Smith")
         );
 
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(inputNames)).isEqualTo(expected);
     }
 
     @Test
     public void combinationsForTwoFirstNamesTwoLastName() {
-        List<String> lastNames = asList("Smith", "Evans");
-        List<String> allNames = asList("John", "David", "Smith", "Evans");
+        InputNames inputNames = new InputNames("John David", "Smith Evans");
+
         List<CandidateName> expected = asList(
                 new CandidateName("John", "Evans"),
                 new CandidateName("David", "Evans"),
@@ -67,6 +71,6 @@ public class AliasCombinationsFunctionsNonAliasFirstLastTest {
                 new CandidateName("Evans", "Smith")
         );
 
-        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(inputNames)).isEqualTo(expected);
     }
 }
