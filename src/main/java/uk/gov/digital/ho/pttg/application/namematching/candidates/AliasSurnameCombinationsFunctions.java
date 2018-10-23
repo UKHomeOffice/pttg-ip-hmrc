@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,4 +43,18 @@ class AliasSurnameCombinationsFunctions {
         }
         return candidateNames;
     }
+
+
+    static List<CandidateName> nonAliasSurnameAsFirstNameCombinations(InputNames inputNames) {
+        List<CandidateName> candidateNames = new ArrayList<>();
+
+        for (String lastName : inputNames.lastNames()) {
+            for (String otherName : removeName(lastName, inputNames.allNonAliasNames())) {
+                candidateNames.add(new CandidateName(lastName, otherName));
+            }
+        }
+        
+        return candidateNames;
+    }
+
 }

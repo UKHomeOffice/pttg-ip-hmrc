@@ -26,11 +26,7 @@ public class AliasSurnameCombinations implements NameMatchingCandidateGenerator 
 
         candidateNames.addAll(firstNameCombinations(inputNames.firstNames()));
 
-        for (String lastName : inputNames.lastNames()) {
-            for (String otherName : removeName(lastName, inputNames.allNonAliasNames())) {
-                candidateNames.add(new CandidateName(lastName, otherName));
-            }
-        }
+        candidateNames.addAll(nonAliasSurnameAsFirstNameCombinations(inputNames));
 
         for (String aliasSurname : inputNames.aliasSurnames()) {
             for (String nonAliasName : removeName(aliasSurname, inputNames.allNames())) {

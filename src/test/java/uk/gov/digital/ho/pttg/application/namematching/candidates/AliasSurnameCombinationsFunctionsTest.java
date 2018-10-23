@@ -2,6 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.junit.Test;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.List;
 
@@ -128,5 +129,67 @@ public class AliasSurnameCombinationsFunctionsTest {
         );
 
         assertThat(firstNameCombinations(firstNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasSurnameAsFirstNameCombinationsShouldReturnEmptyListForEmptyInput() {
+        InputNames emptyInputNames = new InputNames(emptyList(), emptyList());
+        assertThat(nonAliasSurnameAsFirstNameCombinations(emptyInputNames)).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void nonAliasSurnameAsFirstNameCombinationsShouldReturnEmptyListForSingleInputName() {
+        InputNames oneFirstNameOnly = new InputNames(singletonList("somename"), emptyList());
+        InputNames oneLastNameOnly = new InputNames(emptyList(), singletonList("somename"));
+
+        assertThat(nonAliasSurnameAsFirstNameCombinations(oneFirstNameOnly)).isEqualTo(emptyList());
+        assertThat(nonAliasSurnameAsFirstNameCombinations(oneLastNameOnly)).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void nonAliasSurnameAsFirstNameCombinationsForOneFirstNameOneLastName() {
+        InputNames inputNames = new InputNames("John", "Smith");
+        List<CandidateName> expected = singletonList(new CandidateName("Smith", "John"));
+
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasSurnameAsFirstNameCombinationsForTwoFirstNamesOneLastName() {
+        InputNames inputNames = new InputNames("John David", "Smith");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "David")
+        );
+
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasSurnameAsFirstNameCombinationsForOneFirstNameTwoLastNames() {
+        InputNames inputNames = new InputNames("John", "Smith Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("Evans", "John"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasSurnameAsFirstNameCombinationsForTwoFirstNamesTwoLastNames() {
+        InputNames inputNames = new InputNames("John David", "Smith Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "David"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("Evans", "John"),
+                new CandidateName("Evans", "David"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
     }
 }
