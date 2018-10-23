@@ -68,9 +68,11 @@ public class RequestHeaderData implements HandlerInterceptor {
         String correlationId = request.getHeader(CORRELATION_ID_HEADER);
         if(StringUtils.isBlank(correlationId)) {
             correlationId = UUID.randomUUID().toString();
+            MDC.put(CORRELATION_ID_HEADER, correlationId);
             log.info("Generated new correlation id as not passed in request header", value(EVENT, HMRC_SERVICE_GENERATED_CORRELATION_ID));
+        } else {
+            MDC.put(CORRELATION_ID_HEADER, correlationId);
         }
-        MDC.put(CORRELATION_ID_HEADER, correlationId);
     }
 
     private void initialiseUserName(HttpServletRequest request) {
