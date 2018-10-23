@@ -4,26 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
 import static uk.gov.digital.ho.pttg.application.SpringConfiguration.initialiseObjectMapper;
 
 public class IncomeDataRequestTest {
-
-    private final static String DEFAULT_JSON_REQUEST = "template/IncomeDataRequest/basic-request.json";
 
     private ObjectMapper objectMapper;
 
@@ -38,14 +31,14 @@ public class IncomeDataRequestTest {
 
     @Test
     public void shouldDeserializeRequest() throws Exception {
-        File request = ResourceUtils.getFile(String.format("classpath:%s", DEFAULT_JSON_REQUEST));
+        String request = getDefaultRequest();
 
         IncomeDataRequest incomeDataRequest = objectMapper.readValue(request, IncomeDataRequest.class);
 
         assertThat(incomeDataRequest).isNotNull();
         assertThat(incomeDataRequest.firstName()).isEqualTo("some first name");
         assertThat(incomeDataRequest.lastName()).isEqualTo("some last name");
-        assertThat(incomeDataRequest.nino()).isEqualTo("EE123456E");
+        assertThat(incomeDataRequest.nino()).isEqualTo("AA123456A");
         assertThat(incomeDataRequest.dateOfBirth()).isEqualTo(LocalDate.of(1991, 2, 3));
         assertThat(incomeDataRequest.fromDate()).isEqualTo(LocalDate.of(2013, 4, 5));
         assertThat(incomeDataRequest.toDate()).isEqualTo(LocalDate.of(2018, 6, 7));
@@ -54,7 +47,7 @@ public class IncomeDataRequestTest {
 
     @Test
     public void shouldDeserializeRequestWithoutAliases() throws Exception {
-        File request = ResourceUtils.getFile("classpath:template/IncomeDataRequest/request-no-alias.json");
+        String request = getRequestWithoutAlias();
 
         IncomeDataRequest incomeDataRequest = objectMapper.readValue(request, IncomeDataRequest.class);
 
@@ -65,7 +58,7 @@ public class IncomeDataRequestTest {
 
     @Test
     public void shouldDeserializeRequestWithNullAlias() throws Exception {
-        File request = ResourceUtils.getFile("classpath:template/IncomeDataRequest/request-null-alias.json");
+        String request = getRequestWithNullAlias();
 
         IncomeDataRequest incomeDataRequest = objectMapper.readValue(request, IncomeDataRequest.class);
 
@@ -222,43 +215,5 @@ public class IncomeDataRequestTest {
         expectedException.expectMessage("toDate");
 
         objectMapper.readValue(request, IncomeDataRequest.class);
-    }
-
-    private String getRequestAndRemoveLineWithKey(String key) throws IOException {
-        return getDefaultRequestLines().stream()
-                .filter(s -> !s.contains(String.format("\"%s\":", key)))
-                .collect(Collectors.joining());
-    }
-
-    private String getRequestAndReplaceValueWithNull(String key) throws IOException {
-        return getDefaultRequestLines().stream()
-                .map(s -> {
-                    if(s.contains(String.format("\"%s\":", key))) {
-                        return String.format("  \"%s\": null,", key);
-                    } else {
-                        return s;
-                    }
-                }).collect(Collectors.joining());
-    }
-
-    private String getRequestAndReplaceValue(String key, String newValue) throws IOException {
-        return getDefaultRequestLines().stream()
-                .map(s -> {
-                    if(s.contains(String.format("\"%s\":", key))) {
-                        return String.format("  \"%s\": \"%s\",", key, newValue);
-                    } else {
-                        return s;
-                    }
-                }).collect(Collectors.joining());
-    }
-
-    private List<String> getDefaultRequestLines() throws IOException {
-        File requestFile = getDefaultRequest();
-
-        return FileUtils.readLines(requestFile, Charset.defaultCharset());
-    }
-
-    private File getDefaultRequest() throws IOException {
-        return ResourceUtils.getFile(String.format("classpath:%s", DEFAULT_JSON_REQUEST));
     }
 }
