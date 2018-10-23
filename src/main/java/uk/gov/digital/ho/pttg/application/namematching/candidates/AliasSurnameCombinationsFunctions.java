@@ -30,4 +30,16 @@ class AliasSurnameCombinationsFunctions {
 
         return candidateNames;
     }
+
+
+    static List<CandidateName> firstNameCombinations(List<String> firstNames) {
+        List<CandidateName> candidateNames = new ArrayList<>();
+
+        for (String firstName : firstNames) {
+            for (String otherFirstName : removeName(firstName, firstNames)) {
+                candidateNames.add(new CandidateName(firstName, otherFirstName));
+            }
+        }
+        return candidateNames;
+    }
 }

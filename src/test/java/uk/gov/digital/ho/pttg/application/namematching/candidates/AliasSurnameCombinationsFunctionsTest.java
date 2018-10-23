@@ -9,8 +9,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.nonAliasFirstAliasLastCombinations;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.removeName;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.*;
 
 public class AliasSurnameCombinationsFunctionsTest {
 
@@ -95,4 +94,39 @@ public class AliasSurnameCombinationsFunctionsTest {
         assertThat(actualCandidateName).isEqualTo(expectedCandidateName);
     }
 
+    @Test
+    public void firstNameCombinationsForEmptyListShouldReturnEmptyList() {
+        assertThat(firstNameCombinations(emptyList())).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void firstNameCombinationsForOneNameShouldReturnEmptyList() {
+        assertThat(firstNameCombinations(singletonList("John"))).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void firstNameCombinationsForTwoNamesShouldReturnCombinations() {
+        List<String> firstNames = asList("John", "David");
+        List<CandidateName> expected = asList(
+                new CandidateName("John", "David"),
+                new CandidateName("David", "John")
+        );
+
+        assertThat(firstNameCombinations(firstNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void firstNameCombinationsForThreeNamesShouldReturnCombinations() {
+        List<String> firstNames = asList("John", "David", "Greg");
+        List<CandidateName> expected = asList(
+                new CandidateName("John", "David"),
+                new CandidateName("John", "Greg"),
+                new CandidateName("David", "John"),
+                new CandidateName("David", "Greg"),
+                new CandidateName("Greg", "John"),
+                new CandidateName("Greg", "David")
+        );
+
+        assertThat(firstNameCombinations(firstNames)).isEqualTo(expected);
+    }
 }
