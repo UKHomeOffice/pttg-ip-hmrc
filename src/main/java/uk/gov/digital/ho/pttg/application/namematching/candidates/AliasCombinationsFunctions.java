@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-final class AliasSurnameCombinationsFunctions {
+final class AliasCombinationsFunctions {
 
-    private AliasSurnameCombinationsFunctions() {
+    private AliasCombinationsFunctions() {
         throw new UnsupportedOperationException("Helper class for AliasSurnameCombinationsFunctions containing only static methods - no need to instantiate.");
     }
 
@@ -19,7 +19,7 @@ final class AliasSurnameCombinationsFunctions {
         return filteredNames;
     }
 
-    static List<CandidateName> nonAliasFirstAliasLastCombinations(List<String> nonAliasNames, List<String> aliasSurnames) {
+    static List<CandidateName> nonAliasFirstAliasLastCombinations(List<String> nonAliasNames, List<String> aliasSurnames) { // TODO OJR 2018/10/23 Change input to be InputNames
         List<CandidateName> candidateNames = new ArrayList<>();
 
         List<String> reversedAliasSurnames = new ArrayList<>(aliasSurnames);
@@ -35,7 +35,7 @@ final class AliasSurnameCombinationsFunctions {
     }
 
 
-    static List<CandidateName> firstNameCombinations(List<String> firstNames) {
+    static List<CandidateName> firstNameCombinations(List<String> firstNames) {// TODO OJR 2018/10/23 Change input to be InputNames
         List<CandidateName> candidateNames = new ArrayList<>();
 
         for (String firstName : firstNames) {
@@ -58,6 +58,7 @@ final class AliasSurnameCombinationsFunctions {
 
         return candidateNames;
     }
+
     static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames inputNames) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
@@ -69,7 +70,7 @@ final class AliasSurnameCombinationsFunctions {
         return candidateNames;
     }
 
-    static List<CandidateName> nonAliasFirstNamesAndLastNameCombinations(List<String> allNonAliasNames, List<String> lastNames) {
+    static List<CandidateName> nonAliasFirstNamesAndLastNameCombinations(List<String> allNonAliasNames, List<String> lastNames) {// TODO OJR 2018/10/23 Change input to be InputNames
         List<CandidateName> candidateNames = new ArrayList<>();
 
         List<String> reversedLastNames = new ArrayList<>(lastNames);

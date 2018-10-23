@@ -5,9 +5,8 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.*;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinationsFunctions.*;
 
 public class AliasCombinations implements NameMatchingCandidateGenerator {
 
