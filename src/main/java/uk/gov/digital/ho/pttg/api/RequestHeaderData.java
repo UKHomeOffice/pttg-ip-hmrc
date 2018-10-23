@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.api;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
+
+@Slf4j
 @Component
 public class RequestHeaderData implements HandlerInterceptor {
 
@@ -30,9 +36,9 @@ public class RequestHeaderData implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
         MDC.clear();
-        MDC.put(SESSION_ID_HEADER, initialiseSessionId(request));
-        MDC.put(CORRELATION_ID_HEADER, initialiseCorrelationId(request));
-        MDC.put(USER_ID_HEADER, initialiseUserName(request));
+        initialiseSessionId(request);
+        initialiseCorrelationId(request);
+        initialiseUserName(request);
         MDC.put("userHost", request.getRemoteHost());
 
         return true;
@@ -50,19 +56,29 @@ public class RequestHeaderData implements HandlerInterceptor {
         MDC.clear();
     }
 
-    private String initialiseSessionId(HttpServletRequest request) {
+    private void initialiseSessionId(HttpServletRequest request) {
         String sessionId = request.getHeader(SESSION_ID_HEADER);
-        return StringUtils.isNotBlank(sessionId) ? sessionId : "unknown";
+        if(StringUtils.isBlank(sessionId)) {
+            sessionId = "unknown";
+        }
+        MDC.put(SESSION_ID_HEADER, sessionId);
     }
 
-    private String initialiseCorrelationId(HttpServletRequest request) {
+    private void initialiseCorrelationId(HttpServletRequest request) {
         String correlationId = request.getHeader(CORRELATION_ID_HEADER);
-        return StringUtils.isNotBlank(correlationId) ? correlationId : UUID.randomUUID().toString();
+        if(StringUtils.isBlank(correlationId)) {
+            correlationId = UUID.randomUUID().toString();
+            log.info("Generated new correlation id as not passed in request header", value(EVENT, HMRC_SERVICE_GENERATED_CORRELATION_ID));
+        }
+        MDC.put(CORRELATION_ID_HEADER, correlationId);
     }
 
-    private String initialiseUserName(HttpServletRequest request) {
+    private void initialiseUserName(HttpServletRequest request) {
         String userId = request.getHeader(USER_ID_HEADER);
-        return StringUtils.isNotBlank(userId) ? userId : "anonymous";
+        if(StringUtils.isBlank(userId)) {
+            userId = "unknown";
+        }
+        MDC.put(USER_ID_HEADER, userId);
     }
 
     public String deploymentName() {
