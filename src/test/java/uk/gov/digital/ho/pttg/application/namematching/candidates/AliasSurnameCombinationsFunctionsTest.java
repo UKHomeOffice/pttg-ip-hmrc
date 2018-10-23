@@ -170,9 +170,7 @@ public class AliasSurnameCombinationsFunctionsTest {
         InputNames inputNames = new InputNames("John", "Smith Evans");
         List<CandidateName> expected = asList(
                 new CandidateName("Smith", "John"),
-                new CandidateName("Smith", "Evans"),
-                new CandidateName("Evans", "John"),
-                new CandidateName("Evans", "Smith")
+                new CandidateName("Evans", "John")
         );
 
         assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
@@ -184,10 +182,8 @@ public class AliasSurnameCombinationsFunctionsTest {
         List<CandidateName> expected = asList(
                 new CandidateName("Smith", "John"),
                 new CandidateName("Smith", "David"),
-                new CandidateName("Smith", "Evans"),
                 new CandidateName("Evans", "John"),
-                new CandidateName("Evans", "David"),
-                new CandidateName("Evans", "Smith")
+                new CandidateName("Evans", "David")
         );
 
         assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
@@ -271,5 +267,63 @@ public class AliasSurnameCombinationsFunctionsTest {
         );
 
         assertThat(aliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasFirstNamesAndLastNameCombinationsShouldReturnEmptyListForEmptyInputs() {
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(emptyList(), emptyList())).isEqualTo(emptyList());
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(singletonList("somename"), emptyList())).isEqualTo(emptyList());
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(emptyList(), singletonList("somename"))).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void nonAliasFirstNamesAndLastNameCombinationsForOneFirstNameOneLastName() {
+        List<String> lastNames = singletonList("Smith");
+        List<String> allNames = asList("John", "Smith");
+        List<CandidateName> expected = singletonList(new CandidateName("John", "Smith"));
+
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasFirstNamesAndLastNameCombinationsForTwoFirstNameOneLastName() {
+        List<String> lastNames = singletonList("Smith");
+        List<String> allNames = asList("John", "David", "Smith");
+        List<CandidateName> expected = asList(
+                new CandidateName("John", "Smith"),
+                new CandidateName("David", "Smith")
+        );
+
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasFirstNamesAndLastNameCombinationsForOneFirstNameTwoLastNames() {
+        List<String> lastNames = asList("Smith", "Evans");
+        List<String> allNames = asList("John", "Smith", "Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("John", "Evans"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("John", "Smith"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void nonAliasFirstNamesAndLastNameCombinationsForTwoFirstNamesTwoLastName() {
+        List<String> lastNames = asList("Smith", "Evans");
+        List<String> allNames = asList("John", "David", "Smith", "Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("John", "Evans"),
+                new CandidateName("David", "Evans"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("John", "Smith"),
+                new CandidateName("David", "Smith"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(nonAliasFirstNamesAndLastNameCombinations(allNames, lastNames)).isEqualTo(expected);
     }
 }
