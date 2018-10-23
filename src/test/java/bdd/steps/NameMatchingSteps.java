@@ -23,7 +23,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.ServiceRunner;
@@ -38,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +46,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static com.jayway.restassured.RestAssured.given;
 import static java.time.format.DateTimeFormatter.*;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import static org.apache.http.HttpStatus.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressFBWarnings({
         "SE_NO_SERIALVERSIONID",
@@ -164,7 +165,7 @@ public class NameMatchingSteps {
                                               .withRequestBody(matchingJsonPath("$.lastName", matching(lastname.substring(0, surnameIndex) + ".*")))
                                               .willReturn(aResponse()
                                                                   .withBody(buildMatchResponse())
-                                                                  .withStatus(HttpStatus.OK.value())
+                                                                  .withStatus(SC_OK)
                                                                   .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)));
         }
 
@@ -220,7 +221,7 @@ public class NameMatchingSteps {
         int numberOfExpectedRequests = individuals.size();
         int numberOfActualRequests = matchingRequestsInOrder.size();
 
-        assertEquals("Unexpected number of requests to HMRC Individual Matching", numberOfExpectedRequests, numberOfActualRequests);
+        assertThat(numberOfExpectedRequests).isEqualTo(numberOfActualRequests);
 
         AtomicInteger index = new AtomicInteger(0);
 
@@ -239,12 +240,7 @@ public class NameMatchingSteps {
         String requestBody = loggedRequest.getBodyAsString();
         boolean exactMatch = stringValuePattern.match(requestBody).isExactMatch();
 
-        assertTrue(
-                String.format("Expected request with names: {First name:%s,Last name: %s}, Actual request: %s",
-                        expectedIndividual.getFirstName(),
-                        expectedIndividual.getLastName(),
-                        requestBody),
-                exactMatch);
+        assertThat(exactMatch).isTrue();
     }
 
     private static List<LoggedRequest> getIndividualMatchingRequestsInOrder() {
@@ -256,8 +252,8 @@ public class NameMatchingSteps {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode());
+        assertThat(response).isNotNull();
+        assertThat(200).isEqualTo(response.getStatusCode());
     }
 
     @And("^a Matched response will not be returned from the service$")
@@ -265,8 +261,8 @@ public class NameMatchingSteps {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
-        assertEquals(404, response.getStatusCode());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(SC_NOT_FOUND);
     }
 
     @And("^the self employment profit will be returned from the service$")
@@ -274,10 +270,10 @@ public class NameMatchingSteps {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
+        assertThat(response).isNotNull();
         JsonPath jsonPath = new JsonPath(response.asString());
-        assertEquals(10500, jsonPath.getInt("selfAssessment[1].selfEmploymentProfit"));
-        assertEquals(200, response.getStatusCode());
+        assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(10500);
+        assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
     @And("^the summary income will be returned from the service$")
@@ -285,15 +281,15 @@ public class NameMatchingSteps {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
+        assertThat(response).isNotNull();
         JsonPath jsonPath = new JsonPath(response.asString());
-        assertEquals(30000, jsonPath.getInt("selfAssessment[1].summaryIncome"));
-        assertEquals(200, response.getStatusCode());
+        assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(30000);
+        assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
     private static ResponseDefinitionBuilder aFailedMatchResponse() {
         return aResponse()
-                .withStatus(HttpStatus.FORBIDDEN.value())
+                .withStatus(SC_FORBIDDEN)
                 .withBody("{ \"code\":\"MATCHING_FAILED\",\"message\":\"There is no match for the information provided\"}")
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
     }
@@ -301,15 +297,73 @@ public class NameMatchingSteps {
     @And("^HMRC was called (\\d+) times$")
     public void hmrcWasCalledTimes(int numberOfCalls) {
         List<LoggedRequest> matchingRequests = getIndividualMatchingRequestsInOrder();
-        assertEquals(numberOfCalls, matchingRequests.size());
+        assertThat(matchingRequests.size()).isEqualTo(numberOfCalls);
     }
 
     @Then("^a not matched response is returned$")
     public void aNotMatchedResponseIsReturned() {
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
-        assertEquals(404, response.getStatusCode());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(SC_NOT_FOUND);
+    }
+
+
+    @Then("^the following words will be used for the first part of the last name$")
+    public void theFollowingWordsWillBeUsedForTheFirstPartOfTheLastName(DataTable dataTable) {
+
+        List<String> lastNames = dataTable.asList(String.class);
+        long matches = numberOfMatchingRequests(lastNames, this::jsonContainingLastNameOf);
+
+        assertThat(matches).isEqualTo(lastNames.size());
+    }
+
+    @Then("^the following names will be tried$")
+    public void theFollowingNamesWillBeTried(DataTable dataTable) {
+
+        List<IndividualRow> names = dataTable.asList(IndividualRow.class);
+        long matches = numberOfMatchingRequests(names, this::jsonContainingAllNamesOf);
+
+        assertThat(matches).isEqualTo(names.size());
+    }
+
+    @Then("^the following names will not be tried$")
+    public void theFollowingNamesWillNotBeTried(DataTable dataTable) {
+
+        List<IndividualRow> names = dataTable.asList(IndividualRow.class);
+        long matches = numberOfMatchingRequests(names, this::jsonContainingAllNamesOf);
+
+        assertThat(matches).isEqualTo(0);
+    }
+
+    private <T> long numberOfMatchingRequests(List<T> names, Function<T, String> requestMatcher) {
+
+        List<LoggedRequest> loggedRequests = getIndividualMatchingRequestsInOrder();
+
+        return names
+                   .stream()
+                   .map(requestMatcher)
+                   .map(nameJson -> equalToJson(nameJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
+                   .map(expectedNamePattern ->
+                                loggedRequests
+                                        .stream()
+                                        .map(LoggedRequest::getBodyAsString)
+                                        .anyMatch(requestBody -> expectedNamePattern.match(requestBody).isExactMatch()))
+                   .filter(m -> m)
+                   .count();
+    }
+
+    private String jsonContainingAllNamesOf(IndividualRow individualRow) {
+        return new JSONObject()
+                       .put("firstName", individualRow.firstName())
+                       .put("lastName", individualRow.lastName())
+                       .toString();
+    }
+
+    private String jsonContainingLastNameOf(String name) {
+        return new JSONObject()
+                       .put("lastName", name)
+                       .toString();
     }
 
     private Response getIndividualMatchingResponse() {
@@ -430,5 +484,4 @@ public class NameMatchingSteps {
         return loadJsonFile("incomeSASummaryResponse")
                        .replace("${matchId}", MATCH_ID);
     }
-
 }
