@@ -1,0 +1,8 @@
+{
+  "firstName": "some first name",
+  "lastName": "some last name",
+  "nino": "AA123456A",
+  "dateOfBirth": "1991-02-03",
+  "fromDate": "2013-04-05",
+  "toDate": "2018-06-07"
+}

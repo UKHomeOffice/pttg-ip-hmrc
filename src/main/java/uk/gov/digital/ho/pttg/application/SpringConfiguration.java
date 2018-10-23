@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.application;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -75,12 +76,13 @@ public class SpringConfiguration implements WebMvcConfigurer {
         this.supportedSslProtocols = supportedSslProtocols.toArray(new String[]{});
     }
 
-    private static void initialiseObjectMapper(final ObjectMapper mapper) {
+    public static void initialiseObjectMapper(final ObjectMapper mapper) {
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.registerModule(new Jackson2HalModule());
+        mapper.registerModule(new JavaTimeModule());
     }
 
     @Bean

@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
@@ -75,6 +76,12 @@ class ResourceExceptionHandler {
     @ExceptionHandler
     ResponseEntity handle(InvalidNationalInsuranceNumberException e) {
         log.error("Service called with invalid NINO: {}", e.getMessage(), value(EVENT, HMRC_SERVICE_RESPONSE_ERROR));
+        return new ResponseEntity<>(e.getMessage(), UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler
+    ResponseEntity handle(HttpMessageConversionException e) {
+        log.error("Failed to handle request due to: {}", e.getMessage(), value(EVENT, HMRC_SERVICE_RESPONSE_ERROR));
         return new ResponseEntity<>(e.getMessage(), UNPROCESSABLE_ENTITY);
     }
 }
