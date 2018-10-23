@@ -18,7 +18,7 @@ JIRA EE-9764
 
 
 
-    Scenario: Applicant with 5 original names and 3 aliases
+    Scenario: Applicant with 5 original names and 3 aliases and only using original names in the first name matching call
       Given HMRC has the following individual records
         | First name | Last name | Date of Birth | nino        |
         | Aaa        | Hhh       | 1987-12-10    | SE 123456 B |
