@@ -10,22 +10,22 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AliasSurnameCombinationsTest {
+public class AliasCombinationsTest {
 
-    private AliasSurnameCombinations aliasSurnameCombinations = new AliasSurnameCombinations();
+    private AliasCombinations aliasCombinations = new AliasCombinations();
 
 
     @Test
     public void shouldReturnEmptyListWhenNoAliasSurnames() {
         InputNames inputNamesWithoutAlias = new InputNames("A B", "C", "");
 
-        assertThat(aliasSurnameCombinations.generateCandidates(inputNamesWithoutAlias)).isEqualTo(emptyList());
+        assertThat(aliasCombinations.generateCandidates(inputNamesWithoutAlias)).isEqualTo(emptyList());
     }
 
     @Test
     public void shouldHaveCorrectSequenceFor2FirstNames1SurnameAnd1AliasSurname() {
         InputNames inputNames = new InputNames("A B", "C", "D");
-        List<CandidateName> candidateNames = aliasSurnameCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = aliasCombinations.generateCandidates(inputNames);
 
         assertThat(candidateNames).containsExactly(
                 new CandidateName("A", "C"),
@@ -46,7 +46,7 @@ public class AliasSurnameCombinationsTest {
     @Test
     public void shouldHaveCorrectSequenceFor3FirstNames1SurnameAnd1AliasSurname() {
         InputNames inputNames = new InputNames("A B C", "D", "E");
-        List<CandidateName> candidateNames = aliasSurnameCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = aliasCombinations.generateCandidates(inputNames);
 
         assertThat(candidateNames).containsExactly(
                 new CandidateName("A", "D"),
@@ -75,7 +75,7 @@ public class AliasSurnameCombinationsTest {
     @Test
     public void shouldHaveCorrectSequenceFor3FirstNames1SurnameAnd2AliasSurnames() {
         InputNames inputNames = new InputNames("A B C", "D", "E F");
-        List<CandidateName> candidateNames = aliasSurnameCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = aliasCombinations.generateCandidates(inputNames);
 
         assertThat(candidateNames).containsExactly(
                 new CandidateName("A", "D"),
@@ -114,7 +114,7 @@ public class AliasSurnameCombinationsTest {
     @Test
     public void shouldHaveCorrectSequenceFor3FirstNames1SurnameAnd3AliasSurnames() {
         InputNames inputNames = new InputNames("A B C", "D", "E F G");
-        List<CandidateName> candidateNames = aliasSurnameCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = aliasCombinations.generateCandidates(inputNames);
 
         assertThat(candidateNames).containsExactly(
                 new CandidateName("A", "D"),
@@ -165,7 +165,7 @@ public class AliasSurnameCombinationsTest {
     @Test
     public void shouldHaveCorrectSequenceFor3FirstNames1SurnameAnd4AliasSurnames() {
         InputNames inputNames = new InputNames("A B C", "D", "E F G H");
-        List<CandidateName> candidateNames = aliasSurnameCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = aliasCombinations.generateCandidates(inputNames);
 
         assertThat(candidateNames).containsExactly(
                 new CandidateName("A", "D"),
@@ -230,7 +230,7 @@ public class AliasSurnameCombinationsTest {
     @Test
     public void shouldHaveCorrectSequenceFor3FirstNames2SurnamesAnd3AliasSurnames() {
         InputNames inputNames = new InputNames("A B C", "D E", "F G H");
-        List<CandidateName> candidateNames = aliasSurnameCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = aliasCombinations.generateCandidates(inputNames);
 
         assertThat(candidateNames).isEqualTo(asList(
                 new CandidateName("A", "E"),

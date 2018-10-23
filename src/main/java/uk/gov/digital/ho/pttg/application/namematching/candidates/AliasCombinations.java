@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.*;
 
-public class AliasSurnameCombinations implements NameMatchingCandidateGenerator {
+public class AliasCombinations implements NameMatchingCandidateGenerator {
 
     @Override
     public List<CandidateName> generateCandidates(InputNames inputNames) {

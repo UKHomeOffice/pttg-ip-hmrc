@@ -12,7 +12,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.*;
 
-public class AliasSurnameCombinationsFunctionsTest {
+public class AliasCombinationsFunctionsTest {
 
     @Test
     public void removeNameFromEmptyListShouldReturnEmptyList() {
