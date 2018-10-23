@@ -7,7 +7,8 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
-import java.util.Objects;
+
+import static java.util.Objects.isNull;
 
 @Getter
 @Accessors(fluent = true)
@@ -58,7 +59,7 @@ class IncomeDataRequest {
         this.dateOfBirth = dateOfBirth;
         this.fromDate = fromDate;
         this.toDate = toDate;
-        this.aliasSurnames = Objects.isNull(aliasSurnames) ? "" : aliasSurnames;
+        this.aliasSurnames = isNull(aliasSurnames) ? "" : aliasSurnames;
     }
 
 }
