@@ -40,11 +40,14 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-        MDC.clear();
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        response.setHeader(SESSION_ID_HEADER, sessionId());
+        response.setHeader(USER_ID_HEADER, userId());
+        response.setHeader(CORRELATION_ID_HEADER, correlationId());
+        MDC.clear();
     }
 
     private String initialiseSessionId(HttpServletRequest request) {

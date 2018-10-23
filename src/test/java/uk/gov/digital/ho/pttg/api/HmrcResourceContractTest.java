@@ -14,12 +14,14 @@ import uk.gov.digital.ho.pttg.dto.Individual;
 import java.time.LocalDate;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -99,6 +101,70 @@ public class HmrcResourceContractTest {
                 .andExpect(status().isOk());
 
         verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3)), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
+    }
+
+    @Test
+    public void correlationIdShouldBeReturnedIfPassed() throws Exception {
+        mockMvc.perform(post("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getDefaultRequest())
+                .accept(MediaType.APPLICATION_JSON)
+                .header(CORRELATION_ID_HEADER, "some correlation id"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(CORRELATION_ID_HEADER, "some correlation id"));
+    }
+
+    @Test
+    public void correlationIdShouldBeGeneratedIfNotPassed() throws Exception {
+        mockMvc.perform(post("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getDefaultRequest())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(header().exists(CORRELATION_ID_HEADER))
+                .andExpect(header().string(CORRELATION_ID_HEADER, not(isEmptyString())));
+    }
+
+    @Test
+    public void sessionIdShouldBeReturnedIfPassed() throws Exception {
+        mockMvc.perform(post("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getDefaultRequest())
+                .accept(MediaType.APPLICATION_JSON)
+                .header(SESSION_ID_HEADER, "some session id"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(SESSION_ID_HEADER, "some session id"));
+    }
+
+    @Test
+    public void sessionIdShouldBeGeneratedIfNotPassed() throws Exception {
+        mockMvc.perform(post("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getDefaultRequest())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(header().string(SESSION_ID_HEADER, "unknown"));
+    }
+
+    @Test
+    public void userIdShouldBeReturnedIfPassed() throws Exception {
+        mockMvc.perform(post("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getDefaultRequest())
+                .accept(MediaType.APPLICATION_JSON)
+                .header(USER_ID_HEADER, "some user id"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(USER_ID_HEADER, "some user id"));
+    }
+
+    @Test
+    public void userIdShouldBeGeneratedIfNotPassed() throws Exception {
+        mockMvc.perform(post("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(getDefaultRequest())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(header().string(USER_ID_HEADER, "anonymous"));
     }
 
 }
