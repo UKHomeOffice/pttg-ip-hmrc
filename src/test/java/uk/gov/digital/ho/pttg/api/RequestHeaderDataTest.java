@@ -56,7 +56,7 @@ public class RequestHeaderDataTest {
         assertThat(requestData.deploymentNamespace()).isNull();
         assertThat(requestData.sessionId()).isEqualTo("unknown");
         assertThat(requestData.correlationId()).isNotNull();
-        assertThat(requestData.userId()).isEqualTo("anonymous");
+        assertThat(requestData.userId()).isEqualTo("unknown");
     }
 
     @Test

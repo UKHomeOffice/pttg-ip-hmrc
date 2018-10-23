@@ -3,12 +3,11 @@ package uk.gov.digital.ho.pttg.api;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
 import java.util.Objects;
-
-import static java.util.Objects.requireNonNull;
 
 @Getter
 @Accessors(fluent = true)
@@ -45,12 +44,12 @@ class IncomeDataRequest {
 
     @JsonCreator
     IncomeDataRequest(
-            @JsonProperty(value = FIRSTNAME_KEY, required = true) String firstName,
-            @JsonProperty(value = LASTNAME_KEY, required = true) String lastName,
-            @JsonProperty(value = NINO_KEY, required = true) String nino,
-            @JsonProperty(value = DATEOFBIRTH_KEY, required = true) LocalDate dateOfBirth,
-            @JsonProperty(value = FROMDATE_KEY, required = true) LocalDate fromDate,
-            @JsonProperty(value = TODATE_KEY, required = true) LocalDate toDate,
+            @JsonProperty(value = FIRSTNAME_KEY, required = true) @NonNull String firstName,
+            @JsonProperty(value = LASTNAME_KEY, required = true) @NonNull String lastName,
+            @JsonProperty(value = NINO_KEY, required = true) @NonNull String nino,
+            @JsonProperty(value = DATEOFBIRTH_KEY, required = true) @NonNull LocalDate dateOfBirth,
+            @JsonProperty(value = FROMDATE_KEY, required = true) @NonNull LocalDate fromDate,
+            @JsonProperty(value = TODATE_KEY, required = true) @NonNull LocalDate toDate,
             @JsonProperty(value = ALIASSURNAMES_KEY) String aliasSurnames
     ) {
         this.firstName = firstName;
@@ -60,16 +59,6 @@ class IncomeDataRequest {
         this.fromDate = fromDate;
         this.toDate = toDate;
         this.aliasSurnames = Objects.isNull(aliasSurnames) ? "" : aliasSurnames;
-
-        validate();
     }
 
-    private void validate() {
-        requireNonNull(firstName, "firstName is a mandatory field");
-        requireNonNull(lastName, "lastName is a mandatory field");
-        requireNonNull(nino, "nino is a mandatory field");
-        requireNonNull(dateOfBirth, "dateOfBirth is a mandatory field");
-        requireNonNull(fromDate, "fromDate is a mandatory field");
-        requireNonNull(toDate, "toDate is a mandatory field");
-    }
 }

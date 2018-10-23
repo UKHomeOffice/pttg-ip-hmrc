@@ -164,7 +164,7 @@ public class HmrcResourceContractTest {
                 .content(getDefaultRequest())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(header().string(USER_ID_HEADER, "anonymous"));
+                .andExpect(header().string(USER_ID_HEADER, "unknown"));
     }
 
 }
