@@ -1,4 +1,5 @@
 JIRA - EE-9244
+Note - the first call in the name matching process will use all the original names (EE-9764). The below sequence follows from the first call
 
 Feature: name sequence when making calls
 
@@ -65,18 +66,18 @@ Feature: name sequence when making calls
 
     #########################
 
-  Scenario: Applicant with 6 original names includes 3 surnames and 4 aliases is matched with the alias name in HMRC after trying 36 name combinations
+  Scenario: Applicant with 6 original names includes 3 surnames and 4 aliases is matched with the alias name in HMRC after trying 38 name combinations
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino        |
       | Eee        | Ggg       | 1987-12-10    | SE 123456 B |
     When the applicant submits the following data to the RPS service
-      | First name    | Aaa Bbb Ccc |
-      | Last name     | Ddd Eee Fff |
-      | Alias Surname | Ggg Hhh Iii |
-      | Date of Birth | 1987-12-10  |
-      | nino          | SE 123456 B |
+      | First name    | Aaa Bbb Ccc     |
+      | Last name     | Ddd Eee Fff     |
+      | Alias Surname | Ggg Hhh Iii Jjj |
+      | Date of Birth | 1987-12-10      |
+      | nino          | SE 123456 B     |
     Then a Matched response will be returned from the service
-    And HMRC was called 36 times
+    And HMRC was called 38 times
 
 
 
