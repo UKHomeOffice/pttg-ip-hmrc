@@ -4,8 +4,8 @@ Feature: Handling of name matching edge cases
   @name_matching
   Scenario: Applicant submits full stop for both names
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | .           |
       | Last name     | .           |
@@ -17,8 +17,8 @@ Feature: Handling of name matching edge cases
   @name_matching
   Scenario: Applicant submits full stop for first name
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Ali .       |
       | Last name     | Figuero     |
@@ -33,8 +33,8 @@ Feature: Handling of name matching edge cases
   @name_matching
   Scenario: Applicant submits full stop only for first name plus one last name
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | .           |
       | Last name     | Figuero     |
@@ -46,8 +46,8 @@ Feature: Handling of name matching edge cases
   @name_matching
   Scenario: Applicant submits full stop only for last name plus one first name
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Estoban     |
       | Last name     | .           |
@@ -58,8 +58,8 @@ Feature: Handling of name matching edge cases
   @name_matching
   Scenario: Applicant submits full stop only for first name plus two last names
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | .               |
       | Last name     | Figuero Higuain |
@@ -75,8 +75,8 @@ Feature: Handling of name matching edge cases
   @name_matching
   Scenario: Applicant submits full stop only for last name plus two first names
     Given HMRC has the following individual records
-      | First name | Last name | Date of Birth | nino        |
-      | Estoban    | Higuain   | 1987-12-10    | SE 123456 B |
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
     When the applicant submits the following data to the RPS service
       | First name    | Estoban Figuero |
       | Last name     | .               |
