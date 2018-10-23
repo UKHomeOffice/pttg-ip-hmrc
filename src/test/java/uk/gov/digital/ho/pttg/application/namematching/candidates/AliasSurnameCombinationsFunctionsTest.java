@@ -192,4 +192,84 @@ public class AliasSurnameCombinationsFunctionsTest {
 
         assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
     }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsShouldReturnEmptyListForEmptyInputs() {
+        InputNames emptyInputNames = new InputNames(emptyList(), emptyList(), emptyList());
+
+        assertThat(aliasSurnameAsFirstNameCombinations(emptyInputNames)).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsShouldReturnEmptyListForEmptyEmptyAliasSurnames() {
+        InputNames emptyAliasInputNames = new InputNames(asList("John", "David"), asList("Smith", "Evans"), emptyList());
+
+        assertThat(aliasSurnameAsFirstNameCombinations(emptyAliasInputNames)).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsForOneFirstNameAndOneAliasSurname() {
+        InputNames inputNames = new InputNames("John", "", "Smith");
+        List<CandidateName> expected = singletonList(new CandidateName("Smith", "John"));
+
+        assertThat(aliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsForTwoFirstNamesAndOneAliasSurname() {
+        InputNames inputNames = new InputNames("John David", "", "Smith");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "David")
+        );
+
+        assertThat(aliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsForOneFirstNameAndTwoAliasSurnames() {
+        InputNames inputNames = new InputNames("John", "", "Smith Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("Evans", "John"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(aliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsForTwoFirstNamesAndTwoAliasSurnames() {
+        InputNames inputNames = new InputNames("John David", "", "Smith Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "David"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("Evans", "John"),
+                new CandidateName("Evans", "David"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(aliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
+
+    @Test
+    public void aliasSurnameAsFirstNameCombinationsForTwoFirstNamesTwoSurnamesTwoAliasSurnames() {
+        InputNames inputNames = new InputNames("John David", "Paul Roger", "Smith Evans");
+        List<CandidateName> expected = asList(
+                new CandidateName("Smith", "John"),
+                new CandidateName("Smith", "David"),
+                new CandidateName("Smith", "Paul"),
+                new CandidateName("Smith", "Roger"),
+                new CandidateName("Smith", "Evans"),
+                new CandidateName("Evans", "John"),
+                new CandidateName("Evans", "David"),
+                new CandidateName("Evans", "Paul"),
+                new CandidateName("Evans", "Roger"),
+                new CandidateName("Evans", "Smith")
+        );
+
+        assertThat(aliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+    }
 }

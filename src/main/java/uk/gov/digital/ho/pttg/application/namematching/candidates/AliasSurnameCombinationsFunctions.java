@@ -9,7 +9,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.reverse;
 
-class AliasSurnameCombinationsFunctions {
+final class AliasSurnameCombinationsFunctions {
+
+    private AliasSurnameCombinationsFunctions() {
+        throw new UnsupportedOperationException("Helper class for AliasSurnameCombinationsFunctions containing only static methods - no need to instantiate.");
+    }
 
     static List<String> removeName(String nameToRemove, List<String> names) {
         return names.stream()
@@ -53,8 +57,18 @@ class AliasSurnameCombinationsFunctions {
                 candidateNames.add(new CandidateName(lastName, otherName));
             }
         }
-        
+
         return candidateNames;
     }
 
+    static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames inputNames) {
+        List<CandidateName> candidateNames = new ArrayList<>();
+
+        for (String aliasSurname : inputNames.aliasSurnames()) {
+            for (String nonAliasName : removeName(aliasSurname, inputNames.allNames())) {
+                candidateNames.add(new CandidateName(aliasSurname, nonAliasName));
+            }
+        }
+        return candidateNames;
+    }
 }
