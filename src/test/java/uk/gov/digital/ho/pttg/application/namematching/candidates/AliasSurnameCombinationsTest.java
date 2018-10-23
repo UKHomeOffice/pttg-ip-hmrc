@@ -54,7 +54,7 @@ public class AliasSurnameCombinationsTest {
                 new CandidateName("A", "E"),
                 new CandidateName("B", "E"),
                 new CandidateName("C", "E"),
-                new CandidateName("D", "E"), // TODO OJR 2018/10/23: Check with Ash
+                new CandidateName("D", "E"),
                 new CandidateName("A", "B"),
                 new CandidateName("A", "C"),
                 new CandidateName("B", "A"),

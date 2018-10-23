@@ -6,7 +6,7 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.reverse;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.nonAliasFirstAliasLastCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasSurnameCombinationsFunctions.removeName;
 
 public class AliasSurnameCombinations implements NameMatchingCandidateGenerator {
@@ -23,16 +23,7 @@ public class AliasSurnameCombinations implements NameMatchingCandidateGenerator 
             candidateNames.add(new CandidateName(firstName, inputNames.fullLastName()));
         }
 
-        List<String> reversedAliasSurnames = new ArrayList<>(inputNames.aliasSurnames());
-        reverse(reversedAliasSurnames);
-        List<String> nonAliasNames = inputNames.allNonAliasNames();
-
-        for (String aliasSurname : reversedAliasSurnames) {
-            for (String nonAliasName : nonAliasNames) {
-                candidateNames.add(new CandidateName(nonAliasName, aliasSurname));
-            }
-        }
-
+        candidateNames.addAll(nonAliasFirstAliasLastCombinations(inputNames.allNonAliasNames(), inputNames.aliasSurnames()));
 
         for (String firstName : inputNames.firstNames()) {
             for (String otherFirstName : removeName(firstName, inputNames.firstNames())) {

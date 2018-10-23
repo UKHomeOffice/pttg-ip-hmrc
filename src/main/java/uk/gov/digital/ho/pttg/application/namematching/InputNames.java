@@ -25,12 +25,12 @@ public class InputNames {
     private List<String> lastNames;
     private List<String> aliasSurnames;
 
-    public InputNames(String firstNames, String lastNames) { // TODO OJR: 2018/10/22 Temporary change to avoid refactoring other methods until later - delete when done.
-        this(firstNames, lastNames, "");
+    public InputNames(List<String> firstNames, List<String> lastNames) {
+        this(firstNames, lastNames, emptyList());
     }
 
-    public InputNames(List<String> firstNames, List<String> lastNames) { // TODO OJR: 2018/10/22 Temporary change to avoid refactoring other methods until later - delete when done.
-        this(firstNames, lastNames, emptyList());
+    public InputNames(String firstNames, String lastNames) {
+        this(firstNames, lastNames, "");
     }
 
     public InputNames(String firstNames, String lastNames, String aliasSurnames) {

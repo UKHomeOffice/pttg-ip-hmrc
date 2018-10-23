@@ -158,4 +158,10 @@ public class InputNamesTest {
         InputNames inputNames = new InputNames("John David", "Smith Evans", "Jones McDonald");
         assertThat(inputNames.allNames()).isEqualTo(Arrays.asList("John", "David", "Smith", "Evans", "Jones", "McDonald"));
     }
+
+    @Test
+    public void allNamesShouldReturnNamesInOrderWhenUsingListConstructor() {
+        InputNames inputNames = new InputNames("John David", "Smith Evans", "Jones McDonald");
+        assertThat(inputNames.allNames()).isEqualTo(Arrays.asList("John", "David", "Smith", "Evans", "Jones", "McDonald"));
+    }
 }
