@@ -4,6 +4,7 @@ import spock.lang.Specification
 import uk.gov.digital.ho.pttg.api.RequestHeaderData
 import uk.gov.digital.ho.pttg.application.HmrcCallWrapper
 import uk.gov.digital.ho.pttg.application.HmrcHateoasClient
+import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer
 
 import java.time.LocalDate
@@ -25,11 +26,12 @@ class HmrcHateoasClientSpec extends Specification {
     private NameNormalizer mockNameNormalizer = Mock(NameNormalizer.class)
     private HmrcCallWrapper mockHmrcCallWrapper = Mock(HmrcCallWrapper.class)
     private RequestHeaderData mockRequestHeaderData = Mock(RequestHeaderData.class)
+    private NameMatchingCandidatesService mockNameMatchingCandidatesService = Mock(NameMatchingCandidatesService.class)
 
     public HmrcHateoasClient client
 
     def setup() {
-        client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, HMRC_BASE_URL)
+        client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, HMRC_BASE_URL)
     }
 
     def 'should retain any returned query params from absolute url'() {

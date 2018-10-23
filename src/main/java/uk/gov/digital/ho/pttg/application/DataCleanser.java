@@ -8,11 +8,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-/**
- * @deprecated HMRC now provide the data without empty income data
- */
 @Slf4j
-@Deprecated
 public class DataCleanser {
 
     public static List<Income> clean(List<Income> incomes) {
