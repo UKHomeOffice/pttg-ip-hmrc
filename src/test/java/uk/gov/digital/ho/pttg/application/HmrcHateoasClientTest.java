@@ -73,7 +73,7 @@ public class HmrcHateoasClientTest {
         rootLogger.addAppender(mockAppender);
         when(mockNameNormalizer.normalizeNames(any(HmrcIndividual.class))).thenReturn(individualForMatching);
         List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(defaultCandidateNames);
+        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(defaultCandidateNames);
     }
 
     @Test
@@ -440,7 +440,7 @@ public class HmrcHateoasClientTest {
         LocalDate anyDob = LocalDate.now();
         NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(Arrays.asList(new CandidateName("Bob John", ".")));
+        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(Arrays.asList(new CandidateName("Bob John", ".")));
 
         Individual individual = new Individual("Bob John", ".", anyNino, anyDob, "");
         HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", ".", anyNino, anyDob);
@@ -459,6 +459,18 @@ public class HmrcHateoasClientTest {
                     loggingEvent.getLevel().equals(Level.INFO) &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
         }));
+    }
+
+    @Test
+    public void shouldPassAliasSurnamesToCandidateGenerator() {
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        LocalDate someDob = LocalDate.now();
+        Individual individual = new Individual("some first names", "some last names", "some nino", someDob, "some alias surnames");
+        client.getMatchResource(individual, "");
+
+        verify(mockNameMatchingCandidatesService).generateCandidateNames("some first names", "some last names", "some alias surnames");
     }
 
     private void assertEmptyNameNotSentToHmrc(List<HttpEntity<HmrcIndividual>> capturedRequestEntities) {

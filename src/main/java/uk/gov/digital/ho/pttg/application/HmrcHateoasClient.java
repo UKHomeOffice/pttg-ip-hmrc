@@ -209,7 +209,7 @@ public class HmrcHateoasClient {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
-        List<CandidateName> candidateNames =   nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName());
+        List<CandidateName> candidateNames =   nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName(), individual.getAliasSurnames());
 
         int retries = 0;
 

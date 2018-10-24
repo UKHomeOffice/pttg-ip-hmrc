@@ -164,4 +164,15 @@ public class InputNamesTest {
         InputNames inputNames = new InputNames("John David", "Smith Evans", "Jones McDonald");
         assertThat(inputNames.allNames()).isEqualTo(Arrays.asList("John", "David", "Smith", "Evans", "Jones", "McDonald"));
     }
+
+    @Test
+    public void hasAliasSurnamesShouldReturnFalseWhenNoAliasSurnames() {
+        InputNames noAliasInputNames = new InputNames("John", "Smith", "");
+        assertThat(noAliasInputNames.hasAliasSurnames()).isFalse();
+    }
+    @Test
+    public void hasAliasSurnamesShouldReturnTrueWhenNoAliasSurnames() {
+        InputNames noAliasInputNames = new InputNames("John", "Smith", "Evans");
+        assertThat(noAliasInputNames.hasAliasSurnames()).isTrue();
+    }
 }
