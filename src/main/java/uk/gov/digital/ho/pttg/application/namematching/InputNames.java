@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.splitIntoDistinctNames;
 
 @AllArgsConstructor
@@ -22,10 +23,20 @@ public class InputNames {
 
     private List<String> firstNames;
     private List<String> lastNames;
+    private List<String> aliasSurnames;
+
+    public InputNames(List<String> firstNames, List<String> lastNames) {
+        this(firstNames, lastNames, emptyList());
+    }
 
     public InputNames(String firstNames, String lastNames) {
+        this(firstNames, lastNames, "");
+    }
+
+    public InputNames(String firstNames, String lastNames, String aliasSurnames) {
         this.firstNames = splitIntoDistinctNames(firstNames);
         this.lastNames = splitIntoDistinctNames(lastNames);
+        this.aliasSurnames = splitIntoDistinctNames(aliasSurnames);
     }
 
     public int size() {
@@ -37,6 +48,10 @@ public class InputNames {
     }
 
     public List<String> allNames() {
+        return Collections.unmodifiableList(Stream.concat(allNonAliasNames().stream(), aliasSurnames.stream()).collect(Collectors.toList()));
+    }
+
+    public List<String> allNonAliasNames() {
         return Collections.unmodifiableList(Stream.concat(firstNames.stream(), lastNames.stream()).collect(Collectors.toList()));
     }
 
@@ -51,5 +66,4 @@ public class InputNames {
     public String fullLastName() {
         return String.join(" ", lastNames);
     }
-
 }

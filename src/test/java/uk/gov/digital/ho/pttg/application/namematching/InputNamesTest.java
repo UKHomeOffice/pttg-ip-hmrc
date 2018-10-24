@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,30 +44,30 @@ public class InputNamesTest {
     }
 
     @Test
-    public void allNamesEmptyFirstName() {
+    public void allNonAliasNamesEmptyFirstName() {
         InputNames inputNames = new InputNames("", "lastname");
 
-        List<String> allNames = inputNames.allNames();
+        List<String> allNames = inputNames.allNonAliasNames();
         
         assertThat(allNames.size()).isEqualTo(1);
         assertThat(allNames.get(0)).isEqualTo("lastname");
     }
 
     @Test
-    public void allNamesEmptyLastName() {
+    public void allNonAliasNamesEmptyLastName() {
         InputNames inputNames = new InputNames("firstname", "");
 
-        List<String> allNames = inputNames.allNames();
+        List<String> allNames = inputNames.allNonAliasNames();
 
         assertThat(allNames.size()).isEqualTo(1);
         assertThat(allNames.get(0)).isEqualTo("firstname");
     }
 
     @Test
-    public void allNamesEmptyFullName() {
+    public void allNonAliasNamesEmptyFullName() {
         InputNames inputNames = new InputNames("firstname", "lastname");
 
-        List<String> allNames = inputNames.allNames();
+        List<String> allNames = inputNames.allNonAliasNames();
 
         assertThat(allNames.size()).isEqualTo(2);
         assertThat(allNames.get(0)).isEqualTo("firstname");
@@ -73,10 +75,10 @@ public class InputNamesTest {
     }
 
     @Test
-    public void allNamesEmptyMultipleName() {
+    public void allNonAliasNamesEmptyMultipleName() {
         InputNames inputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2");
 
-        List<String> allNames = inputNames.allNames();
+        List<String> allNames = inputNames.allNonAliasNames();
 
         assertThat(allNames.size()).isEqualTo(4);
         assertThat(allNames.get(1)).isEqualTo("firstname2");
@@ -84,10 +86,10 @@ public class InputNamesTest {
     }
     
     @Test
-    public void allNamesListConstructor() {
+    public void allNonAliasNamesListConstructor() {
         InputNames inputNames = new InputNames(Arrays.asList("firstname1", "firstname2"), Arrays.asList("lastname1", "lastname2"));
 
-        List<String> allNames = inputNames.allNames();
+        List<String> allNames = inputNames.allNonAliasNames();
 
         assertThat(allNames.size()).isEqualTo(4);
         assertThat(allNames.get(1)).isEqualTo("firstname2");
@@ -121,4 +123,45 @@ public class InputNamesTest {
         assertThat(lastName).isEqualTo("lastname1 lastname2");
     }
 
+    @Test
+    public void allNamesShouldReturnEmptyListWhenNoNames() {
+        InputNames inputNames = new InputNames("", "", "");
+        assertThat(inputNames.allNames()).isEqualTo(emptyList());
+    }
+
+    @Test
+    public void allNamesShouldReturnOnlyFirstNameWhenNoOtherNames() {
+        InputNames inputNames = new InputNames("John", "", "");
+        assertThat(inputNames.allNames()).isEqualTo(singletonList("John"));
+    }
+
+    @Test
+    public void allNamesShouldReturnOnlyLastNameWhenNoOtherNames() {
+        InputNames inputNames = new InputNames("", "Smith", "");
+        assertThat(inputNames.allNames()).isEqualTo(singletonList("Smith"));
+    }
+
+    @Test
+    public void allNamesShouldReturnOnlyAliasSurnameWhenNoOtherNames() {
+        InputNames inputNames = new InputNames("", "", "Jones");
+        assertThat(inputNames.allNames()).isEqualTo(singletonList("Jones"));
+    }
+
+    @Test
+    public void allNamesShouldReturnNamesInOrderWhenAllPresent() {
+        InputNames inputNames = new InputNames("John", "Smith", "Jones");
+        assertThat(inputNames.allNames()).isEqualTo(Arrays.asList("John", "Smith", "Jones"));
+    }
+
+    @Test
+    public void allNamesShouldReturnNamesInOrderWhenAllPresentAndMultipleWords() {
+        InputNames inputNames = new InputNames("John David", "Smith Evans", "Jones McDonald");
+        assertThat(inputNames.allNames()).isEqualTo(Arrays.asList("John", "David", "Smith", "Evans", "Jones", "McDonald"));
+    }
+
+    @Test
+    public void allNamesShouldReturnNamesInOrderWhenUsingListConstructor() {
+        InputNames inputNames = new InputNames("John David", "Smith Evans", "Jones McDonald");
+        assertThat(inputNames.allNames()).isEqualTo(Arrays.asList("John", "David", "Smith", "Evans", "Jones", "McDonald"));
+    }
 }
