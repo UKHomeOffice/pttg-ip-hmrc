@@ -9,7 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 
@@ -42,7 +42,7 @@ public class HmrcResourceContractTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3)), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
+        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3), ""), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class HmrcResourceContractTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3)), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
+        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3), ""), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
     }
 
     @Test
@@ -100,7 +100,7 @@ public class HmrcResourceContractTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3)), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
+        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3), ""), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
     }
 
     @Test

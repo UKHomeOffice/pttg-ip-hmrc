@@ -2,7 +2,7 @@ package bdd.steps;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -19,7 +19,7 @@ class IndividualRow {
     private String nino;
 
     Individual toIndividual() {
-        return new Individual(firstName, lastName, nino, LocalDate.parse(dateOfBirth, ISO_DATE));
+        return new Individual(firstName, lastName, nino, LocalDate.parse(dateOfBirth, ISO_DATE), "");
     }
 
     static IndividualRow fromMap(Map<String, String> individualMap) {

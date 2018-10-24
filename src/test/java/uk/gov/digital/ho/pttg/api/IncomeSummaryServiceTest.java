@@ -26,8 +26,8 @@ import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
-import uk.gov.digital.ho.pttg.dto.IncomeSummary;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -90,7 +90,7 @@ public class IncomeSummaryServiceTest {
 
         LocalDate someFromDate = LocalDate.of(2018, Month.JANUARY, 1);
         LocalDate someToDate = LocalDate.of(2018, Month.MAY, 1);
-        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
+        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
         given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), any(Individual.class), eq(someFromDate), eq(someToDate), any(IncomeSummaryContext.class)))
                 .willReturn(mockIncomeSummary);
@@ -106,7 +106,7 @@ public class IncomeSummaryServiceTest {
     public void shouldAllowOptionalToDate() {
 
         LocalDate someFromDate = LocalDate.of(2018, Month.JANUARY, 1);
-        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
+        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
         given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), any(Individual.class), eq(someFromDate), isNull(), any(IncomeSummaryContext.class)))
                 .willReturn(mockIncomeSummary);
@@ -124,7 +124,7 @@ public class IncomeSummaryServiceTest {
         String firstName = "FirstName";
         String lastName = "LastName";
         String nino = "Nino";
-        Individual individual = new Individual(firstName, lastName, nino, dateOfBirth);
+        Individual individual = new Individual(firstName, lastName, nino, dateOfBirth, "");
 
         given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(someFromDate), isNull(), any(IncomeSummaryContext.class)))
                 .willReturn(mockIncomeSummary);
@@ -149,7 +149,7 @@ public class IncomeSummaryServiceTest {
     public void shouldRetryAllCollaboratorCallsIfHmrcServiceUnauthorizedStatusResponse() {
 
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
-        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
+        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
         given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
                 .willThrow(new HmrcUnauthorisedException("test"))
@@ -169,7 +169,7 @@ public class IncomeSummaryServiceTest {
     public void shouldThrowExceptionIfUnexpectedExceptionFromHmrcService() {
 
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
-        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
+        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
         given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
                 .willThrow(new IllegalArgumentException());
@@ -232,7 +232,7 @@ public class IncomeSummaryServiceTest {
     public void shouldThrowExceptionIfHttpServerErrorExceptionFromHmrcService() {
 
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
-        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now());
+        Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
         given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
                 .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));

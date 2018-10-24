@@ -2,7 +2,7 @@ package uk.gov.digital.ho.pttg.audit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 

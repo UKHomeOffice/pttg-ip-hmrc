@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
@@ -235,8 +236,8 @@ public class HmrcHateoasClient {
 
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
 
-        Individual individualToMatch = new Individual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
-        Individual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
+        HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
+        HmrcIndividual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
         checkForEmptyNormalizedName(normalizedIndividual);
 
         return hmrcCallWrapper.exchange(
@@ -246,7 +247,7 @@ public class HmrcHateoasClient {
                 linksResourceTypeRef).getBody();
     }
 
-    private void checkForEmptyNormalizedName(Individual normalizedIndividual) {
+    private void checkForEmptyNormalizedName(HmrcIndividual normalizedIndividual) {
         if (StringUtils.isBlank(normalizedIndividual.getFirstName()) || StringUtils.isBlank(normalizedIndividual.getLastName())) {
             throw new ApplicationExceptions.InvalidIdentityException("Normalized name contains a blank name");
         }
@@ -309,7 +310,7 @@ public class HmrcHateoasClient {
         return hmrcUrl + uri;
     }
 
-    private HttpEntity<Individual> createEntity(Individual individual, String accessToken) {
+    private HttpEntity<HmrcIndividual> createEntity(HmrcIndividual individual, String accessToken) {
 
         HttpHeaders headers = generateHeaders();
 
