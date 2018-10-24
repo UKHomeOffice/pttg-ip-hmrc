@@ -2,7 +2,7 @@ package bdd.steps;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 import java.util.Map;

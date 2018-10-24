@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.dto;
+package uk.gov.digital.ho.pttg.application.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

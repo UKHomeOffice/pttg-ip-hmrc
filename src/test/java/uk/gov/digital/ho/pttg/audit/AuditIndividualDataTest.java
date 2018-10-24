@@ -1,7 +1,7 @@
 package uk.gov.digital.ho.pttg.audit;
 
 import org.junit.Test;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 import java.time.Month;

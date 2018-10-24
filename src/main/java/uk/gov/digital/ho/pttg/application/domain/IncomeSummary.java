@@ -6,7 +6,6 @@ import lombok.Getter;
 import uk.gov.digital.ho.pttg.dto.AnnualSelfAssessmentTaxReturn;
 import uk.gov.digital.ho.pttg.dto.Employment;
 import uk.gov.digital.ho.pttg.dto.Income;
-import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.util.List;
 

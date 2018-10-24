@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.dto.*;
 
 import java.time.LocalDate;

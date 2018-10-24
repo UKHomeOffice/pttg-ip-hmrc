@@ -21,6 +21,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
 import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;

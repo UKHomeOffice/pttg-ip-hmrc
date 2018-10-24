@@ -5,7 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.Instant;
 import java.time.LocalDate;

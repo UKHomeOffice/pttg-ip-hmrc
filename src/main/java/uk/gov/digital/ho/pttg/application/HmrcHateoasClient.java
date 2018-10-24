@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
