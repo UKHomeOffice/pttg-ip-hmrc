@@ -1,7 +1,7 @@
 package uk.gov.digital.ho.pttg.application.util;
 
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
 
 public interface NameNormalizer {
-    Individual normalizeNames(Individual individual);
+    IndividualForNameMatching normalizeNames(IndividualForNameMatching individual);
 }

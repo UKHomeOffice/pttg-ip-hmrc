@@ -18,7 +18,7 @@ public class AuditIndividualDataTest {
     @Test
     public void shouldCorrectlyConstructAuditIndividualDataFromIndividual() {
         // given
-        final Individual individual = new Individual(TEST_FIRST_NAME, TEST_LAST_NAME, TEST_NINO, TEST_DATE_OF_BIRTH);
+        final Individual individual = new Individual(TEST_FIRST_NAME, TEST_LAST_NAME, TEST_NINO, TEST_DATE_OF_BIRTH, "");
 
         // when
         final AuditIndividualData auditIndividualData = new AuditIndividualData(TEST_METHOD, individual);

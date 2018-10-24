@@ -79,6 +79,6 @@ class HmrcResource {
     private Individual individual(String firstName, String lastName, String nino, LocalDate dob) {
         String sanitisedNino = ninoUtils.sanitise(nino);
         ninoUtils.validate(sanitisedNino);
-        return new Individual(firstName, lastName, sanitisedNino, dob);
+        return new Individual(firstName, lastName, sanitisedNino, dob, "");
     }
 }

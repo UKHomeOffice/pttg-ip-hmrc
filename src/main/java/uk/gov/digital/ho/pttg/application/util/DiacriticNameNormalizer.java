@@ -2,7 +2,7 @@ package uk.gov.digital.ho.pttg.application.util;
 
 import me.xuender.unidecode.Unidecode;
 import org.apache.commons.lang3.StringUtils;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,11 +13,11 @@ public class DiacriticNameNormalizer implements NameNormalizer {
     private static final Set<Character> JOINERS = new HashSet<>(Arrays.asList('-', '\''));
 
     @Override
-    public Individual normalizeNames(Individual individual) {
+    public IndividualForNameMatching normalizeNames(IndividualForNameMatching individual) {
         String normalizedFirstName = normalizeName(individual.getFirstName());
         String normalizedLastName = normalizeName(individual.getLastName());
 
-        return new Individual(normalizedFirstName, normalizedLastName, individual.getNino(), individual.getDateOfBirth());
+        return new IndividualForNameMatching(normalizedFirstName, normalizedLastName, individual.getNino(), individual.getDateOfBirth());
     }
 
     private String normalizeName(String name) {

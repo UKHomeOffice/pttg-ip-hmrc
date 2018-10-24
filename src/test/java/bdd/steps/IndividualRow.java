@@ -19,7 +19,7 @@ class IndividualRow {
     private String nino;
 
     Individual toIndividual() {
-        return new Individual(firstName, lastName, nino, LocalDate.parse(dateOfBirth, ISO_DATE));
+        return new Individual(firstName, lastName, nino, LocalDate.parse(dateOfBirth, ISO_DATE), "");
     }
 
     static IndividualRow fromMap(Map<String, String> individualMap) {
