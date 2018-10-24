@@ -3,7 +3,7 @@ package uk.gov.digital.ho.pttg.application.util;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import org.junit.Test;
-import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,10 +73,10 @@ public class DiacriticNameNormalizerTest {
         // given
         String firstName = "Tĥïŝ ĩš";
         String lastName = "â fůňķŷ Šťŕĭńġ";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
+        HmrcIndividual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(normalizedIndividual.getFirstName()).isEqualTo("This is");
@@ -91,10 +91,10 @@ public class DiacriticNameNormalizerTest {
         // given
         String firstName = "Querty";
         String lastName = "Smith";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
+        HmrcIndividual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(normalizedIndividual.getFirstName()).isEqualTo("Querty");
@@ -110,10 +110,10 @@ public class DiacriticNameNormalizerTest {
         for (String firstName : UNMAPPED_CHARACTERS) {
             // given
             String lastName = "Smith";
-            IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+            HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
             // when
-            IndividualForNameMatching normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
+            HmrcIndividual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
 
             // then
             assertThat(normalizedIndividual.getFirstName()).withFailMessage("Expected `%s` to map to `%s` but was `%s`", firstName, "", normalizedIndividual.getFirstName()).isEqualTo("");
@@ -131,10 +131,10 @@ public class DiacriticNameNormalizerTest {
             Character unicodeCharacter = entry.getKey();
             String expectedReplacement = entry.getValue();
 
-            IndividualForNameMatching inputIndividual = new IndividualForNameMatching(unicodeCharacter.toString(), null, TEST_NINO, TEST_DOB);
+            HmrcIndividual inputIndividual = new HmrcIndividual(unicodeCharacter.toString(), null, TEST_NINO, TEST_DOB);
 
             // when
-            IndividualForNameMatching outputIndividual = accentNameNormalizer.normalizeNames(inputIndividual);
+            HmrcIndividual outputIndividual = accentNameNormalizer.normalizeNames(inputIndividual);
 
             // then
             String actualValue = outputIndividual.getFirstName();
@@ -148,10 +148,10 @@ public class DiacriticNameNormalizerTest {
         // given
         String firstName = "nủll";
         String lastName = "null";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
+        HmrcIndividual normalizedIndividual = accentNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(normalizedIndividual.getFirstName()).isEqualTo("null");

@@ -1,6 +1,6 @@
 package uk.gov.digital.ho.pttg.application.util;
 
-import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 public class MaxLengthNameNormalizer implements NameNormalizer {
     private final int nameMaxLength;
@@ -10,18 +10,18 @@ public class MaxLengthNameNormalizer implements NameNormalizer {
     }
 
     @Override
-    public IndividualForNameMatching normalizeNames(IndividualForNameMatching individual) {
+    public HmrcIndividual normalizeNames(HmrcIndividual individual) {
         String truncatedFirstName = truncateFirstName(individual);
         String truncatedLastName = truncateLastName(individual);
 
-        return new IndividualForNameMatching(truncatedFirstName, truncatedLastName, individual.getNino(), individual.getDateOfBirth());
+        return new HmrcIndividual(truncatedFirstName, truncatedLastName, individual.getNino(), individual.getDateOfBirth());
     }
 
-    private String truncateFirstName(IndividualForNameMatching individual) {
+    private String truncateFirstName(HmrcIndividual individual) {
         return truncateName(individual.getFirstName());
     }
 
-    private String truncateLastName(IndividualForNameMatching individual) {
+    private String truncateLastName(HmrcIndividual individual) {
         return truncateName(individual.getLastName());
     }
 

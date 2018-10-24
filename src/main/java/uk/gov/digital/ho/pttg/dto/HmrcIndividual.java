@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
-public class IndividualForNameMatching implements Serializable {
+public class HmrcIndividual implements Serializable {
     private final String firstName;
     private final String lastName;
     private final String nino;

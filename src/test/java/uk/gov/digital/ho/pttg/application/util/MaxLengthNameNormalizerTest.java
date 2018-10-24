@@ -1,7 +1,7 @@
 package uk.gov.digital.ho.pttg.application.util;
 
 import org.junit.Test;
-import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -22,10 +22,10 @@ public class MaxLengthNameNormalizerTest {
 
         String firstName = "Janice";
         String lastName = "Smith";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
+        HmrcIndividual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(actualIndividual.getFirstName()).isEqualTo("Janice");
@@ -42,10 +42,10 @@ public class MaxLengthNameNormalizerTest {
 
         String firstName = "Qawsedrftgyhujikolpqawsedrftgyhujiko";
         String lastName = "Smith";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
+        HmrcIndividual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(actualIndividual.getFirstName()).isEqualTo("Qawsedrftgyhujikolpqawsedrftgyhujik");
@@ -62,10 +62,10 @@ public class MaxLengthNameNormalizerTest {
 
         String firstName = "Janice";
         String lastName = "Keihanaikukauakahihuliheekahaunaeles";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
+        HmrcIndividual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(actualIndividual.getFirstName()).isEqualTo("Janice");
@@ -82,10 +82,10 @@ public class MaxLengthNameNormalizerTest {
 
         String firstName = "qqqqqwwwwweeeeerrrrrtttttyyyyyuuuuu";
         String lastName = "Smith";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
+        HmrcIndividual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(actualIndividual.getFirstName()).isEqualTo("qqqqqwwwwweeeeerrrrrtttttyyyyyuuuuu");
@@ -102,10 +102,10 @@ public class MaxLengthNameNormalizerTest {
 
         String firstName = "Janice";
         String lastName = "qwertqwertqwertqwertqwertqwertqwert";
-        IndividualForNameMatching individual = new IndividualForNameMatching(firstName, lastName, TEST_NINO, TEST_DOB);
+        HmrcIndividual individual = new HmrcIndividual(firstName, lastName, TEST_NINO, TEST_DOB);
 
         // when
-        IndividualForNameMatching actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
+        HmrcIndividual actualIndividual = maxLengthNameNormalizer.normalizeNames(individual);
 
         // then
         assertThat(actualIndividual.getFirstName()).isEqualTo("Janice");

@@ -63,14 +63,14 @@ public class HmrcHateoasClientTest {
     @Mock private NameMatchingCandidatesService mockNameMatchingCandidatesService;
 
     private final Individual individual = new Individual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30), "");
-    private final IndividualForNameMatching individualForMatching = new IndividualForNameMatching("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30));
+    private final HmrcIndividual individualForMatching = new HmrcIndividual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30));
 
     @Before
     public void setup() {
         Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
-        when(mockNameNormalizer.normalizeNames(any(IndividualForNameMatching.class))).thenReturn(individualForMatching);
+        when(mockNameNormalizer.normalizeNames(any(HmrcIndividual.class))).thenReturn(individualForMatching);
         List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
         when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(defaultCandidateNames);
     }
@@ -394,8 +394,8 @@ public class HmrcHateoasClientTest {
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
 
         Individual individual = new Individual(".", "Jones Smith", anyNino, anyDob, "");
-        IndividualForNameMatching individualForNameMatching = new IndividualForNameMatching(".", "Jones Smith", anyNino, anyDob);
-        assertThat(nameNormalizer.normalizeNames(individualForNameMatching).getFirstName()).isEqualTo("");
+        HmrcIndividual hmrcIndividual = new HmrcIndividual(".", "Jones Smith", anyNino, anyDob);
+        assertThat(nameNormalizer.normalizeNames(hmrcIndividual).getFirstName()).isEqualTo("");
 
         try {
             client.getMatchResource(individual, "any access token");
@@ -403,7 +403,7 @@ public class HmrcHateoasClientTest {
             // Swallow exception that is not of interest to this test
         }
 
-        ArgumentCaptor<HttpEntity<IndividualForNameMatching>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        ArgumentCaptor<HttpEntity<HmrcIndividual>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(mockHmrcCallWrapper, atLeastOnce()).exchange(any(URI.class), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), any(ParameterizedTypeReference.class));
 
         assertEmptyNameNotSentToHmrc(httpEntityArgumentCaptor.getAllValues());
@@ -418,8 +418,8 @@ public class HmrcHateoasClientTest {
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
 
         Individual individual = new Individual("Bob John", ".", anyNino, anyDob, "");
-        IndividualForNameMatching individualForNameMatching = new IndividualForNameMatching("Bob John", ".", anyNino, anyDob);
-        assertThat(nameNormalizer.normalizeNames(individualForNameMatching).getLastName()).isEqualTo("");
+        HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", ".", anyNino, anyDob);
+        assertThat(nameNormalizer.normalizeNames(hmrcIndividual).getLastName()).isEqualTo("");
 
         try {
             client.getMatchResource(individual, "any access token");
@@ -427,7 +427,7 @@ public class HmrcHateoasClientTest {
             // Swallow exception that is not of interest to this test
         }
 
-        ArgumentCaptor<HttpEntity<IndividualForNameMatching>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        ArgumentCaptor<HttpEntity<HmrcIndividual>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(mockHmrcCallWrapper, atLeastOnce()).exchange(any(URI.class), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), any(ParameterizedTypeReference.class));
 
         assertEmptyNameNotSentToHmrc(httpEntityArgumentCaptor.getAllValues());
@@ -442,8 +442,8 @@ public class HmrcHateoasClientTest {
         when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString())).thenReturn(Arrays.asList(new CandidateName("Bob John", ".")));
 
         Individual individual = new Individual("Bob John", ".", anyNino, anyDob, "");
-        IndividualForNameMatching individualForNameMatching = new IndividualForNameMatching("Bob John", ".", anyNino, anyDob);
-        assertThat(nameNormalizer.normalizeNames(individualForNameMatching).getLastName()).isEqualTo("");
+        HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", ".", anyNino, anyDob);
+        assertThat(nameNormalizer.normalizeNames(hmrcIndividual).getLastName()).isEqualTo("");
 
         try {
             client.getMatchResource(individual, "any access token");
@@ -460,7 +460,7 @@ public class HmrcHateoasClientTest {
         }));
     }
 
-    private void assertEmptyNameNotSentToHmrc(List<HttpEntity<IndividualForNameMatching>> capturedRequestEntities) {
+    private void assertEmptyNameNotSentToHmrc(List<HttpEntity<HmrcIndividual>> capturedRequestEntities) {
         assertThat(capturedRequestEntities.stream()
                 .noneMatch(httpEntity -> httpEntity.getBody().getFirstName().equals("")))
                 .isTrue();

@@ -235,8 +235,8 @@ public class HmrcHateoasClient {
 
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
 
-        IndividualForNameMatching individualToMatch = new IndividualForNameMatching(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
-        IndividualForNameMatching normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
+        HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
+        HmrcIndividual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
         checkForEmptyNormalizedName(normalizedIndividual);
 
         return hmrcCallWrapper.exchange(
@@ -246,7 +246,7 @@ public class HmrcHateoasClient {
                 linksResourceTypeRef).getBody();
     }
 
-    private void checkForEmptyNormalizedName(IndividualForNameMatching normalizedIndividual) {
+    private void checkForEmptyNormalizedName(HmrcIndividual normalizedIndividual) {
         if (StringUtils.isBlank(normalizedIndividual.getFirstName()) || StringUtils.isBlank(normalizedIndividual.getLastName())) {
             throw new ApplicationExceptions.InvalidIdentityException("Normalized name contains a blank name");
         }
@@ -309,7 +309,7 @@ public class HmrcHateoasClient {
         return hmrcUrl + uri;
     }
 
-    private HttpEntity<IndividualForNameMatching> createEntity(IndividualForNameMatching individual, String accessToken) {
+    private HttpEntity<HmrcIndividual> createEntity(HmrcIndividual individual, String accessToken) {
 
         HttpHeaders headers = generateHeaders();
 

@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,10 +13,10 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CompositeNameNormalizerTest {
     @Mock
-    private IndividualForNameMatching mockInputIndividual;
+    private HmrcIndividual mockInputIndividual;
 
     @Mock
-    private IndividualForNameMatching mockOutputIndividual;
+    private HmrcIndividual mockOutputIndividual;
 
     private CompositeNameNormalizer compositeNameNormalizer;
 
@@ -32,7 +32,7 @@ public class CompositeNameNormalizerTest {
         compositeNameNormalizer = new CompositeNameNormalizer(nameNormalizers);
 
         // when
-        IndividualForNameMatching actualIndividual = compositeNameNormalizer.normalizeNames(mockInputIndividual);
+        HmrcIndividual actualIndividual = compositeNameNormalizer.normalizeNames(mockInputIndividual);
 
         // then
         assertThat(actualIndividual).isEqualTo(mockInputIndividual);
@@ -49,7 +49,7 @@ public class CompositeNameNormalizerTest {
         compositeNameNormalizer = new CompositeNameNormalizer(nameNormalizers);
 
         // when
-        IndividualForNameMatching actualIndividual = compositeNameNormalizer.normalizeNames(mockInputIndividual);
+        HmrcIndividual actualIndividual = compositeNameNormalizer.normalizeNames(mockInputIndividual);
 
         // then
         verify(mockNameNormalizerOne).normalizeNames(mockInputIndividual);
@@ -69,7 +69,7 @@ public class CompositeNameNormalizerTest {
         compositeNameNormalizer = new CompositeNameNormalizer(nameNormalizers);
 
         // when
-        IndividualForNameMatching actualIndividual = compositeNameNormalizer.normalizeNames(mockInputIndividual);
+        HmrcIndividual actualIndividual = compositeNameNormalizer.normalizeNames(mockInputIndividual);
 
         // then
         verify(mockNameNormalizerOne).normalizeNames(mockInputIndividual);

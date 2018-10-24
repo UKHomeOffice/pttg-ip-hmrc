@@ -1,6 +1,6 @@
 package uk.gov.digital.ho.pttg.application.util;
 
-import uk.gov.digital.ho.pttg.dto.IndividualForNameMatching;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import static java.util.Objects.requireNonNull;
 
@@ -12,9 +12,9 @@ public class CompositeNameNormalizer implements NameNormalizer {
     }
 
     @Override
-    public IndividualForNameMatching normalizeNames(IndividualForNameMatching individual) {
+    public HmrcIndividual normalizeNames(HmrcIndividual individual) {
 
-        IndividualForNameMatching normalizedIndividual = individual;
+        HmrcIndividual normalizedIndividual = individual;
         for (NameNormalizer nameNormalizer : nameNormalizers) {
             normalizedIndividual = nameNormalizer.normalizeNames(normalizedIndividual);
         }
