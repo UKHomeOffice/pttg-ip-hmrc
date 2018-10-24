@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
-import uk.gov.digital.ho.pttg.dto.IncomeSummary;
+import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;

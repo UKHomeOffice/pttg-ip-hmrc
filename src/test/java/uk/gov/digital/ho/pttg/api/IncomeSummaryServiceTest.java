@@ -26,7 +26,7 @@ import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
-import uk.gov.digital.ho.pttg.dto.IncomeSummary;
+import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.dto.Individual;
 
 import java.time.LocalDate;
