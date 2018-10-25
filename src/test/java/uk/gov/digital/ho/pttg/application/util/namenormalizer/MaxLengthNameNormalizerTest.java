@@ -1,6 +1,7 @@
-package uk.gov.digital.ho.pttg.application.util;
+package uk.gov.digital.ho.pttg.application.util.namenormalizer;
 
 import org.junit.Test;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.MaxLengthNameNormalizer;
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import java.time.LocalDate;
