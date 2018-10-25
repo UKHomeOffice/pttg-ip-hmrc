@@ -29,7 +29,7 @@ public class EntireNonAliasNameTest {
     }
 
     @Test
-    public void shouldDuplicateSingleLasstName() {
+    public void shouldDuplicateSingleLastName() {
         InputNames inputNames = new InputNames("", "some last name", "some alias");
 
         CandidateName expectedCandidateName = new CandidateName("some last name", "some last name");
