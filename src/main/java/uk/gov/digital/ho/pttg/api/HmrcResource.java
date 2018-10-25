@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
-import uk.gov.digital.ho.pttg.dto.IncomeSummary;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -26,6 +26,8 @@ class HmrcResource {
         this.ninoUtils = ninoUtils;
     }
 
+    @SuppressWarnings("checkstyle:parameternumber")
+    // TODO EE-10165 Can't help having 7 parameters when there's 7 items of data being sent - This interface is deprecated in favour of postHmrcData anyway
     @GetMapping(value = "/income", produces = APPLICATION_JSON_VALUE)
     IncomeSummary getHmrcData(
             @RequestParam(value = "firstName") String firstName,
@@ -33,14 +35,16 @@ class HmrcResource {
             @RequestParam(value = "nino") String nino,
             @RequestParam(value = "dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
             @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(value = "aliasSurnames", required = false) String aliasSurnames) {
 
         return produceIncomeSummary(
                 individual(
                         firstName,
                         lastName,
                         nino,
-                        dob),
+                        dob,
+                        aliasSurnames),
                 fromDate,
                 toDate);
     }
@@ -53,7 +57,8 @@ class HmrcResource {
                         incomeDataRequest.firstName(),
                         incomeDataRequest.lastName(),
                         incomeDataRequest.nino(),
-                        incomeDataRequest.dateOfBirth()),
+                        incomeDataRequest.dateOfBirth(),
+                        incomeDataRequest.aliasSurnames()),
                 incomeDataRequest.fromDate(),
                 incomeDataRequest.toDate());
     }
@@ -76,9 +81,9 @@ class HmrcResource {
         return incomeSummary;
     }
 
-    private Individual individual(String firstName, String lastName, String nino, LocalDate dob) {
+    private Individual individual(String firstName, String lastName, String nino, LocalDate dob, String aliasSurnames) {
         String sanitisedNino = ninoUtils.sanitise(nino);
         ninoUtils.validate(sanitisedNino);
-        return new Individual(firstName, lastName, sanitisedNino, dob);
+        return new Individual(firstName, lastName, sanitisedNino, dob, aliasSurnames);
     }
 }

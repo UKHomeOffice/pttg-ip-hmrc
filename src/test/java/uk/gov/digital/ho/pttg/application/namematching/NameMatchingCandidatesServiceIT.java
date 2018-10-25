@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinations;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters;
@@ -22,7 +23,8 @@ import static org.hamcrest.Matchers.*;
         NameMatchingCandidatesService.class,
         NameCombinations.class,
         MultipleLastNames.class,
-        SpecialCharacters.class
+        SpecialCharacters.class,
+        AliasCombinations.class
 })
 public class NameMatchingCandidatesServiceIT {
 
@@ -35,7 +37,7 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldHandleMultipleLastNames() {
-        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "Brian Coates");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "Brian Coates", "");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat("The lastname is used unsplit for the first permutation", names.get(0), is(new CandidateName("Arthur", "Brian Coates")));
@@ -51,7 +53,7 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldHandleHyphenatedNames() {
-        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "Coates");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "Coates", "");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(6));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur-Brian", "Coates")));
@@ -69,7 +71,7 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldHandleApostrophedNames() {
-        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "O'Bobbins");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur", "O'Bobbins", "");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(9));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "O'Bobbins")));
@@ -88,7 +90,7 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldHandleHyphensAndApostrophes() {
-        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "O'Coates");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Arthur-Brian", "O'Coates", "");
 
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(16));
 
@@ -116,7 +118,7 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldOnlyUseFiveOfSevenNameCandidate() {
-        List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames("A B C D E F G", "Van Halen");
+        List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames("A B C D E F G", "Van Halen", "");
 
         List<CandidateName> expectedCandidateNames = Arrays.asList(
                 new CandidateName("A", "Van"),
@@ -143,7 +145,7 @@ public class NameMatchingCandidatesServiceIT {
 
     @Test
     public void shouldUseJoiningInBothNamesWithSuppliedNamesAsFirstAttempt() {
-        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith");
+        List<CandidateName> names = nameMatchingCandidatesService.generateCandidateNames("Bob-Brian", "Hill O'Coates-Smith", "");
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Bob-Brian", "Hill O'Coates-Smith")));
 

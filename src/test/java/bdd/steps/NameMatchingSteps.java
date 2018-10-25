@@ -27,15 +27,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -131,10 +133,7 @@ public class NameMatchingSteps {
     @Given("^HMRC has the following individual records$")
     public void hmrcHasTheFollowingIndividualRecords(DataTable dataTable) throws Throwable {
 
-        List<Individual> individuals = dataTable.asList(IndividualRow.class)
-                                           .stream()
-                                           .map(IndividualRow::toIndividual)
-                                           .collect(toList());
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
 
         for (Individual individual : individuals) {
 
@@ -181,13 +180,17 @@ public class NameMatchingSteps {
         IndividualRow individualRow = IndividualRow.fromMap(individualMap);
 
         LocalDate now = LocalDate.now();
-        Map<String, String> requestBody = ImmutableMap.of(
-            "nino", individualRow.nino(),
-            "firstName", individualRow.firstName(),
-            "lastName", individualRow.lastName(),
-            "dateOfBirth", individualRow.dateOfBirth(),
-            "fromDate", now.format(ISO_DATE)
-        );
+        Map<String, String> requestParameters = new HashMap<>();
+        requestParameters.put("nino", individualRow.nino());
+        requestParameters.put("firstName", individualRow.firstName());
+        requestParameters.put("lastName", individualRow.lastName());
+        requestParameters.put("dateOfBirth", individualRow.dateOfBirth());
+        requestParameters.put("fromDate", now.format(ISO_DATE));
+
+        if (!Objects.isNull(individualRow.getAliasSurname())) {
+            requestParameters.put("aliasSurnames", individualRow.getAliasSurname());
+        }
+        ImmutableMap<String, String> requestBody = ImmutableMap.copyOf(requestParameters);
 
         Response response = given()
                                 .basePath("/income")
@@ -211,10 +214,7 @@ public class NameMatchingSteps {
     @Then("^the following identities will be tried in this order$")
     public void theFollowingIdentitiesWillBeTriedInThisOrder(DataTable dataTable) {
 
-        List<Individual> individuals = dataTable.asList(IndividualRow.class)
-                                               .stream()
-                                               .map(IndividualRow::toIndividual)
-                                               .collect(toList());
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
 
         List<LoggedRequest> matchingRequestsInOrder = getIndividualMatchingRequestsInOrder();
 
@@ -373,6 +373,25 @@ public class NameMatchingSteps {
         return b;
     }
 
+    @Then("^the footprint will try the following combination first$")
+    public void checkTheFirstNameMatchingCombination(DataTable dataTable) {
+        Individual expectedFirstMatchingCall = getIndividualFromSingleRowTable(dataTable);
+        LoggedRequest actualFirstMatchingCall = getFirstNameMatchingRequest();
+
+        verifyRequestContainsExpectedNames(actualFirstMatchingCall, expectedFirstMatchingCall);
+    }
+
+    private Individual getIndividualFromSingleRowTable(DataTable dataTable) {
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
+        assertEquals("More than row in table",1, individuals.size());
+
+        return individuals.get(0);
+    }
+
+    private LoggedRequest getFirstNameMatchingRequest() {
+        return getIndividualMatchingRequestsInOrder().get(0);
+    }
+
     private Response getIndividualMatchingResponse() {
         SessionMap<Object, Object> sessionMap = Serenity.getCurrentSession();
         return (Response) sessionMap.get(INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY);
@@ -490,5 +509,13 @@ public class NameMatchingSteps {
     private String buildSaSummaryResponse() throws IOException {
         return loadJsonFile("incomeSASummaryResponse")
                        .replace("${matchId}", MATCH_ID);
+    }
+
+
+    private List<Individual> getIndividualsFromTable(DataTable dataTable) {
+        return dataTable.asList(IndividualRow.class)
+                .stream()
+                .map(IndividualRow::toIndividual)
+                .collect(toList());
     }
 }

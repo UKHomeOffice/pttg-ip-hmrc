@@ -110,9 +110,11 @@
             <property name="maxProtected" value="20"/>
             <property name="maxPublic" value="15"/>
         </module>
+        <module name="SuppressWarningsHolder" />
     </module>
     <module name="FileLength">
         <property name="max" value="1000"/>
     </module>
     <module name="StrictDuplicateCode"/>
+    <module name="SuppressWarningsFilter" />
 </module>
