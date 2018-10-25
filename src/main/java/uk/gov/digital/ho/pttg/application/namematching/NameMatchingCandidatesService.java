@@ -15,21 +15,29 @@ public class NameMatchingCandidatesService {
     private NameMatchingCandidateGenerator nameCombinations;
     private NameMatchingCandidateGenerator multipleLastNames;
     private NameMatchingCandidateGenerator specialCharacters;
+    private NameMatchingCandidateGenerator aliasCombinations;
 
-    public NameMatchingCandidatesService(NameMatchingCandidateGenerator nameCombinations, NameMatchingCandidateGenerator multipleLastNames, NameMatchingCandidateGenerator specialCharacters) {
+    public NameMatchingCandidatesService(NameMatchingCandidateGenerator nameCombinations,
+                                         NameMatchingCandidateGenerator multipleLastNames,
+                                         NameMatchingCandidateGenerator specialCharacters,
+                                         NameMatchingCandidateGenerator aliasCombinations) {
         this.nameCombinations = nameCombinations;
         this.multipleLastNames = multipleLastNames;
         this.specialCharacters = specialCharacters;
+        this.aliasCombinations = aliasCombinations;
     }
 
-    public List<CandidateName> generateCandidateNames(String firstNames, String lastNames) {
+    public List<CandidateName> generateCandidateNames(String firstNames, String lastNames, String aliasSurnames) {
+        InputNames inputNames = new InputNames(firstNames, lastNames, aliasSurnames);
 
-        List<CandidateName> candidates = new ArrayList<>();
+        List<CandidateName> candidates = new ArrayList<>(multipleLastNames.generateCandidates(inputNames));
 
-        InputNames inputNames = new InputNames(firstNames, lastNames);
+        if (inputNames.hasAliasSurnames()) {
+            candidates.addAll(aliasCombinations.generateCandidates(inputNames));
+        } else {
+            candidates.addAll(nameCombinations.generateCandidates(inputNames));
+        }
 
-        candidates.addAll(multipleLastNames.generateCandidates(inputNames));
-        candidates.addAll(nameCombinations.generateCandidates(inputNames));
         candidates.addAll(specialCharacters.generateCandidates(inputNames));
 
         return Collections.unmodifiableList(deduplicate(candidates));
