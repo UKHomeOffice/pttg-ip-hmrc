@@ -9,7 +9,7 @@ Feature: name sequence when making calls
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Ddd       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb     |
       | Last name     | Ccc         |
       | Alias Surname | Ddd         |
@@ -24,7 +24,7 @@ Feature: name sequence when making calls
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Ccc        | Eee       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc |
       | Last name     | Ddd         |
       | Alias Surname | Eee Fff     |
@@ -39,7 +39,7 @@ Feature: name sequence when making calls
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Hhh        | Ddd       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc     |
       | Last name     | Ddd             |
       | Alias Surname | Eee Fff Ggg Hhh |
@@ -54,7 +54,7 @@ Feature: name sequence when making calls
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Eee        | Fff       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc |
       | Last name     | Ddd Eee     |
       | Alias Surname | Fff Ggg Hhh |
@@ -69,7 +69,7 @@ Feature: name sequence when making calls
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Eee        | Ggg       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc     |
       | Last name     | Ddd Eee Fff     |
       | Alias Surname | Ggg Hhh Iii Jjj |
@@ -84,13 +84,13 @@ Feature: name sequence when making calls
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Hhh        | Ggg       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc |
       | Last name     | Ddd Eee     |
       | Alias Surname | Fff Ggg Hhh |
       | Date of Birth | 1987-12-10  |
       | nino          | SE123456B   |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name  | Last name | Date of Birth | nino      |
       | Aaa Bbb Ccc | Ddd Eee   | 1987-12-10    | SE123456B |
       | Aaa         | Eee       | 1987-12-10    | SE123456B |

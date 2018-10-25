@@ -187,8 +187,8 @@ public class NameMatchingSteps {
         requestParameters.put("dateOfBirth", individualRow.dateOfBirth());
         requestParameters.put("fromDate", now.format(ISO_DATE));
 
-        if (!Objects.isNull(individualRow.getAliasSurname())) {
-            requestParameters.put("aliasSurnames", individualRow.getAliasSurname());
+        if (!Objects.isNull(individualRow.aliasSurname())) {
+            requestParameters.put("aliasSurnames", individualRow.aliasSurname());
         }
         ImmutableMap<String, String> requestBody = ImmutableMap.copyOf(requestParameters);
 
@@ -373,7 +373,7 @@ public class NameMatchingSteps {
         return b;
     }
 
-    @Then("^the footprint will try the following combination first$")
+    @Then("^the following identity will be tried first$")
     public void checkTheFirstNameMatchingCombination(DataTable dataTable) {
         Individual expectedFirstMatchingCall = getIndividualFromSingleRowTable(dataTable);
         LoggedRequest actualFirstMatchingCall = getFirstNameMatchingRequest();
@@ -383,7 +383,7 @@ public class NameMatchingSteps {
 
     private Individual getIndividualFromSingleRowTable(DataTable dataTable) {
         List<Individual> individuals = getIndividualsFromTable(dataTable);
-        assertEquals("More than row in table",1, individuals.size());
+        assertThat(individuals.size()).isEqualTo(1);
 
         return individuals.get(0);
     }
