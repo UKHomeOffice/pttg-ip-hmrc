@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,18 +30,22 @@ public class NameMatchingCandidatesServiceTest {
     private SpecialCharacters specialCharacters;
     @Mock
     private AliasCombinations aliasCombinations;
+    @Mock
+    private EntireNonAliasName entireNonAliasName;
 
     @Before
     public void setUp() {
-        nameMatchingCandidatesService = new NameMatchingCandidatesService(nameCombinations, multipleLastNames, specialCharacters, aliasCombinations);
+        nameMatchingCandidatesService = new NameMatchingCandidatesService(nameCombinations, multipleLastNames, specialCharacters, aliasCombinations, entireNonAliasName);
     }
 
     @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void attemptsCorrectCandidateGeneratorsForNameWithoutAliases() {
         InputNames expectedInputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2");
 
         nameMatchingCandidatesService.generateCandidateNames("firstname1 firstname2", "lastname1 lastname2", "");
 
+        verify(entireNonAliasName).generateCandidates(expectedInputNames);
         verify(nameCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
         verify(specialCharacters).generateCandidates(expectedInputNames);
@@ -49,11 +54,13 @@ public class NameMatchingCandidatesServiceTest {
     }
 
     @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void attemptsCorrectCandidateGeneratorsForNameWithAliases() {
         InputNames expectedInputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2", "aliasSurname1 aliasSurname2");
 
         nameMatchingCandidatesService.generateCandidateNames("firstname1 firstname2", "lastname1 lastname2", "aliasSurname1 aliasSurname2");
 
+        verify(entireNonAliasName).generateCandidates(expectedInputNames);
         verify(aliasCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
         verify(specialCharacters).generateCandidates(expectedInputNames);

@@ -6,10 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinations;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,7 +21,8 @@ import static org.hamcrest.Matchers.*;
         NameCombinations.class,
         MultipleLastNames.class,
         SpecialCharacters.class,
-        AliasCombinations.class
+        AliasCombinations.class,
+        EntireNonAliasName.class
 })
 public class NameMatchingCandidatesServiceIT {
 
