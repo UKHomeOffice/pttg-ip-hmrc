@@ -20,7 +20,7 @@ class IndividualRow {
     private String aliasSurname;
 
     Individual toIndividual() {
-        return new Individual(firstName, lastName, nino, LocalDate.parse(dateOfBirth, ISO_DATE), "");
+        return new Individual(firstName, lastName, nino, LocalDate.parse(dateOfBirth, ISO_DATE), aliasSurname);
     }
 
     static IndividualRow fromMap(Map<String, String> individualMap) {

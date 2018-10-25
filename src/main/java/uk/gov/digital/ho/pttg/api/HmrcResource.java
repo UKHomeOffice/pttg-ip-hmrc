@@ -27,8 +27,7 @@ class HmrcResource {
     }
 
     @SuppressWarnings("checkstyle:parameternumber")
-    // Can't help having 7 parameters when there's 7 items of data being sent
-    // This interface is deprecated in favour of postHmrcData anyway
+    // TODO EE-10165 Can't help having 7 parameters when there's 7 items of data being sent - This interface is deprecated in favour of postHmrcData anyway
     @GetMapping(value = "/income", produces = APPLICATION_JSON_VALUE)
     IncomeSummary getHmrcData(
             @RequestParam(value = "firstName") String firstName,
