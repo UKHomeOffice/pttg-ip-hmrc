@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import com.google.common.collect.ImmutableMap;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
@@ -35,8 +34,10 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,13 +181,16 @@ public class NameMatchingSteps {
         IndividualRow individualRow = IndividualRow.fromMap(individualMap);
 
         LocalDate now = LocalDate.now();
-        Map<String, String> requestBody = ImmutableMap.of(
-            "nino", individualRow.getNino(),
-            "firstName", individualRow.getFirstName(),
-            "lastName", individualRow.getLastName(),
-            "dateOfBirth", individualRow.getDateOfBirth(),
-            "fromDate", now.format(ISO_DATE)
-        );
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("nino", individualRow.getNino());
+        requestBody.put("firstName", individualRow.getFirstName());
+        requestBody.put("lastName", individualRow.getLastName());
+        requestBody.put("dateOfBirth", individualRow.getDateOfBirth());
+        requestBody.put("fromDate", now.format(ISO_DATE));
+
+        if (!Objects.isNull(individualRow.getAliasSurname())) {
+            requestBody.put("aliasSurnames", individualRow.getAliasSurname());
+        }
 
         Response response = given()
                                 .basePath("/income")
