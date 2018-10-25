@@ -26,10 +26,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.CompositeNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.DiacriticNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.MaxLengthNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.*;
 
 import java.text.SimpleDateFormat;
 import java.time.Clock;
@@ -190,7 +187,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
     public NameNormalizer nameNormalizer() {
         NameNormalizer[] nameNormalizers = {
                 new MaxLengthNameNormalizer(hmrcNameMaxLength),
-                new DiacriticNameNormalizer()
+                new DiacriticNameNormalizer(),
+                new TrimmingNameNormalizer()
         };
         return new CompositeNameNormalizer(nameNormalizers);
     }
