@@ -4,8 +4,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.CompositeNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import static org.assertj.core.api.Assertions.assertThat;

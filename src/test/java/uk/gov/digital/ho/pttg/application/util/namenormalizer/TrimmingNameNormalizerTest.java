@@ -17,10 +17,11 @@ public class TrimmingNameNormalizerTest {
     private static final String FIRST_NAME_INTERNAL_SPACES = "some firstname";
     private static final String LAST_NAME_INTERNAL_SPACES = "some lastname";
     private static final String FIRST_NAME_WITH_LEADING_SPACE = " somefirstname";
-    private static final HmrcIndividual NORMALIZED_INDIVIDUAL = new HmrcIndividual(FIRSTNAME_WITHOUT_SPACES, LASTNAME_WITHOUT_SPACES, SOME_NINO, SOME_DATE);
     private static final String FIRST_NAME_WITH_TRAILING_SPACE = "somefirstname ";
     private static final String LASTNAME_WITH_LEADING_SPACE = " somelastname";
     private static final String LASTNAME_WITH_TRAILING_SPACE = "somelastname ";
+
+    private static final HmrcIndividual NORMALIZED_INDIVIDUAL = new HmrcIndividual(FIRSTNAME_WITHOUT_SPACES, LASTNAME_WITHOUT_SPACES, SOME_NINO, SOME_DATE);
 
     private final TrimmingNameNormalizer trimmingNameNormalizer = new TrimmingNameNormalizer();
 
