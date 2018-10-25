@@ -1,5 +1,6 @@
 @jira=EE-9764
 
+@WIP
 Feature: The first call in the name matching process sends the full name entered by applicant
 
   @name_matching
