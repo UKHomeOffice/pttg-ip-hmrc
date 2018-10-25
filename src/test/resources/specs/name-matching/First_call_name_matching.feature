@@ -1,10 +1,9 @@
 @jira=EE-9764
 
-@WIP
 Feature: The first call in the name matching process sends the full name entered by applicant
 
   @name_matching
-  Scenario: Applicant with 7 names an no Aliases
+  Scenario: Applicant with 7 names and no Aliases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino        |
       | Ggg        | Fff       | 1987-12-10    | SE 123456 B |
@@ -19,7 +18,7 @@ Feature: The first call in the name matching process sends the full name entered
 
   @name_matching
   @aliases
-  Scenario: Applicant with single surname  names an no Aliases
+  Scenario: Applicant with single surname names and no Aliases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino        |
       | Ddd        | Fff       | 1987-12-10    | SE 123456 B |
