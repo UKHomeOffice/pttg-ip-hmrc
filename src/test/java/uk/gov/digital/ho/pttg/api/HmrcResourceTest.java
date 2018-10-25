@@ -36,7 +36,7 @@ public class HmrcResourceTest {
     private static final LocalDate TO_DATE = LocalDate.of(2018, MAY, 1);
     private static final LocalDate FROM_DATE = LocalDate.of(2018, JANUARY, 1);
     private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1990, DECEMBER, 25);
-    private static final String ALIAS_SURNAMES = "";
+    private static final String ALIAS_SURNAMES = "Alias Surnames";
 
     @Mock private IncomeSummaryService mockIncomeSummaryService;
     @Mock private NinoUtils mockNinoUtils;

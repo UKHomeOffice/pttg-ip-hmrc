@@ -35,8 +35,10 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,13 +182,17 @@ public class NameMatchingSteps {
         IndividualRow individualRow = IndividualRow.fromMap(individualMap);
 
         LocalDate now = LocalDate.now();
-        Map<String, String> requestBody = ImmutableMap.of(
-            "nino", individualRow.getNino(),
-            "firstName", individualRow.getFirstName(),
-            "lastName", individualRow.getLastName(),
-            "dateOfBirth", individualRow.getDateOfBirth(),
-            "fromDate", now.format(ISO_DATE)
-        );
+        Map<String, String> requestParameters = new HashMap<>();
+        requestParameters.put("nino", individualRow.getNino());
+        requestParameters.put("firstName", individualRow.getFirstName());
+        requestParameters.put("lastName", individualRow.getLastName());
+        requestParameters.put("dateOfBirth", individualRow.getDateOfBirth());
+        requestParameters.put("fromDate", now.format(ISO_DATE));
+
+        if (!Objects.isNull(individualRow.getAliasSurname())) {
+            requestParameters.put("aliasSurnames", individualRow.getAliasSurname());
+        }
+        ImmutableMap<String, String> requestBody = ImmutableMap.copyOf(requestParameters);
 
         Response response = given()
                                 .basePath("/income")

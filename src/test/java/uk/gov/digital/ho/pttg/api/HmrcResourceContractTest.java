@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
@@ -42,7 +43,7 @@ public class HmrcResourceContractTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3), ""), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
+        verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3), "some alias surnames"), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
     }
 
     @Test
@@ -101,6 +102,54 @@ public class HmrcResourceContractTest {
                 .andExpect(status().isOk());
 
         verify(incomeSummaryService).getIncomeSummary(new Individual("some first name", "some last name", "AA123456A", LocalDate.of(1991, 2, 3), ""), LocalDate.of(2013, 4, 5), LocalDate.of(2018, 6, 7));
+    }
+
+    @Test
+    public void getRequestWithoutAliasesShouldRespondOk() throws Exception {
+        String someFirstName = "some first name";
+        String someLastName = "some last name";
+        String someNino = "AA123456A";
+        LocalDate someDateOfBirth = LocalDate.of(1991, 2, 3);
+        LocalDate someFromDate = LocalDate.of(2013, 4, 5);
+        LocalDate someToDate = LocalDate.of(2018, 6, 7);
+
+        mockMvc.perform(get("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("firstName", someFirstName)
+                .param("lastName", someLastName)
+                .param("nino", someNino)
+                .param("dateOfBirth", someDateOfBirth.toString())
+                .param("fromDate", someFromDate.toString())
+                .param("toDate", someToDate.toString())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(incomeSummaryService).getIncomeSummary(new Individual(someFirstName, someLastName, someNino, someDateOfBirth, ""), someFromDate, someToDate);
+    }
+
+    @Test
+    public void getRequestWithAliasesShouldRespondOk() throws Exception {
+        String someFirstName = "some first name";
+        String someLastName = "some last name";
+        String someNino = "AA123456A";
+        LocalDate someDateOfBirth = LocalDate.of(1991, 2, 3);
+        LocalDate someFromDate = LocalDate.of(2013, 4, 5);
+        LocalDate someToDate = LocalDate.of(2018, 6, 7);
+        String someAliasSurnames = "some alias surnames";
+
+        mockMvc.perform(get("/income")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("firstName", someFirstName)
+                .param("lastName", someLastName)
+                .param("nino", someNino)
+                .param("dateOfBirth", someDateOfBirth.toString())
+                .param("fromDate", someFromDate.toString())
+                .param("toDate", someToDate.toString())
+                .param("aliasSurnames", someAliasSurnames)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(incomeSummaryService).getIncomeSummary(new Individual(someFirstName, someLastName, someNino, someDateOfBirth, someAliasSurnames), someFromDate, someToDate);
     }
 
     @Test
