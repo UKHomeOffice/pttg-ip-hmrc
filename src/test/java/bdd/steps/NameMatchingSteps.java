@@ -131,10 +131,7 @@ public class NameMatchingSteps {
     @Given("^HMRC has the following individual records$")
     public void hmrcHasTheFollowingIndividualRecords(DataTable dataTable) throws Throwable {
 
-        List<Individual> individuals = dataTable.asList(IndividualRow.class)
-                                           .stream()
-                                           .map(IndividualRow::toIndividual)
-                                           .collect(toList());
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
 
         for (Individual individual : individuals) {
 
@@ -214,10 +211,7 @@ public class NameMatchingSteps {
     @Then("^the footprint will try the following combination of names in order$")
     public void theFootprintWillTryTheFollowingCombinationOfNamesInOrder(DataTable dataTable) {
 
-        List<Individual> individuals = dataTable.asList(IndividualRow.class)
-                                               .stream()
-                                               .map(IndividualRow::toIndividual)
-                                               .collect(toList());
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
 
         List<LoggedRequest> matchingRequestsInOrder = getIndividualMatchingRequestsInOrder();
 
@@ -305,6 +299,25 @@ public class NameMatchingSteps {
 
         assertNotNull(response);
         assertEquals(404, response.getStatusCode());
+    }
+
+    @Then("^the footprint will try the following combination first$")
+    public void checkTheFirstNameMatchingCombination(DataTable dataTable) {
+        Individual expectedFirstMatchingCall = getIndividualFromSingleRowTable(dataTable);
+        LoggedRequest actualFirstMatchingCall = getFirstNameMatchingRequest();
+
+        verifyRequestContainsExpectedNames(actualFirstMatchingCall, expectedFirstMatchingCall);
+    }
+
+    private Individual getIndividualFromSingleRowTable(DataTable dataTable) {
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
+        assertEquals("More than row in table",1, individuals.size());
+
+        return individuals.get(0);
+    }
+
+    private LoggedRequest getFirstNameMatchingRequest() {
+        return getIndividualMatchingRequestsInOrder().get(0);
     }
 
     private Response getIndividualMatchingResponse() {
@@ -426,4 +439,11 @@ public class NameMatchingSteps {
                        .replace("${matchId}", MATCH_ID);
     }
 
+
+    private List<Individual> getIndividualsFromTable(DataTable dataTable) {
+        return dataTable.asList(IndividualRow.class)
+                .stream()
+                .map(IndividualRow::toIndividual)
+                .collect(toList());
+    }
 }
