@@ -232,7 +232,7 @@ public class NameMatchingSteps {
                 });
     }
 
-    private static void verifyRequestContainsExpectedNames(LoggedRequest loggedRequest, Individual expectedIndividual) {
+    private void verifyRequestContainsExpectedNames(LoggedRequest loggedRequest, Individual expectedIndividual) {
 
         String expectedJson = getIndividualMatchRequestExpectedJson(expectedIndividual);
         StringValuePattern stringValuePattern = equalToJson(expectedJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS);
@@ -243,7 +243,7 @@ public class NameMatchingSteps {
         assertThat(exactMatch).isTrue();
     }
 
-    private static List<LoggedRequest> getIndividualMatchingRequestsInOrder() {
+    private List<LoggedRequest> getIndividualMatchingRequestsInOrder() {
         return HMRC_MOCK_SERVICE.findAll(postRequestedFor(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT)));
     }
 
@@ -336,20 +336,19 @@ public class NameMatchingSteps {
         assertThat(matches).isEqualTo(0);
     }
 
-    private <T> long numberOfMatchingRequests(List<T> names, Function<T, String> requestMatcher) {
+    private <T> long numberOfMatchingRequests(List<T> names, Function<T, String> produceJsonForName) {
 
         List<LoggedRequest> loggedRequests = getIndividualMatchingRequestsInOrder();
 
         return names
                    .stream()
-                   .map(requestMatcher)
-                   .map(nameJson -> equalToJson(nameJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS))
-                   .map(expectedNamePattern ->
-                                loggedRequests
-                                        .stream()
-                                        .map(LoggedRequest::getBodyAsString)
-                                        .anyMatch(requestBody -> expectedNamePattern.match(requestBody).isExactMatch()))
-                   .filter(m -> m)
+                   .map(produceJsonForName)
+                   .map(this::produceExpectedNameMatcher)
+                   .map(expectedNameMatcher -> loggedRequests
+                                                         .stream()
+                                                         .map(LoggedRequest::getBodyAsString)
+                                                         .anyMatch(requestBody -> expectedNameMatcher.match(requestBody).isExactMatch()))
+                   .filter(this::aRequestWasMadeForThisName)
                    .count();
     }
 
@@ -364,6 +363,14 @@ public class NameMatchingSteps {
         return new JSONObject()
                        .put("lastName", name)
                        .toString();
+    }
+
+    private StringValuePattern produceExpectedNameMatcher(String json) {
+        return equalToJson(json, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS);
+    }
+
+    private boolean aRequestWasMadeForThisName(boolean b) {
+        return b;
     }
 
     private Response getIndividualMatchingResponse() {
