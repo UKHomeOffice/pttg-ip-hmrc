@@ -10,12 +10,12 @@ Feature: Name matching does not attempt matches that are duplicates from HMRC's 
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
     Then the footprint will try the following combination of names in order
-      | First name | Last name | Date of Birth | nino        |
-      | Alex       | Evans     | 1987-12-10    | SE 123456 B |
-      | Evans      | Alex      | 1987-12-10    | SE 123456 B |
-      | Evans      | Andrew    | 1987-12-10    | SE 123456 B |
-      | Alex       | Andrew    | 1987-12-10    | SE 123456 B |
-      | Andrew     | Alex      | 1987-12-10    | SE 123456 B |
+      | First name  | Last name | Date of Birth | nino        |
+      | Alex Andrew | Evans     | 1987-12-10    | SE 123456 B |
+      | Evans       | Alex      | 1987-12-10    | SE 123456 B |
+      | Evans       | Andrew    | 1987-12-10    | SE 123456 B |
+      | Alex        | Andrew    | 1987-12-10    | SE 123456 B |
+      | Andrew      | Alex      | 1987-12-10    | SE 123456 B |
     And a not matched response is returned
 
   Scenario: Surnames with same first three letters does not produce duplicate matching calls to HMRC.
