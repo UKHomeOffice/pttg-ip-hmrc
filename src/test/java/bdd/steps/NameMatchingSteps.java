@@ -225,7 +225,7 @@ public class NameMatchingSteps {
         int numberOfExpectedRequests = individuals.size();
         int numberOfActualRequests = matchingRequestsInOrder.size();
 
-        assertThat(numberOfExpectedRequests).isEqualTo(numberOfActualRequests);
+        assertThat(numberOfActualRequests).isEqualTo(numberOfExpectedRequests);
 
         AtomicInteger index = new AtomicInteger(0);
 

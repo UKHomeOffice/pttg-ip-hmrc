@@ -59,7 +59,7 @@ public class InvalidCharacterNameNormalizerTest {
 
     @Test
     public void shouldNotRemoveJoinerCharacters() {
-        HmrcIndividual individual = new HmrcIndividual("' ", "-'", SOME_NINO, SOME_DOB);
+        HmrcIndividual individual = new HmrcIndividual("'. ", "-'", SOME_NINO, SOME_DOB);
         assertThat(invalidCharacterNameNormalizer.normalizeNames(individual)).isEqualTo(individual);
     }
 }
