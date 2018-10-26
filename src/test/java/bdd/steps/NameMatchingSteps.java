@@ -348,7 +348,7 @@ public class NameMatchingSteps {
                                                          .stream()
                                                          .map(LoggedRequest::getBodyAsString)
                                                          .anyMatch(requestBody -> expectedNameMatcher.match(requestBody).isExactMatch()))
-                   .filter(this::aRequestWasMadeForThisName)
+                   .filter(aRequestWasMadeForThisName -> aRequestWasMadeForThisName == true)
                    .count();
     }
 
@@ -367,10 +367,6 @@ public class NameMatchingSteps {
 
     private StringValuePattern produceExpectedNameMatcher(String json) {
         return equalToJson(json, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS);
-    }
-
-    private boolean aRequestWasMadeForThisName(boolean b) {
-        return b;
     }
 
     @Then("^the following identity will be tried first$")
