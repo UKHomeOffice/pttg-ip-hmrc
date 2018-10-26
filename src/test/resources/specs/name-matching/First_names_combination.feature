@@ -11,9 +11,9 @@ Feature: First name combinations
       | Date of Birth | 9999-12-31   |
       | nino          | NR123456C    |
     Then the following names will be tried
-      | First name  | Last name     |
-      | Arthur      | Cheese        |
-      | Bob         | Cheese        |
+      | First name | Last name |
+      | Arthur Bob | Cheese    |
+      | Bob        | Cheese    |
 
 
   @name_matching

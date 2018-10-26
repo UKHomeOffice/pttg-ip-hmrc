@@ -6,10 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinations;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNames;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.NameCombinations;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.*;
 
 import java.util.Arrays;
 import java.util.List;
