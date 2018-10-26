@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
-import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.AnnualSelfAssessmentTaxReturn;
+import uk.gov.digital.ho.pttg.dto.Employment;
+import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.time.LocalDate;
 import java.util.HashMap;
