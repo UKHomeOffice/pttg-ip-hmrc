@@ -6,7 +6,7 @@ Feature: Handling of name matching edge cases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | .           |
       | Last name     | .           |
       | Date of Birth | 1987-12-10  |
@@ -19,13 +19,13 @@ Feature: Handling of name matching edge cases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Ali .       |
       | Last name     | Figuero     |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
     Then a not matched response is returned
-    And the footprint will try the following combination of names in order
+    And the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Ali        | Figuero   | 1987-12-10    | SE 123456 B |
       | Figuero    | Ali       | 1987-12-10    | SE 123456 B |
@@ -35,7 +35,7 @@ Feature: Handling of name matching edge cases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | .           |
       | Last name     | Figuero     |
       | Date of Birth | 1987-12-10  |
@@ -48,7 +48,7 @@ Feature: Handling of name matching edge cases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Estoban     |
       | Last name     | .           |
       | Date of Birth | 1987-12-10  |
@@ -60,13 +60,13 @@ Feature: Handling of name matching edge cases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | .               |
       | Last name     | Figuero Higuain |
       | Date of Birth | 1987-12-10      |
       | nino          | SE 123456 B     |
     Then a not matched response is returned
-    And the footprint will try the following combination of names in order
+    And the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Figuero    | Higuain   | 1987-12-10    | SE 123456 B |
       | Higuain    | Figuero   | 1987-12-10    | SE 123456 B |
@@ -77,13 +77,13 @@ Feature: Handling of name matching edge cases
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Estoban Figuero |
       | Last name     | .               |
       | Date of Birth | 1987-12-10      |
       | nino          | SE 123456 B     |
     Then a not matched response is returned
-    And  the footprint will try the following combination of names in order
+    And  the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Estoban    | Figuero   | 1987-12-10    | SE 123456 B |
       | Figuero    | Estoban   | 1987-12-10    | SE 123456 B |

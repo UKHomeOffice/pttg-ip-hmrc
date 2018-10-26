@@ -5,7 +5,10 @@ import lombok.experimental.Accessors;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
-import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.AnnualSelfAssessmentTaxReturn;
+import uk.gov.digital.ho.pttg.dto.EmbeddedIndividual;
+import uk.gov.digital.ho.pttg.dto.Employment;
+import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.util.List;
 

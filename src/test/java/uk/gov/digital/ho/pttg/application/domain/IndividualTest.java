@@ -2,7 +2,6 @@ package uk.gov.digital.ho.pttg.application.domain;
 
 import org.junit.Test;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InvalidIdentityException;
-import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
