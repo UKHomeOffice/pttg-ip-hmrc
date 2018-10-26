@@ -21,8 +21,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
-import uk.gov.digital.ho.pttg.dto.AccessCode;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
+import uk.gov.digital.ho.pttg.dto.AccessCode;
 
 import java.io.IOException;
 import java.math.BigDecimal;

@@ -14,7 +14,7 @@ Feature: Self Assessment Summary or Self Employment only configuration
       | First name | Last name | Date of Birth | nino      |
       | Adam       | Ball      | 1987-12-10    | SE123456B |
 
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Adam        |
       | Last name     | Ball        |
       | Date of Birth | 1987-12-10  |
@@ -28,7 +28,7 @@ Feature: Self Assessment Summary or Self Employment only configuration
       | Adam       | Ball      | 1987-12-10    | SE123456B |
     And the service configuration is changed to self assessment summary
 
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Adam        |
       | Last name     | Ball        |
       | Date of Birth | 1987-12-10  |

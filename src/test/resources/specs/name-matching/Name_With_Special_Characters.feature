@@ -12,12 +12,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb-Ccc    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa         |
       | Last name     | Bb-Ccc      |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb-Ccc    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
@@ -29,12 +29,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aa-Bbb     | Cc-Ddd    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Cc-Ddd      |
       | Last name     | Aa-Bbb      |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Cc-Ddd     | Aa-Bbb    | 1987-12-10    | SE 123456 B |
       | Aa-Bbb     | Cc-Ddd    | 1987-12-10    | SE 123456 B |
@@ -47,12 +47,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb-       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa         |
       | Last name     | Bb- Ccc     |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb- Ccc   | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
@@ -64,12 +64,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa         |
       | Last name     | Bb-Ccc      |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb-Ccc    | 1987-12-10    | SE 123456 B |
       | Bb-Ccc     | Aaa       | 1987-12-10    | SE 123456 B |
@@ -83,12 +83,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Bb         | Aaa       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa         |
       | Last name     | Bb-Ccc      |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb-Ccc    | 1987-12-10    | SE 123456 B |
       | Bb-Ccc     | Aaa       | 1987-12-10    | SE 123456 B |
@@ -101,12 +101,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb'Ccc    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa         |
       | Last name     | Bb'Ccc      |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb'Ccc    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
@@ -118,12 +118,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa         |
       | Last name     | Bb'Ccc      |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb'Ccc    | 1987-12-10    | SE 123456 B |
       | Bb'Ccc     | Aaa       | 1987-12-10    | SE 123456 B |
@@ -137,12 +137,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name   | Last name   | Date of Birth | nino      |
       | Joseph James | R De Bloggs | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Joseph James |
       | Last name     | R De Bloggs  |
       | Date of Birth | 1987-12-10   |
       | nino          | SE 123456 B  |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name   | Last name  | Date of Birth | nino        |
       | Joseph James | R De Bloggs | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
@@ -154,12 +154,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Pas Alb    | De Fey    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Pas Alb     |
       | Last name     | R De Fey    |
       | Date of Birth | 1987-12-10  |
       | nino          | SE 123456 B |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Pas Alb    | R De Fey  | 1987-12-10    | SE 123456 B |
       | Pas        | R Fey     | 1987-12-10    | SE 123456 B |
@@ -174,12 +174,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Pas Alb    | De Fey    | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | R              |
       | Last name     | Pas Alb De Fey |
       | Date of Birth | 1987-12-10     |
       | nino          | SE 123456 B    |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name | Last name      | Date of Birth | nino        |
       | R          | Pas Alb De Fey | 1987-12-10    | SE 123456 B |
       | R          | De Pas         | 1987-12-10    | SE 123456 B |

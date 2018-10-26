@@ -22,12 +22,12 @@ import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.IncomeSummaryContext;
+import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
-import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
-import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 import java.time.Month;

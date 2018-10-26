@@ -25,12 +25,12 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Ggg        | Fff       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc Ddd |
       | Last name     | Eee Fff Ggg     |
       | Date of Birth | 1987-12-10      |
       | nino          | SE 123456 B     |
-    Then the footprint will try the following combination of names in order
+    Then the following identities will be tried in this order
       | First name      | Last name   | Date of Birth | nino        |
       | Aaa Bbb Ccc Ddd | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
       | Bbb             | Eee Fff Ggg | 1987-12-10    | SE 123456 B |
@@ -82,7 +82,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Fff        | Ccc       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc Ddd |
       | Last name     | Eee Fff Ggg     |
       | Date of Birth | 1987-12-10      |
@@ -96,7 +96,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Iii        | Fff       | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Aaa Bbb Ccc Ddd |
       | Last name     | Eee Fff Ggg     |
       | Date of Birth | 1987-12-10      |
@@ -110,7 +110,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Gonzalo    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Ali Bob-Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
       | Date of Birth | 1987-12-10                        |
@@ -124,7 +124,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name    | Last name | Date of Birth | nino      |
       | BobChicharito | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Ali Bob-Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
       | Date of Birth | 1987-12-10                        |
@@ -137,7 +137,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name     | Last name | Date of Birth | nino      |
       | Bob-Chicharito | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Ali Bob-Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
       | Date of Birth | 1987-12-10                        |
@@ -150,7 +150,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Bob        | El-Mohtar | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Bob         |
       | Last name     | El-Mohtar   |
       | Date of Birth | 1987-12-10  |
@@ -164,7 +164,7 @@ Feature: Name matching with 7 name strings
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Estoban    | Higuain   | 1987-12-10    | SE123456B |
-    When the applicant submits the following data to the RPS service
+    When an income request is made with the following identity
       | First name    | Ali Bob Chicharito Danilo Estoban |
       | Last name     | Figuero Gonzalo Higuain           |
       | Date of Birth | 1987-12-10                        |

@@ -8,7 +8,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.hateoas.Link;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
-import uk.gov.digital.ho.pttg.dto.*;
+import uk.gov.digital.ho.pttg.dto.Address;
+import uk.gov.digital.ho.pttg.dto.Employer;
+import uk.gov.digital.ho.pttg.dto.Employment;
+import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
