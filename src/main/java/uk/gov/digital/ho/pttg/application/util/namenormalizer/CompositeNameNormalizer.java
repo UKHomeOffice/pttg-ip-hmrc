@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application.util;
+package uk.gov.digital.ho.pttg.application.util.namenormalizer;
 
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 

@@ -5,7 +5,7 @@ import uk.gov.digital.ho.pttg.api.RequestHeaderData
 import uk.gov.digital.ho.pttg.application.HmrcCallWrapper
 import uk.gov.digital.ho.pttg.application.HmrcHateoasClient
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService
-import uk.gov.digital.ho.pttg.application.util.NameNormalizer
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer
 
 import java.time.LocalDate
 

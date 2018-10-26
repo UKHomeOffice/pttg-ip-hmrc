@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application.util;
+package uk.gov.digital.ho.pttg.application.util.namenormalizer;
 
 import me.xuender.unidecode.Unidecode;
 import org.apache.commons.lang3.StringUtils;

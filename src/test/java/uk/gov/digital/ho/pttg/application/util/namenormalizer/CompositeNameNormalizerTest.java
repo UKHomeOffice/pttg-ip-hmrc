@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application.util;
+package uk.gov.digital.ho.pttg.application.util.namenormalizer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
