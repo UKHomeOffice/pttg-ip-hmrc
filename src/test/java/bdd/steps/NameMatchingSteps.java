@@ -1,5 +1,6 @@
 package bdd.steps;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
@@ -27,7 +28,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.application.SpringConfiguration;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +71,7 @@ public class NameMatchingSteps {
     private static final boolean IGNORE_EXTRA_ELEMENTS = true;
     private static final String INDIVIDUAL_MATCHING_ENDPOINT = "/individuals/matching/";
     private static final String MATCH_ID = "s87654321";
+    private static final StringValuePattern NO_LEADING_OR_TRAILING_SPACES_PATTERN = matching("^\\S+.*\\S+$");
 
     private static final WireMockServer AUDIT_MOCK_SERVICE = new WireMockServer(options().port(1111));
     private static final WireMockServer HMRC_MOCK_SERVICE = new WireMockServer(options().port(2222));
@@ -340,6 +344,7 @@ public class NameMatchingSteps {
 
         List<LoggedRequest> loggedRequests = getIndividualMatchingRequestsInOrder();
 
+        //noinspection PointlessBooleanExpression - aRequestWasMadeForThisName == true is much easier to understand.
         return names
                    .stream()
                    .map(produceJsonForName)
@@ -375,6 +380,22 @@ public class NameMatchingSteps {
         LoggedRequest actualFirstMatchingCall = getFirstNameMatchingRequest();
 
         verifyRequestContainsExpectedNames(actualFirstMatchingCall, expectedFirstMatchingCall);
+    }
+
+    @Then("^none of the name matching calls contain leading or trailing whitespace$")
+    public void noneOfTheNameMatchingCallsContainLeadingOrTrailingWhitespace() throws IOException {
+        ObjectMapper objectMapper = setupObjectMapper();
+
+        List<LoggedRequest> matchingRequests = getIndividualMatchingRequestsInOrder();
+        for (LoggedRequest matchingRequest : matchingRequests) {
+
+            HmrcIndividual matchingIdentity = objectMapper.readValue(matchingRequest.getBodyAsString(), HmrcIndividual.class);
+
+            boolean firstIsTrimmed = NO_LEADING_OR_TRAILING_SPACES_PATTERN.match(matchingIdentity.getFirstName()).isExactMatch();
+            boolean lastNameIsTrimmed = NO_LEADING_OR_TRAILING_SPACES_PATTERN.match(matchingIdentity.getLastName()).isExactMatch();
+            assertThat(firstIsTrimmed).isTrue();
+            assertThat(lastNameIsTrimmed).isTrue();
+        }
     }
 
     private Individual getIndividualFromSingleRowTable(DataTable dataTable) {
@@ -513,5 +534,11 @@ public class NameMatchingSteps {
                 .stream()
                 .map(IndividualRow::toIndividual)
                 .collect(toList());
+    }
+
+    private static ObjectMapper setupObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SpringConfiguration.initialiseObjectMapper(objectMapper);
+        return objectMapper;
     }
 }

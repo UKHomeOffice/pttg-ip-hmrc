@@ -89,3 +89,15 @@ Feature: Handling of name matching edge cases
       | Figuero    | Estoban   | 1987-12-10    | SE 123456 B |
 
 
+  @name_matching
+  Scenario: Applicant submits full stop as some of their last names - last name in matching attempt should not have leading or trailing whitespace
+    Given HMRC has the following individual records
+      | First name | Last name | Date of Birth | nino      |
+      | Estoban    | Higuain   | 1987-12-10    | SE123456B |
+    When an income request is made with the following identity
+      | First name    | Ali         |
+      | Last name     | . Figuero . |
+      | Date of Birth | 1987-12-10  |
+      | nino          | SE 123456 B |
+    Then none of the name matching calls contain leading or trailing whitespace
+

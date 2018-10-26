@@ -188,7 +188,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
         NameNormalizer[] nameNormalizers = {
                 new MaxLengthNameNormalizer(hmrcNameMaxLength),
                 new DiacriticNameNormalizer(),
-                new TrimmingNameNormalizer()
+                new TrimmingNameNormalizer(),
         };
         return new CompositeNameNormalizer(nameNormalizers);
     }
