@@ -24,7 +24,7 @@ import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.DiacriticNameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.InvalidCharacterNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
@@ -390,12 +390,12 @@ public class HmrcHateoasClientTest {
     public void shouldNotCallHmrcWithEmptyFirstName() {
         String anyNino = "nino";
         LocalDate anyDob = LocalDate.now();
-        NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
+        NameNormalizer nameNormalizer = new InvalidCharacterNameNormalizer();
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
 
-        Individual individual = new Individual(".", "Jones Smith", anyNino, anyDob, "");
-        HmrcIndividual hmrcIndividual = new HmrcIndividual(".", "Jones Smith", anyNino, anyDob);
+        Individual individual = new Individual("(", "Jones Smith", anyNino, anyDob, "");
+        HmrcIndividual hmrcIndividual = new HmrcIndividual("(", "Jones Smith", anyNino, anyDob);
         assertThat(nameNormalizer.normalizeNames(hmrcIndividual).getFirstName()).isEqualTo("");
 
         try {
@@ -414,12 +414,12 @@ public class HmrcHateoasClientTest {
     public void shouldNotCallHmrcWithEmptyLastName() {
         String anyNino = "nino";
         LocalDate anyDob = LocalDate.now();
-        NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
+        NameNormalizer nameNormalizer = new InvalidCharacterNameNormalizer();
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
         when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
 
-        Individual individual = new Individual("Bob John", ".", anyNino, anyDob, "");
-        HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", ".", anyNino, anyDob);
+        Individual individual = new Individual("Bob John", "(", anyNino, anyDob, "");
+        HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", "(", anyNino, anyDob);
         assertThat(nameNormalizer.normalizeNames(hmrcIndividual).getLastName()).isEqualTo("");
 
         try {
@@ -438,12 +438,12 @@ public class HmrcHateoasClientTest {
     public void shouldLogSkippedCallToHmrcDueToEmptyName() {
         String anyNino = "nino";
         LocalDate anyDob = LocalDate.now();
-        NameNormalizer nameNormalizer = new DiacriticNameNormalizer();
+        NameNormalizer nameNormalizer = new InvalidCharacterNameNormalizer();
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(Arrays.asList(new CandidateName("Bob John", ".")));
+        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(Arrays.asList(new CandidateName("Bob John", "(")));
 
-        Individual individual = new Individual("Bob John", ".", anyNino, anyDob, "");
-        HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", ".", anyNino, anyDob);
+        Individual individual = new Individual("Bob John", "(", anyNino, anyDob, "");
+        HmrcIndividual hmrcIndividual = new HmrcIndividual("Bob John", "(", anyNino, anyDob);
         assertThat(nameNormalizer.normalizeNames(hmrcIndividual).getLastName()).isEqualTo("");
 
         try {
