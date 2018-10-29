@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Component
 public class SpecialCharacters implements NameMatchingCandidateGenerator {
-    private static final String NAME_SPLITTERS = "-'";
+    private static final String NAME_SPLITTERS = "-'.";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
 
     private NameCombinations nameCombinations;

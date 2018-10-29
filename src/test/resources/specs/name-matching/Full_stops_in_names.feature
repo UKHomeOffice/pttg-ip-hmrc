@@ -18,7 +18,6 @@ Feature: Names with full stops
     And a Matched response will be returned from the service
 
   @name_matching
-  @WIP
   Scenario: Enters full stop when name does not contain a full stop and is match
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
@@ -35,8 +34,7 @@ Feature: Names with full stops
       | Bb.        | Ccc       | 1987-12-10    | SE123456B |
       | Ccc        | Aaa       | 1987-12-10    | SE123456B |
       | Ccc        | Bb.       | 1987-12-10    | SE123456B |
-      | Aaa        | Bb        | 1987-12-10    | SE123456B |
-      | Bb         | Aaa       | 1987-12-10    | SE123456B |
+      | Bb.        | Aaa       | 1987-12-10    | SE123456B |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
