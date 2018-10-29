@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,24 +32,25 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
             return Lists.newArrayList(candidateNames);
         }
 
-        InputNames inputNameWithoutSplitters = nameWithSplittersRemoved(inputNames);
-        InputNames inputNameWithSpaces = nameWithSplittersReplacedBySpaces(inputNames);
+        candidateNames.addAll(getNameCandidates(inputNames, multipleLastNames));
+        candidateNames.addAll(getNameCandidates(inputNames, nameCombinations));
 
-        if (namesAreNotEmpty(inputNameWithoutSplitters)) {
-            candidateNames.addAll(multipleLastNames.generateCandidates(inputNameWithoutSplitters));
-        }
-        if (namesAreNotEmpty(inputNameWithSpaces)) {
-            candidateNames.addAll(multipleLastNames.generateCandidates(inputNameWithSpaces));
-        }
-
-        if (namesAreNotEmpty(inputNameWithoutSplitters)) {
-            candidateNames.addAll(nameCombinations.generateCandidates(inputNameWithoutSplitters));
-        }
-        if (namesAreNotEmpty(inputNameWithSpaces)) {
-
-            candidateNames.addAll(nameCombinations.generateCandidates(inputNameWithSpaces));
-        }
         return Lists.newArrayList(candidateNames);
+    }
+
+    private List<CandidateName> getNameCandidates(InputNames inputNames, NameMatchingCandidateGenerator candidateGenerator) {
+        List<CandidateName> candidateNames = new ArrayList<>();
+
+        InputNames inputNameSplittersRemoved = nameWithSplittersRemoved(inputNames);
+        InputNames inputNameSpacesNotSplitters = nameWithSplittersReplacedBySpaces(inputNames);
+
+        if (namesAreNotEmpty(inputNameSplittersRemoved)) {
+            candidateNames.addAll(candidateGenerator.generateCandidates(inputNameSplittersRemoved));
+        }
+        if (namesAreNotEmpty(inputNameSpacesNotSplitters)) {
+            candidateNames.addAll(candidateGenerator.generateCandidates(inputNameSpacesNotSplitters));
+        }
+        return candidateNames;
     }
 
     private static boolean namesContainSplitters(InputNames inputNames) {
