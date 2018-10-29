@@ -6,6 +6,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -77,6 +79,63 @@ public class CompositeNameNormalizerTest {
 
         assertThat(actualIndividual).isEqualTo(mockOutputIndividual);
         verifyNoMoreInteractions(mockOutputIndividual);
+    }
+
+    @Test
+    public void shouldStripCharactersThatDoNotMapToLetters() {
+        NameNormalizer[] nameNormalizers = {new DiacriticNameNormalizer(), new InvalidCharacterNameNormalizer()};
+        compositeNameNormalizer = new CompositeNameNormalizer(nameNormalizers);
+
+        String[] charactersThatDoNotMapToLetters = {"ǝ",
+                "Ʌ",
+                "Ɑ",
+                "Ɒ",
+                "ⱱ",
+                "Ⱳ",
+                "ⱳ",
+                "ⱴ",
+                "ⱸ",
+                "ⱺ",
+                "ⱻ",
+                "ⱼ",
+                "ⱽ",
+                "Ȿ",
+                "Ɀ",
+                "ẜ",
+                "ẝ",
+                "Ỻ",
+                "ỻ",
+                "Ỿ",
+                "Ə",
+                "ƻ",
+                "Ƽ",
+                "ƽ",
+                "ǀ",
+                "ǁ",
+                "ǂ",
+                "ǃ",
+                "Ɂ",
+                "ɂ",
+                "Ⱶ",
+                "ⱶ",
+                "ⱷ",
+                "ⱹ",
+                "ẟ",
+                "Ỽ",
+                "ỽ",
+                "Ƅ",
+                "ƅ",
+                "Ǝ",
+                "Ƨ",
+                "ƨ"};
+
+        LocalDate someDob = LocalDate.now();
+        for (String nonMappingCharacter : charactersThatDoNotMapToLetters) {
+            HmrcIndividual inputIndividual = new HmrcIndividual(nonMappingCharacter, nonMappingCharacter, "some nino", someDob);
+            HmrcIndividual expectedNormalizedIndividual = new HmrcIndividual("", "", "some nino", someDob);
+
+            assertThat(compositeNameNormalizer.normalizeNames(inputIndividual)).isEqualTo(expectedNormalizedIndividual);
+        }
     }
 
     private NameNormalizer setupNameNormalizerMock() {
