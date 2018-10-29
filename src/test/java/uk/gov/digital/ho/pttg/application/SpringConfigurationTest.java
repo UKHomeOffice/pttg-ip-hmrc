@@ -14,9 +14,13 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.DiacriticNameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.InvalidCharacterNameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -150,5 +154,32 @@ public class SpringConfigurationTest {
 
         assertThat(evictExpiredConnections.isPresent()).isTrue();
         assertThat(evictExpiredConnections.get()).isTrue();
+    }
+
+    @Test
+    public void diacriticNameNormalizerShouldBeCalledImmediatelyBeforeInvalidCharacters() {
+        SpringConfiguration springConfig = new SpringConfiguration(new ObjectMapper(), false, null, null, null, 35, anySSLProtocols, anyRetryProperties, mockTimeoutProperties);
+
+        NameNormalizer nameNormalizer = springConfig.nameNormalizer();
+
+        NameNormalizer[] nameNormalizerOrder = (NameNormalizer[]) ReflectionTestUtils.getField(nameNormalizer, "nameNormalizers");
+        assertThat(nameNormalizerOrder).isNotNull();
+
+        int diacriticNormalizerPositionInOrder = indexOfNameNormalizerByClass(nameNormalizerOrder, DiacriticNameNormalizer.class);
+        int invalidCharacterNormalizerPositionInOrder = indexOfNameNormalizerByClass(nameNormalizerOrder, InvalidCharacterNameNormalizer.class);
+
+        assertThat(diacriticNormalizerPositionInOrder)
+                .withFailMessage("DiacriticNameNormalizer should immediately precede InvalidCharacterNameNormalizer")
+                .isEqualTo(invalidCharacterNormalizerPositionInOrder - 1);
+    }
+
+    private int indexOfNameNormalizerByClass(NameNormalizer[] nameNormalizers, Class normalizerClass) {
+        int indexOfNormalizer = -1;
+        for (int i = 0; i < nameNormalizers.length; i++) {
+            if (nameNormalizers[i].getClass().equals(normalizerClass)) {
+                indexOfNormalizer = i;
+            }
+        }
+        return indexOfNormalizer;
     }
 }
