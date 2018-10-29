@@ -163,7 +163,7 @@ public class SpringConfigurationTest {
         NameNormalizer nameNormalizer = springConfig.nameNormalizer();
 
         NameNormalizer[] nameNormalizerOrder = (NameNormalizer[]) ReflectionTestUtils.getField(nameNormalizer, "nameNormalizers");
-        Objects.requireNonNull(nameNormalizerOrder);
+        assertThat(nameNormalizerOrder).isNotNull();
 
         int diacriticNormalizerPositionInOrder = indexOfNameNormalizerByClass(nameNormalizerOrder, DiacriticNameNormalizer.class);
         int invalidCharacterNormalizerPositionInOrder = indexOfNameNormalizerByClass(nameNormalizerOrder, InvalidCharacterNameNormalizer.class);
