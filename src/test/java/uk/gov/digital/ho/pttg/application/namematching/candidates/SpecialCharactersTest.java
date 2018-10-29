@@ -5,11 +5,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
+import java.util.List;
+
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -162,5 +167,15 @@ public class SpecialCharactersTest {
 
         verify(mockNameCombinations).generateCandidates(inputWithFullStopsRemoved);
         verify(mockMultipleLastNames).generateCandidates(inputWithFullStopsRemoved);
+    }
+
+    @Test
+    public void shouldNotCallCollaboratorsWithEmptyNames() {
+        InputNames inputNames = new InputNames(".", ".", SOME_ALIAS_SURNAME);
+
+        specialCharacters.generateCandidates(inputNames);
+
+        verifyNoMoreInteractions(mockNameCombinations);
+        verifyNoMoreInteractions(mockMultipleLastNames);
     }
 }

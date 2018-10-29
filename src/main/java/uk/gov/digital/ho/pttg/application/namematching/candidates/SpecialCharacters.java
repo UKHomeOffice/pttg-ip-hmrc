@@ -31,11 +31,23 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
             return Lists.newArrayList(candidateNames);
         }
 
-        candidateNames.addAll(multipleLastNames.generateCandidates(nameWithSplittersRemoved(inputNames)));
-        candidateNames.addAll(multipleLastNames.generateCandidates(nameWithSplittersReplacedBySpaces(inputNames)));
-        candidateNames.addAll(nameCombinations.generateCandidates(nameWithSplittersRemoved(inputNames)));
-        candidateNames.addAll(nameCombinations.generateCandidates(nameWithSplittersReplacedBySpaces(inputNames)));
+        InputNames inputNameWithoutSplitters = nameWithSplittersRemoved(inputNames);
+        InputNames inputNameWithSpaces = nameWithSplittersReplacedBySpaces(inputNames);
 
+        if (namesAreNotEmpty(inputNameWithoutSplitters)) {
+            candidateNames.addAll(multipleLastNames.generateCandidates(inputNameWithoutSplitters));
+        }
+        if (namesAreNotEmpty(inputNameWithSpaces)) {
+            candidateNames.addAll(multipleLastNames.generateCandidates(inputNameWithSpaces));
+        }
+
+        if (namesAreNotEmpty(inputNameWithoutSplitters)) {
+            candidateNames.addAll(nameCombinations.generateCandidates(inputNameWithoutSplitters));
+        }
+        if (namesAreNotEmpty(inputNameWithSpaces)) {
+
+            candidateNames.addAll(nameCombinations.generateCandidates(inputNameWithSpaces));
+        }
         return Lists.newArrayList(candidateNames);
     }
 
@@ -57,6 +69,10 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
     private static InputNames nameWithSplittersReplacedBySpaces(InputNames inputNames) {
         return new InputNames(nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()), nameWithSplittersReplacedBySpaces(inputNames.fullLastName()));
+    }
+
+    private boolean namesAreNotEmpty(InputNames inputNames) {
+        return !(inputNames.firstNames().isEmpty() && inputNames.lastNames().isEmpty());
     }
 
 }
