@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class InvalidCharacterNameNormalizer implements NameNormalizer {
 
-    private static final Set<Character> JOINERS = new HashSet<>(Arrays.asList('-', '\''));
+    private static final Set<Character> JOINERS = new HashSet<>(Arrays.asList('-', '\'', '.'));
 
     @Override
     public HmrcIndividual normalizeNames(HmrcIndividual individual) {
