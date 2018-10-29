@@ -4,13 +4,7 @@ import me.xuender.unidecode.Unidecode;
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 public class DiacriticNameNormalizer implements NameNormalizer {
-
-    private static final Set<Character> JOINERS = new HashSet<>(Arrays.asList('-', '\''));
 
     @Override
     public HmrcIndividual normalizeNames(HmrcIndividual individual) {
@@ -26,20 +20,6 @@ public class DiacriticNameNormalizer implements NameNormalizer {
         }
 
         String strippedAccents = StringUtils.stripAccents(name);
-        String decoded = Unidecode.decode(strippedAccents);
-        return permitOnlyLettersAndWhitespaceAndJoiners(decoded);
-    }
-
-    private String permitOnlyLettersAndWhitespaceAndJoiners(String name) {
-
-        StringBuilder sb = new StringBuilder(name.length());
-
-        for (char c : name.toCharArray()) {
-            if (Character.isLetter(c) || Character.isWhitespace(c) || JOINERS.contains(c)) {
-                sb.append(c);
-            }
-        }
-
-        return sb.toString();
+        return Unidecode.decode(strippedAccents);
     }
 }
