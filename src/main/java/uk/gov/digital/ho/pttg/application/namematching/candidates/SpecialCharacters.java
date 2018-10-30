@@ -17,10 +17,12 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
 
     private NameCombinations nameCombinations;
+    private AliasCombinations aliasCombinations;
     private MultipleLastNames multipleLastNames;
 
-    public SpecialCharacters(NameCombinations nameCombinations, MultipleLastNames multipleLastNames) {
+    public SpecialCharacters(NameCombinations nameCombinations, AliasCombinations aliasCombinations, MultipleLastNames multipleLastNames) {
         this.nameCombinations = nameCombinations;
+        this.aliasCombinations = aliasCombinations;
         this.multipleLastNames = multipleLastNames;
     }
 
@@ -33,7 +35,11 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
         }
 
         candidateNames.addAll(getNameCandidates(inputNames, multipleLastNames));
-        candidateNames.addAll(getNameCandidates(inputNames, nameCombinations));
+        if (inputNames.hasAliasSurnames()) {
+            candidateNames.addAll(getNameCandidates(inputNames, aliasCombinations));
+        } else {
+            candidateNames.addAll(getNameCandidates(inputNames, nameCombinations));
+        }
 
         return Lists.newArrayList(candidateNames);
     }
@@ -54,7 +60,8 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private static boolean namesContainSplitters(InputNames inputNames) {
-        return StringUtils.containsAny(inputNames.fullName(), NAME_SPLITTERS);
+        String aliasSurnames = joinAllAliasSurnames(inputNames);
+        return StringUtils.containsAny(inputNames.fullName(), NAME_SPLITTERS) || StringUtils.containsAny(aliasSurnames, NAME_SPLITTERS);
     }
 
     private static String nameWithSplittersRemoved(String name) {
@@ -62,7 +69,8 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private static InputNames nameWithSplittersRemoved(InputNames inputNames) {
-        return new InputNames(nameWithSplittersRemoved(inputNames.fullFirstName()), nameWithSplittersRemoved(inputNames.fullLastName()));
+        String aliasSurnames = joinAllAliasSurnames(inputNames);
+        return new InputNames(nameWithSplittersRemoved(inputNames.fullFirstName()), nameWithSplittersRemoved(inputNames.fullLastName()), nameWithSplittersRemoved(aliasSurnames));
     }
 
     private static String nameWithSplittersReplacedBySpaces(String name) {
@@ -70,11 +78,15 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private static InputNames nameWithSplittersReplacedBySpaces(InputNames inputNames) {
-        return new InputNames(nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()), nameWithSplittersReplacedBySpaces(inputNames.fullLastName()));
+        String aliasSurnames = joinAllAliasSurnames(inputNames);
+        return new InputNames(nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()), nameWithSplittersReplacedBySpaces(inputNames.fullLastName()), nameWithSplittersReplacedBySpaces(aliasSurnames));
     }
 
     private boolean namesAreNotEmpty(InputNames inputNames) {
         return !(inputNames.firstNames().isEmpty() && inputNames.lastNames().isEmpty());
     }
 
+    private static String joinAllAliasSurnames(InputNames inputNames) {
+        return String.join(" ", inputNames.aliasSurnames());
+    }
 }
