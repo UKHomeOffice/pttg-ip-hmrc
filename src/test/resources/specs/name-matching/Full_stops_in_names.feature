@@ -85,8 +85,8 @@ Feature: Names with full stops
       | Alias Surname | Cc.Ddd     |
     Then the following words will be used for the first part of the last name
       | Bbb    |
-      | Cc.Ddd |
       | Aaa    |
-      | CcDdd  |
       | Ddd    |
+      | Cc.Ddd |
+      | CcDdd  |
     And a Matched response will be returned from the service

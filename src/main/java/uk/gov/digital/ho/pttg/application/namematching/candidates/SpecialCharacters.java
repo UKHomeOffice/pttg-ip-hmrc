@@ -11,6 +11,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.joinAllAliasSurnames;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
+
 @Component
 public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private static final String NAME_SPLITTERS = "-'.";
@@ -80,13 +83,5 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private static InputNames nameWithSplittersReplacedBySpaces(InputNames inputNames) {
         String aliasSurnames = joinAllAliasSurnames(inputNames);
         return new InputNames(nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()), nameWithSplittersReplacedBySpaces(inputNames.fullLastName()), nameWithSplittersReplacedBySpaces(aliasSurnames));
-    }
-
-    private boolean namesAreNotEmpty(InputNames inputNames) {
-        return !(inputNames.firstNames().isEmpty() && inputNames.lastNames().isEmpty());
-    }
-
-    private static String joinAllAliasSurnames(InputNames inputNames) {
-        return String.join(" ", inputNames.aliasSurnames());
     }
 }
