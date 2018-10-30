@@ -5,17 +5,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
-import java.util.List;
-
 import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SpecialCharactersTest {
@@ -167,6 +161,20 @@ public class SpecialCharactersTest {
 
         verify(mockNameCombinations).generateCandidates(inputWithFullStopsRemoved);
         verify(mockMultipleLastNames).generateCandidates(inputWithFullStopsRemoved);
+    }
+
+    @Test
+    public void shouldStripOutAndReplaceAllSpecialCharactersAtSameTime() {
+        InputNames inputNamesWithManySpecialChars = new InputNames("a.b'", "c-.d", SOME_ALIAS_SURNAME);
+        InputNames inputWithSpecialCharsRemoved = new InputNames("ab", "cd", "");
+        InputNames inputWithSpecialCharsAsSpaces = new InputNames("a b ", "c  d", "");
+
+        specialCharacters.generateCandidates(inputNamesWithManySpecialChars);
+
+        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsRemoved);
+        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsAsSpaces);
+        verify(mockMultipleLastNames).generateCandidates(inputWithSpecialCharsRemoved);
+        verify(mockMultipleLastNames).generateCandidates(inputWithSpecialCharsAsSpaces);
     }
 
     @Test
