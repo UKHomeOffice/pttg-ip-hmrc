@@ -42,4 +42,10 @@ public interface ApplicationExceptions {
             super(s);
         }
     }
+
+    class CircuitBreakerException extends RuntimeException {
+        public CircuitBreakerException(String message) {
+            super(message);
+        }
+    }
 }

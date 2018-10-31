@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 public enum LogEvent {
+    HMRC_SERVICE_CIRCUIT_BREAKER_TRIPPED,
     HMRC_SERVICE_STARTED,
     HMRC_PROXY_ENABLED,
     HMRC_SERVICE_REQUEST_RECEIVED,

@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.pttg.api;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -34,13 +33,19 @@ class ResourceExceptionHandler {
     @ExceptionHandler
     ResponseEntity handle(HmrcUnauthorisedException e) {
         log.error("HmrcUnauthorisedException: {}", e.getMessage(), value(EVENT, HMRC_AUTHENTICATION_ERROR));
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(e.getMessage(), UNAUTHORIZED);
     }
 
     @ExceptionHandler
     ResponseEntity handle(HttpServerErrorException e) {
         log.error("HttpServerErrorException: {}", e.getMessage(), value(EVENT, HMRC_SERVICE_RESPONSE_ERROR));
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
+    }
+
+    @ExceptionHandler
+    ResponseEntity handle(CircuitBreakerException e) {
+        log.error("CircuitBreakerException: {}", e.getMessage(), value(EVENT, HMRC_SERVICE_CIRCUIT_BREAKER_TRIPPED));
+        return new ResponseEntity<>(e.getMessage(), TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler

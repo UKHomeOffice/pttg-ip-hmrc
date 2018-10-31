@@ -20,10 +20,12 @@ class HmrcResource {
 
     private final IncomeSummaryService incomeSummaryService;
     private final NinoUtils ninoUtils;
+    private final CircuitBreaker circuitBreaker;
 
-    HmrcResource(IncomeSummaryService incomeSummaryService, NinoUtils ninoUtils) {
+    HmrcResource(IncomeSummaryService incomeSummaryService, NinoUtils ninoUtils, CircuitBreaker circuitBreaker) {
         this.incomeSummaryService = incomeSummaryService;
         this.ninoUtils = ninoUtils;
+        this.circuitBreaker = circuitBreaker;
     }
 
     @SuppressWarnings("checkstyle:parameternumber")
@@ -64,6 +66,8 @@ class HmrcResource {
     }
 
     private IncomeSummary produceIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
+
+        circuitBreaker.check();
 
         long requestReceived = Instant.now().toEpochMilli();
 
