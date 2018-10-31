@@ -69,7 +69,7 @@ public class NamesWithFullStopSpaceCombinationsFunctionsContainFullStopSpaceTest
     }
 
     @Test
-    public void doesNotContainFullStopSpaceBetweenNames_accentedCharactersAtBoundary_returnTrue() {
+    public void doesNotContainFullStopSpaceBetweenNames_accentedCharactersAtBoundary_returnFalse() {
         InputNames accentBeforeFullStop = new InputNames("à. b", "Smith");
         InputNames accentAfterFullStop = new InputNames("David", "b. à");
         assertThat(doesNotContainFullStopSpaceBetweenNames(accentBeforeFullStop)).isFalse();
