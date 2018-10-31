@@ -18,7 +18,6 @@ Feature: Names with full stops
     And a Matched response will be returned from the service
 
   @name_matching
-  @WIP
   Scenario: Enters full stop when name does not contain a full stop and is match
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
@@ -35,8 +34,7 @@ Feature: Names with full stops
       | Bb.        | Ccc       | 1987-12-10    | SE123456B |
       | Ccc        | Aaa       | 1987-12-10    | SE123456B |
       | Ccc        | Bb.       | 1987-12-10    | SE123456B |
-      | Aaa        | Bb        | 1987-12-10    | SE123456B |
-      | Bb         | Aaa       | 1987-12-10    | SE123456B |
+      | Bb.        | Aaa       | 1987-12-10    | SE123456B |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
@@ -70,4 +68,25 @@ Feature: Names with full stops
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Ddd       | 1987-12-10    | SE123456B |
       | Bb. Ccc    | Ddd       | 1987-12-10    | SE123456B |
+    And a Matched response will be returned from the service
+
+
+  @name_matching
+  @aliases
+  Scenario: Alias name with a full stop and no space is matched with HMRC details with space and no full stop
+    Given HMRC has the following individual records
+      | First name | Last name | Date of Birth | nino      |
+      | Aaa        | Ddd       | 1987-12-10    | SE123456B |
+    When an income request is made with the following identity
+      | First name    | Aaa        |
+      | Last name     | Bbb        |
+      | Date of Birth | 1987-12-10 |
+      | nino          | SE123456B  |
+      | Alias Surname | Cc.Ddd     |
+    Then the following words will be used for the first part of the last name
+      | Bbb    |
+      | Aaa    |
+      | Ddd    |
+      | Cc.Ddd |
+      | CcDdd  |
     And a Matched response will be returned from the service
