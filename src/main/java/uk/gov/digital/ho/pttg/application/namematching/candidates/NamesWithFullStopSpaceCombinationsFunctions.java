@@ -19,12 +19,17 @@ final class NamesWithFullStopSpaceCombinationsFunctions {
     private static final String SPACE_NOT_PRECEDED_BY_FULL_STOP_OR_SPACE_PATTERN = FULL_STOP_SPACE_NEGATIVE_LOOK_BEHIND + "\\s+";
 
     static boolean doesNotContainFullStopSpaceBetweenNames(InputNames inputNames) {
-        boolean fullNameContainsFullStopSpace = nameDoesNotContainFullStopSpaceBetweenNames(inputNames.fullFirstName()) && nameDoesNotContainFullStopSpaceBetweenNames(inputNames.fullLastName());
-        return fullNameContainsFullStopSpace && nameDoesNotContainFullStopSpaceBetweenNames(inputNames.allAliasSurnamesAsString());
+        if (nameContainsFullStopSpaceBetweenNames(inputNames.fullFirstName())) {
+            return false;
+        }
+        if (nameContainsFullStopSpaceBetweenNames(inputNames.fullLastName())) {
+            return false;
+        }
+        return !nameContainsFullStopSpaceBetweenNames(inputNames.allAliasSurnamesAsString());
     }
 
-    private static boolean nameDoesNotContainFullStopSpaceBetweenNames(String s) {
-        return !Pattern.compile(FULL_STOP_SPACE_BETWEEN_NAMES_PATTERN).matcher(s).find();
+    private static boolean nameContainsFullStopSpaceBetweenNames(String s) {
+        return Pattern.compile(FULL_STOP_SPACE_BETWEEN_NAMES_PATTERN).matcher(s).find();
     }
 
     static List<String> splitNamesIgnoringFullStopSpace(String names) {

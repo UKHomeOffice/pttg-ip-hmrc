@@ -27,10 +27,20 @@ public class NamesWithFullStopSpaceCombinations implements NameMatchingCandidate
             return emptyList();
         }
 
+        InputNames inputNamesWithFullStopSpaceNotSplit = createNewInputNamesWithFullStopSpaceNotSplit(inputNames);
+
+        if (inputNamesWithFullStopSpaceNotSplit.hasAliasSurnames()) {
+            return aliasCombinations.generateCandidates(inputNamesWithFullStopSpaceNotSplit);
+        }
+        return nameCombinations.generateCandidates(inputNamesWithFullStopSpaceNotSplit);
+    }
+
+    private InputNames createNewInputNamesWithFullStopSpaceNotSplit(InputNames inputNames) {
         List<String> firstNames = splitNamesIgnoringFullStopSpace(inputNames.fullFirstName());
         List<String> lastNames = splitNamesIgnoringFullStopSpace(inputNames.fullLastName());
+        List<String> aliasSurnames = splitNamesIgnoringFullStopSpace(inputNames.allAliasSurnamesAsString());
 
-        return nameCombinations.generateCandidates(new InputNames(firstNames, lastNames));
+        return new InputNames(firstNames, lastNames, aliasSurnames);
     }
 
 }

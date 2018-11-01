@@ -88,7 +88,7 @@ public class NamesWithFullStopSpaceCombinationsTest {
 
     @Test
     public void generateCandidates_withAliasNames_callAliasCombinationsOnly() {
-        InputNames inputNames = new InputNames("some name", "some name", "some. alias");
+        InputNames inputNames = new InputNames("some name", "some. name", "some alias");
 
         NameCombinations mockedNameCombinations = mock(NameCombinations.class);
         AliasCombinations mockedAliasCombinations = mock(AliasCombinations.class);
@@ -100,6 +100,42 @@ public class NamesWithFullStopSpaceCombinationsTest {
         verify(mockedAliasCombinations).generateCandidates(any(InputNames.class));
         verifyNoMoreInteractions(mockedNameCombinations);
 
+    }
+
+    @Test
+    public void generateCandidates_aliasPresentButNoFullStopSpace_correctCombination() {
+        InputNames inputNamesWithAlias = new InputNames("David", "St. John", "Jones");
+
+        List<CandidateName> expectedCandidateNames = asList(
+                new CandidateName("David", "St. John"),
+                new CandidateName("David", "Jones"),
+                new CandidateName("St. John", "Jones"),
+                new CandidateName("St. John", "David"),
+                new CandidateName("Jones", "David"),
+                new CandidateName("Jones", "St. John")
+        );
+
+        List<CandidateName> actualCandidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNamesWithAlias);
+
+        assertThat(actualCandidateNames).isEqualTo(expectedCandidateNames);
+    }
+
+    @Test
+    public void generateCandidates_aliasWithFullStopSpace_correctCombination() {
+        InputNames inputNamesWithAlias = new InputNames("David", "Smith", "St. John");
+
+        List<CandidateName> expectedCandidateNames = asList(
+                new CandidateName("David", "Smith"),
+                new CandidateName("David", "St. John"),
+                new CandidateName("Smith", "St. John"),
+                new CandidateName("Smith", "David"),
+                new CandidateName("St. John", "David"),
+                new CandidateName("St. John", "Smith")
+        );
+
+        List<CandidateName> actualCandidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNamesWithAlias);
+
+        assertThat(actualCandidateNames).isEqualTo(expectedCandidateNames);
     }
 
     private void assertNameNotPresentInCandidateNames(List<CandidateName> candidateNames, String... names) {
