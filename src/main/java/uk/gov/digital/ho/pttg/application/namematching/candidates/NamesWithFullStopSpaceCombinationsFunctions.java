@@ -19,7 +19,8 @@ final class NamesWithFullStopSpaceCombinationsFunctions {
     private static final String SPACE_NOT_PRECEDED_BY_FULL_STOP_OR_SPACE_PATTERN = FULL_STOP_SPACE_NEGATIVE_LOOK_BEHIND + "\\s+";
 
     static boolean doesNotContainFullStopSpaceBetweenNames(InputNames inputNames) {
-        return nameDoesNotContainFullStopSpaceBetweenNames(inputNames.fullFirstName()) && nameDoesNotContainFullStopSpaceBetweenNames(inputNames.fullLastName());
+        boolean fullNameContainsFullStopSpace = nameDoesNotContainFullStopSpaceBetweenNames(inputNames.fullFirstName()) && nameDoesNotContainFullStopSpaceBetweenNames(inputNames.fullLastName());
+        return fullNameContainsFullStopSpace && nameDoesNotContainFullStopSpaceBetweenNames(inputNames.allAliasSurnamesAsString());
     }
 
     private static boolean nameDoesNotContainFullStopSpaceBetweenNames(String s) {

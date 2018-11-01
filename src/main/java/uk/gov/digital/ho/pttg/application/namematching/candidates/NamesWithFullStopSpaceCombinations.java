@@ -14,9 +14,11 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWi
 public class NamesWithFullStopSpaceCombinations implements NameMatchingCandidateGenerator {
 
     private final NameCombinations nameCombinations;
+    private final AliasCombinations aliasCombinations;
 
-    public NamesWithFullStopSpaceCombinations(NameCombinations nameCombinations) {
+    public NamesWithFullStopSpaceCombinations(NameCombinations nameCombinations, AliasCombinations aliasCombinations) {
         this.nameCombinations = nameCombinations;
+        this.aliasCombinations = aliasCombinations;
     }
 
     @Override

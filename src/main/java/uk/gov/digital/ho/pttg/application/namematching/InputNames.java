@@ -67,6 +67,10 @@ public class InputNames {
         return String.join(" ", lastNames);
     }
 
+    public String allAliasSurnamesAsString() {
+        return String.join(" ", aliasSurnames);
+    }
+
     public boolean hasAliasSurnames() {
         return !aliasSurnames.isEmpty();
     }

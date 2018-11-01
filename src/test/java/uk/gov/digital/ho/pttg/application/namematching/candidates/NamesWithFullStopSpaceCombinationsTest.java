@@ -8,10 +8,17 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class NamesWithFullStopSpaceCombinationsTest {
 
-    private NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(new NameCombinations());
+    private final AliasCombinations aliasCombinations = new AliasCombinations();
+    private final NameCombinations nameCombinations = new NameCombinations();
+
+    private final NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(nameCombinations, aliasCombinations);
 
     @Test
     public void shouldReturnEmptyListWhenNoFullStopsInInputNames() {
@@ -61,6 +68,38 @@ public class NamesWithFullStopSpaceCombinationsTest {
         List<CandidateName> candidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
         assertNamePresentInCandidateNames(candidateNames, "St. John", "Dr. Pepper", "Mr. Mister", "An. Other", "Mr. Jones", "Sgt. Price", "Dme. Bassey");
         assertNameNotPresentInCandidateNames(candidateNames, "Dr. No", "Ms. Smith");
+    }
+
+    @Test
+    public void generateCandidates_noAliasNames_callNameCombinationsOnly() {
+        InputNames inputNames = new InputNames("some. name", "some. name");
+
+        NameCombinations mockedNameCombinations = mock(NameCombinations.class);
+        AliasCombinations mockedAliasCombinations = mock(AliasCombinations.class);
+
+        NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(mockedNameCombinations, mockedAliasCombinations);
+
+        namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
+
+        verify(mockedNameCombinations).generateCandidates(any(InputNames.class));
+        verifyNoMoreInteractions(mockedAliasCombinations);
+
+    }
+
+    @Test
+    public void generateCandidates_withAliasNames_callAliasCombinationsOnly() {
+        InputNames inputNames = new InputNames("some name", "some name", "some. alias");
+
+        NameCombinations mockedNameCombinations = mock(NameCombinations.class);
+        AliasCombinations mockedAliasCombinations = mock(AliasCombinations.class);
+
+        NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(mockedNameCombinations, mockedAliasCombinations);
+
+        namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
+
+        verify(mockedAliasCombinations).generateCandidates(any(InputNames.class));
+        verifyNoMoreInteractions(mockedNameCombinations);
+
     }
 
     private void assertNameNotPresentInCandidateNames(List<CandidateName> candidateNames, String... names) {

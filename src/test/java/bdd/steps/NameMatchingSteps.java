@@ -312,7 +312,6 @@ public class NameMatchingSteps {
         assertThat(response.getStatusCode()).isEqualTo(SC_NOT_FOUND);
     }
 
-
     @Then("^the following words will be used for the first part of the last name$")
     public void theFollowingWordsWillBeUsedForTheFirstPartOfTheLastName(DataTable dataTable) {
 
@@ -320,6 +319,15 @@ public class NameMatchingSteps {
         long matches = numberOfMatchingRequests(lastNames, this::jsonContainingLastNameOf);
 
         assertThat(matches).isEqualTo(lastNames.size());
+    }
+
+    @Then("^the following words will be used for the first name$")
+    public void theFollowingWordsWillBeUsedForTheFirstName(DataTable dataTable) {
+
+        List<String> firstNames = dataTable.asList(String.class);
+        long matches = numberOfMatchingRequests(firstNames, this::jsonContainingFirstNameOf);
+
+        assertThat(matches).isEqualTo(firstNames.size());
     }
 
     @Then("^the following names will be tried$")
@@ -362,6 +370,12 @@ public class NameMatchingSteps {
                        .put("firstName", individualRow.firstName())
                        .put("lastName", individualRow.lastName())
                        .toString();
+    }
+
+    private String jsonContainingFirstNameOf(String name) {
+        return new JSONObject()
+                .put("firstName", name)
+                .toString();
     }
 
     private String jsonContainingLastNameOf(String name) {
