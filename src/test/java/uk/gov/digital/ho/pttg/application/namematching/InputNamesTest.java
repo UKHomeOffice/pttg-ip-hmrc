@@ -15,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(MockitoJUnitRunner.class)
 public class InputNamesTest {
 
+    private static final String SOME_NAME = "some name";
+
     @Test
     public void multiPartLastNameEmpty() {
         InputNames inputNames = new InputNames("any-name", "");
@@ -174,5 +176,23 @@ public class InputNamesTest {
     public void hasAliasSurnamesShouldReturnTrueWhenNoAliasSurnames() {
         InputNames noAliasInputNames = new InputNames("John", "Smith", "Evans");
         assertThat(noAliasInputNames.hasAliasSurnames()).isTrue();
+    }
+
+    @Test
+    public void allAliasSurnamesAsString_emptyAliasNames_emptyString() {
+        InputNames emptyAliasNames = new InputNames(SOME_NAME, SOME_NAME, "");
+        assertThat(emptyAliasNames.allAliasSurnamesAsString()).isEmpty();
+    }
+
+    @Test
+    public void allAliasSurnamesAsString_oneAliasNames_aliasNameReturned() {
+        InputNames oneAliasName = new InputNames(SOME_NAME, SOME_NAME, "aliasName");
+        assertThat(oneAliasName.allAliasSurnamesAsString()).isEqualTo("aliasName");
+    }
+
+    @Test
+    public void allAliasSurnamesAsString_twoAliasNames_aliasNamesJoined() {
+        InputNames twoAliasNames = new InputNames(SOME_NAME, SOME_NAME, "aliasName1 aliasName2");
+        assertThat(twoAliasNames.allAliasSurnamesAsString()).isEqualTo("aliasName1 aliasName2");
     }
 }
