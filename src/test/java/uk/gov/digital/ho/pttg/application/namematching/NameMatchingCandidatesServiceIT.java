@@ -22,7 +22,8 @@ import static org.hamcrest.Matchers.*;
         MultipleLastNames.class,
         SpecialCharacters.class,
         AliasCombinations.class,
-        EntireNonAliasName.class
+        EntireNonAliasName.class,
+        NamesWithFullStopSpaceCombinations.class
 })
 public class NameMatchingCandidatesServiceIT {
 
