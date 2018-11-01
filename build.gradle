@@ -138,9 +138,6 @@ dependencies {
 
 gradle.startParameter.continueOnFailure = false
 release {
-  git {
-    requireBranch = /EE-9726-semver-tagging/
-  }
   preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) - pre tag commit: '
   tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
   newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) - new version commit: '
