@@ -30,10 +30,13 @@ public class NameMatchingCandidatesServiceTest {
     private AliasCombinations aliasCombinations;
     @Mock
     private EntireNonAliasName entireNonAliasName;
+    @Mock
+    private NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations;
 
     @Before
     public void setUp() {
-        nameMatchingCandidatesService = new NameMatchingCandidatesService(nameCombinations, multipleLastNames, specialCharacters, aliasCombinations, entireNonAliasName);
+        nameMatchingCandidatesService = new NameMatchingCandidatesService(nameCombinations, multipleLastNames, specialCharacters, aliasCombinations, entireNonAliasName,
+                namesWithFullStopSpaceCombinations);
     }
 
     @Test
@@ -47,6 +50,7 @@ public class NameMatchingCandidatesServiceTest {
         verify(nameCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
         verify(specialCharacters).generateCandidates(expectedInputNames);
+        verify(namesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames);
 
         verify(aliasCombinations, never()).generateCandidates(any());
     }
@@ -62,6 +66,8 @@ public class NameMatchingCandidatesServiceTest {
         verify(aliasCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
         verify(specialCharacters).generateCandidates(expectedInputNames);
+        verify(namesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames);
+
 
         verify(nameCombinations, never()).generateCandidates(any());
     }
@@ -83,5 +89,4 @@ public class NameMatchingCandidatesServiceTest {
         assertThat(candidateNames.get(0).firstName().substring(0, 3)).isEqualTo("fir");
         assertThat(candidateNames.get(0).lastName().substring(0, 1)).isEqualTo("l");
     }
-
 }

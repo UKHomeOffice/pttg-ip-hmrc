@@ -30,11 +30,11 @@ Feature: Names with full stops
     Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb. Ccc   | 1987-12-10    | SE123456B |
+      | Bb. Ccc    | Aaa       | 1987-12-10    | SE123456B |
       | Aaa        | Ccc       | 1987-12-10    | SE123456B |
       | Bb.        | Ccc       | 1987-12-10    | SE123456B |
       | Ccc        | Aaa       | 1987-12-10    | SE123456B |
       | Ccc        | Bb.       | 1987-12-10    | SE123456B |
-      | Bb.        | Aaa       | 1987-12-10    | SE123456B |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
@@ -54,7 +54,6 @@ Feature: Names with full stops
     And a Matched response will be returned from the service
 
   @name_matching
-  @WIP
   Scenario: Name when middle name has a full stop and a space and is matched with HMRC
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
@@ -66,7 +65,7 @@ Feature: Names with full stops
       | nino          | SE123456B   |
     Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino      |
-      | Aaa        | Ddd       | 1987-12-10    | SE123456B |
+      | Aaa Bb. Ccc | Ddd       | 1987-12-10    | SE123456B |
       | Bb. Ccc    | Ddd       | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
