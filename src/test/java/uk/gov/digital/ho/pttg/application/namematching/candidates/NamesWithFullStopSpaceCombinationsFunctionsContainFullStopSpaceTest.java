@@ -46,14 +46,14 @@ public class NamesWithFullStopSpaceCombinationsFunctionsContainFullStopSpaceTest
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopSpaceFirstName_returnFalse() {
-        InputNames amesWithFullStopSpaceFirstName = new InputNames("St. John", "Smith");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(amesWithFullStopSpaceFirstName)).isFalse();
+        InputNames namesWithFullStopSpaceFirstName = new InputNames("St. John", "Smith");
+        assertThat(doesNotContainFullStopSpaceBetweenNames(namesWithFullStopSpaceFirstName)).isFalse();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopSpaceLastName_returnFalse() {
-        InputNames amesWithFullStopSpaceLastName = new InputNames("David", "St. John");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(amesWithFullStopSpaceLastName)).isFalse();
+        InputNames namesWithFullStopSpaceLastName = new InputNames("David", "St. John");
+        assertThat(doesNotContainFullStopSpaceBetweenNames(namesWithFullStopSpaceLastName)).isFalse();
     }
 
     @Test
