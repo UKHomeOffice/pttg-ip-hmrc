@@ -137,6 +137,7 @@ dependencies {
 
 
 gradle.startParameter.continueOnFailure = false
+
 release {
   preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) - pre tag commit: '
   tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
