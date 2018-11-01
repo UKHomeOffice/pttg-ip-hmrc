@@ -172,6 +172,7 @@ public class InputNamesTest {
         InputNames noAliasInputNames = new InputNames("John", "Smith", "");
         assertThat(noAliasInputNames.hasAliasSurnames()).isFalse();
     }
+
     @Test
     public void hasAliasSurnamesShouldReturnTrueWhenNoAliasSurnames() {
         InputNames noAliasInputNames = new InputNames("John", "Smith", "Evans");

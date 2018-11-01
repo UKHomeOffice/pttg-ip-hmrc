@@ -75,4 +75,18 @@ public class NamesWithFullStopSpaceCombinationsFunctionsContainFullStopSpaceTest
         assertThat(doesNotContainFullStopSpaceBetweenNames(accentBeforeFullStop)).isFalse();
         assertThat(doesNotContainFullStopSpaceBetweenNames(accentAfterFullStop)).isFalse();
     }
+
+    @Test
+    public void doesNotContainFullStopSpaceBetweenNames_aliasWithOutFullstopSpace_returnTrue(){
+        InputNames noFullStopSpace = new InputNames("John", "Smith", "Jones");
+
+        assertThat(doesNotContainFullStopSpaceBetweenNames(noFullStopSpace)).isTrue();
+    }
+
+    @Test
+    public void doesNotContainFullStopSpaceBetweenNames_aliasWithFullstopSpace_returnFalse(){
+        InputNames withFullStopSpace = new InputNames("John", "Smith", "St. John");
+
+        assertThat(doesNotContainFullStopSpaceBetweenNames(withFullStopSpace)).isFalse();
+    }
 }
