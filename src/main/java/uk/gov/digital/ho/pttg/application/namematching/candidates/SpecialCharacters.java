@@ -11,7 +11,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.joinAllAliasSurnames;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
 
 @Component
@@ -63,8 +62,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private static boolean namesContainSplitters(InputNames inputNames) {
-        String aliasSurnames = joinAllAliasSurnames(inputNames);
-        return StringUtils.containsAny(inputNames.fullName(), NAME_SPLITTERS) || StringUtils.containsAny(aliasSurnames, NAME_SPLITTERS);
+        return StringUtils.containsAny(inputNames.fullName(), NAME_SPLITTERS) || StringUtils.containsAny(inputNames.allAliasSurnamesAsString(), NAME_SPLITTERS);
     }
 
     private static String nameWithSplittersRemoved(String name) {
@@ -72,8 +70,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private static InputNames nameWithSplittersRemoved(InputNames inputNames) {
-        String aliasSurnames = joinAllAliasSurnames(inputNames);
-        return new InputNames(nameWithSplittersRemoved(inputNames.fullFirstName()), nameWithSplittersRemoved(inputNames.fullLastName()), nameWithSplittersRemoved(aliasSurnames));
+        return new InputNames(nameWithSplittersRemoved(inputNames.fullFirstName()), nameWithSplittersRemoved(inputNames.fullLastName()), nameWithSplittersRemoved(inputNames.allAliasSurnamesAsString()));
     }
 
     private static String nameWithSplittersReplacedBySpaces(String name) {
@@ -81,7 +78,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private static InputNames nameWithSplittersReplacedBySpaces(InputNames inputNames) {
-        String aliasSurnames = joinAllAliasSurnames(inputNames);
+        String aliasSurnames = inputNames.allAliasSurnamesAsString();
         return new InputNames(nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()), nameWithSplittersReplacedBySpaces(inputNames.fullLastName()), nameWithSplittersReplacedBySpaces(aliasSurnames));
     }
 }
