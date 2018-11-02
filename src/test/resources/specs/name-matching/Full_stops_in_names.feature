@@ -1,3 +1,7 @@
+@Sprint=17.1
+@Sprint=17.2
+@epic=EE-3855
+@story=Names_With_Full_Stops
 @jira=EE-9349
 
 Feature: Names with full stops
@@ -50,7 +54,7 @@ Feature: Names with full stops
       | nino          | SE123456B  |
     Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino      |
-      | Aaa  | Bb.Ccc    | 1987-12-10    | SE123456B |
+      | Aaa        | Bb.Ccc    | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
   @name_matching
@@ -64,9 +68,9 @@ Feature: Names with full stops
       | Date of Birth | 1987-12-10  |
       | nino          | SE123456B   |
     Then the following identities will be tried in this order
-      | First name | Last name | Date of Birth | nino      |
+      | First name  | Last name | Date of Birth | nino      |
       | Aaa Bb. Ccc | Ddd       | 1987-12-10    | SE123456B |
-      | Bb. Ccc    | Ddd       | 1987-12-10    | SE123456B |
+      | Bb. Ccc     | Ddd       | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
   @name_matching
@@ -94,15 +98,15 @@ Feature: Names with full stops
   Scenario: Alias name with a full stop and a space is matched with HMRC details with space and a full stop
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
-      | Cc. Ddd        | Aaa       | 1987-12-10    | SE123456B |
+      | Cc. Ddd    | Aaa       | 1987-12-10    | SE123456B |
     When an income request is made with the following identity
       | First name    | Aaa        |
       | Last name     | Bbb        |
       | Date of Birth | 1987-12-10 |
       | nino          | SE123456B  |
-      | Alias Surname | Cc. Ddd     |
+      | Alias Surname | Cc. Ddd    |
     Then the following words will be used for the first name
-      | Aaa    |
-      | Bbb    |
+      | Aaa     |
+      | Bbb     |
       | Cc. Ddd |
     And a Matched response will be returned from the service
