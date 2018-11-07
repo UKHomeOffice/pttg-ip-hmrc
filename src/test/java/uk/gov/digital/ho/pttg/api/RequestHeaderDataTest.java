@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -98,5 +99,17 @@ public class RequestHeaderDataTest {
             return loggingEvent.getFormattedMessage().equals("Generated new correlation id as not passed in request header") &&
                     loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker("event_id", HMRC_SERVICE_GENERATED_CORRELATION_ID));
         }));
+    }
+
+    @Test
+    public void shouldAddRequestTimeStampToMDC() {
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+        assertThat(MDC.get("request-timestamp")).isNotNull();
+    }
+
+    @Test
+    public void shouldReturnRequestDuration() {
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+        assertThat(requestData.calculateRequestDuration()).isNotNegative();
     }
 }

@@ -7,7 +7,6 @@ import uk.gov.digital.ho.pttg.application.NinoUtils;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
@@ -20,10 +19,12 @@ class HmrcResource {
 
     private final IncomeSummaryService incomeSummaryService;
     private final NinoUtils ninoUtils;
+    private final RequestHeaderData requestHeaderData;
 
-    HmrcResource(IncomeSummaryService incomeSummaryService, NinoUtils ninoUtils) {
+    HmrcResource(IncomeSummaryService incomeSummaryService, NinoUtils ninoUtils, RequestHeaderData requestHeaderData) {
         this.incomeSummaryService = incomeSummaryService;
         this.ninoUtils = ninoUtils;
+        this.requestHeaderData = requestHeaderData;
     }
 
     @SuppressWarnings("checkstyle:parameternumber")
@@ -65,17 +66,13 @@ class HmrcResource {
 
     private IncomeSummary produceIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
-        long requestReceived = Instant.now().toEpochMilli();
-
         log.info("Hmrc service invoked for nino {} with date range {} to {}", individual.getNino(), fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
 
         IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
 
-        long duration = Instant.now().toEpochMilli() - requestReceived;
-
         log.info("Income summary successfully retrieved from HMRC",
                 value(EVENT, HMRC_SERVICE_RESPONSE_SUCCESS),
-                value("request_duration", duration)
+                value("request_duration_ms", requestHeaderData.calculateRequestDuration())
                 );
 
         return incomeSummary;

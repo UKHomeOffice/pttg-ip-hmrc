@@ -38,13 +38,14 @@ public class HmrcResourceDeprecatedGetTest {
     @Mock private IncomeSummaryService mockIncomeSummaryService;
     @Mock private NinoUtils mockNinoUtils;
     @Mock private IncomeSummary mockIncomeSummary;
+    @Mock private RequestHeaderData mockRequestHeaderData;
     @Mock private Appender<ILoggingEvent> mockAppender;
 
     private HmrcResource hmrcResource;
 
     @Before
     public void setup() {
-        hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils);
+        hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils, mockRequestHeaderData);
         when(mockIncomeSummaryService.getIncomeSummary(isA(Individual.class), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
         when(mockNinoUtils.sanitise(NINO)).thenReturn(NINO);
 
