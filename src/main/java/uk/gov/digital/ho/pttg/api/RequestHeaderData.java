@@ -40,7 +40,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseCorrelationId(request);
         initialiseUserName(request);
         MDC.put("userHost", request.getRemoteHost());
-
+        MDC.put("thread_id", String.valueOf(Thread.currentThread().getId()));
         return true;
     }
 
