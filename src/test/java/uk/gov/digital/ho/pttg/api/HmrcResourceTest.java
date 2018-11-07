@@ -41,6 +41,7 @@ public class HmrcResourceTest {
     @Mock private IncomeSummaryService mockIncomeSummaryService;
     @Mock private NinoUtils mockNinoUtils;
     @Mock private IncomeSummary mockIncomeSummary;
+    @Mock private RequestHeaderData mockRequestHeaderData;
     @Mock private Appender<ILoggingEvent> mockAppender;
 
     @Captor private ArgumentCaptor<Individual> captorIndividual;
@@ -49,7 +50,7 @@ public class HmrcResourceTest {
 
     @Before
     public void setup() {
-        hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils);
+        hmrcResource = new HmrcResource(mockIncomeSummaryService, mockNinoUtils, mockRequestHeaderData);
         when(mockIncomeSummaryService.getIncomeSummary(eq(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, ALIAS_SURNAMES)), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
         when(mockNinoUtils.sanitise(NINO)).thenReturn(NINO);
 
@@ -65,6 +66,7 @@ public class HmrcResourceTest {
 
         verify(mockNinoUtils).sanitise(NINO);
         verify(mockIncomeSummaryService).getIncomeSummary(captorIndividual.capture(), eq(FROM_DATE), eq(TO_DATE));
+        verify(mockRequestHeaderData).calculateRequestDuration();
 
         assertThat(captorIndividual.getValue().getFirstName()).isEqualTo(FIRST_NAME);
         assertThat(captorIndividual.getValue().getLastName()).isEqualTo(LAST_NAME);

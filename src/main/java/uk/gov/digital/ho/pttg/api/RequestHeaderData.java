@@ -11,6 +11,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ public class RequestHeaderData implements HandlerInterceptor {
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
+    private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -39,6 +41,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseSessionId(request);
         initialiseCorrelationId(request);
         initialiseUserName(request);
+        inititaliseRequestStart();
         MDC.put("userHost", request.getRemoteHost());
 
         return true;
@@ -83,6 +86,17 @@ public class RequestHeaderData implements HandlerInterceptor {
         MDC.put(USER_ID_HEADER, userId);
     }
 
+    private void inititaliseRequestStart() {
+        long requestStartTimeStamp = Instant.now().toEpochMilli();
+        MDC.put(REQUEST_START_TIMESTAMP, Long.toString(requestStartTimeStamp));
+
+    }
+
+    long calculateRequestDuration() {
+        long timeStamp = Instant.now().toEpochMilli();
+        return timeStamp - Long.parseLong(MDC.get(REQUEST_START_TIMESTAMP));
+    }
+
     public String deploymentName() {
         return deploymentName;
     }
@@ -110,4 +124,5 @@ public class RequestHeaderData implements HandlerInterceptor {
     public String userId() {
         return MDC.get(USER_ID_HEADER);
     }
+
 }
