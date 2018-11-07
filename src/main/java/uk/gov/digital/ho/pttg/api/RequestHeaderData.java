@@ -43,7 +43,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseUserName(request);
         inititaliseRequestStart();
         MDC.put("userHost", request.getRemoteHost());
-
+        MDC.put("thread_id", String.valueOf(Thread.currentThread().getId()));
         return true;
     }
 
