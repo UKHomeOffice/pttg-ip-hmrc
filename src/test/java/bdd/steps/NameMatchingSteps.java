@@ -1,5 +1,6 @@
 package bdd.steps;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
@@ -23,21 +24,25 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
-import uk.gov.digital.ho.pttg.dto.Individual;
+import uk.gov.digital.ho.pttg.application.SpringConfiguration;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
+import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +51,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static com.jayway.restassured.RestAssured.given;
 import static java.time.format.DateTimeFormatter.*;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import static org.apache.http.HttpStatus.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressFBWarnings({
         "SE_NO_SERIALVERSIONID",
@@ -65,6 +71,7 @@ public class NameMatchingSteps {
     private static final boolean IGNORE_EXTRA_ELEMENTS = true;
     private static final String INDIVIDUAL_MATCHING_ENDPOINT = "/individuals/matching/";
     private static final String MATCH_ID = "s87654321";
+    private static final StringValuePattern NO_LEADING_OR_TRAILING_SPACES_PATTERN = matching("^\\S+.*\\S+$");
 
     private static final WireMockServer AUDIT_MOCK_SERVICE = new WireMockServer(options().port(1111));
     private static final WireMockServer HMRC_MOCK_SERVICE = new WireMockServer(options().port(2222));
@@ -130,10 +137,7 @@ public class NameMatchingSteps {
     @Given("^HMRC has the following individual records$")
     public void hmrcHasTheFollowingIndividualRecords(DataTable dataTable) throws Throwable {
 
-        List<Individual> individuals = dataTable.asList(IndividualRow.class)
-                                           .stream()
-                                           .map(IndividualRow::toIndividual)
-                                           .collect(toList());
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
 
         for (Individual individual : individuals) {
 
@@ -164,7 +168,7 @@ public class NameMatchingSteps {
                                               .withRequestBody(matchingJsonPath("$.lastName", matching(lastname.substring(0, surnameIndex) + ".*")))
                                               .willReturn(aResponse()
                                                                   .withBody(buildMatchResponse())
-                                                                  .withStatus(HttpStatus.OK.value())
+                                                                  .withStatus(SC_OK)
                                                                   .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)));
         }
 
@@ -173,20 +177,24 @@ public class NameMatchingSteps {
                                           .willReturn(aFailedMatchResponse()));
     }
 
-    @When("^the applicant submits the following data to the RPS service$")
-    public void theApplicantSubmitsTheFollowingDataToTheRPSService(DataTable dataTable) {
+    @When("^an income request is made with the following identity$")
+    public void anIncomeRequestIsMadeWithTheFollowingIdentity(DataTable dataTable) {
 
         Map<String, String> individualMap = dataTable.asMap(String.class, String.class);
         IndividualRow individualRow = IndividualRow.fromMap(individualMap);
 
         LocalDate now = LocalDate.now();
-        Map<String, String> requestBody = ImmutableMap.of(
-            "nino", individualRow.getNino(),
-            "firstName", individualRow.getFirstName(),
-            "lastName", individualRow.getLastName(),
-            "dateOfBirth", individualRow.getDateOfBirth(),
-            "fromDate", now.format(ISO_DATE)
-        );
+        Map<String, String> requestParameters = new HashMap<>();
+        requestParameters.put("nino", individualRow.nino());
+        requestParameters.put("firstName", individualRow.firstName());
+        requestParameters.put("lastName", individualRow.lastName());
+        requestParameters.put("dateOfBirth", individualRow.dateOfBirth());
+        requestParameters.put("fromDate", now.format(ISO_DATE));
+
+        if (!Objects.isNull(individualRow.aliasSurname())) {
+            requestParameters.put("aliasSurnames", individualRow.aliasSurname());
+        }
+        ImmutableMap<String, String> requestBody = ImmutableMap.copyOf(requestParameters);
 
         Response response = given()
                                 .basePath("/income")
@@ -207,20 +215,17 @@ public class NameMatchingSteps {
         ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
     }
 
-    @Then("^the footprint will try the following combination of names in order$")
-    public void theFootprintWillTryTheFollowingCombinationOfNamesInOrder(DataTable dataTable) {
+    @Then("^the following identities will be tried in this order$")
+    public void theFollowingIdentitiesWillBeTriedInThisOrder(DataTable dataTable) {
 
-        List<Individual> individuals = dataTable.asList(IndividualRow.class)
-                                               .stream()
-                                               .map(IndividualRow::toIndividual)
-                                               .collect(toList());
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
 
         List<LoggedRequest> matchingRequestsInOrder = getIndividualMatchingRequestsInOrder();
 
         int numberOfExpectedRequests = individuals.size();
         int numberOfActualRequests = matchingRequestsInOrder.size();
 
-        assertEquals("Unexpected number of requests to HMRC Individual Matching", numberOfExpectedRequests, numberOfActualRequests);
+        assertThat(numberOfActualRequests).isEqualTo(numberOfExpectedRequests);
 
         AtomicInteger index = new AtomicInteger(0);
 
@@ -231,7 +236,7 @@ public class NameMatchingSteps {
                 });
     }
 
-    private static void verifyRequestContainsExpectedNames(LoggedRequest loggedRequest, Individual expectedIndividual) {
+    private void verifyRequestContainsExpectedNames(LoggedRequest loggedRequest, Individual expectedIndividual) {
 
         String expectedJson = getIndividualMatchRequestExpectedJson(expectedIndividual);
         StringValuePattern stringValuePattern = equalToJson(expectedJson, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS);
@@ -239,25 +244,29 @@ public class NameMatchingSteps {
         String requestBody = loggedRequest.getBodyAsString();
         boolean exactMatch = stringValuePattern.match(requestBody).isExactMatch();
 
-        assertTrue(
-                String.format("Expected request with names: {First name:%s,Last name: %s}, Actual request: %s",
-                        expectedIndividual.getFirstName(),
-                        expectedIndividual.getLastName(),
-                        requestBody),
-                exactMatch);
+        assertThat(exactMatch).isTrue();
     }
 
-    private static List<LoggedRequest> getIndividualMatchingRequestsInOrder() {
+    private List<LoggedRequest> getIndividualMatchingRequestsInOrder() {
         return HMRC_MOCK_SERVICE.findAll(postRequestedFor(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT)));
     }
 
     @And("^a Matched response will be returned from the service$")
-        public void aMatchedResponseWillBeReturnedFromTheService() {
+    public void aMatchedResponseWillBeReturnedFromTheService() {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode());
+        assertThat(response).isNotNull();
+        assertThat(200).isEqualTo(response.getStatusCode());
+    }
+
+    @And("^a Matched response will not be returned from the service$")
+    public void aMatchedResponseWillNotBeReturnedFromTheService() {
+
+        Response response = getIndividualMatchingResponse();
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(SC_NOT_FOUND);
     }
 
     @And("^the self employment profit will be returned from the service$")
@@ -265,10 +274,10 @@ public class NameMatchingSteps {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
+        assertThat(response).isNotNull();
         JsonPath jsonPath = new JsonPath(response.asString());
-        assertEquals(10500, jsonPath.getInt("selfAssessment[1].selfEmploymentProfit"));
-        assertEquals(200, response.getStatusCode());
+        assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(10500);
+        assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
     @And("^the summary income will be returned from the service$")
@@ -276,15 +285,15 @@ public class NameMatchingSteps {
 
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
+        assertThat(response).isNotNull();
         JsonPath jsonPath = new JsonPath(response.asString());
-        assertEquals(30000, jsonPath.getInt("selfAssessment[1].summaryIncome"));
-        assertEquals(200, response.getStatusCode());
+        assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(30000);
+        assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
     private static ResponseDefinitionBuilder aFailedMatchResponse() {
         return aResponse()
-                .withStatus(HttpStatus.FORBIDDEN.value())
+                .withStatus(SC_FORBIDDEN)
                 .withBody("{ \"code\":\"MATCHING_FAILED\",\"message\":\"There is no match for the information provided\"}")
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
     }
@@ -292,15 +301,126 @@ public class NameMatchingSteps {
     @And("^HMRC was called (\\d+) times$")
     public void hmrcWasCalledTimes(int numberOfCalls) {
         List<LoggedRequest> matchingRequests = getIndividualMatchingRequestsInOrder();
-        assertEquals(numberOfCalls, matchingRequests.size());
+        assertThat(matchingRequests.size()).isEqualTo(numberOfCalls);
     }
 
     @Then("^a not matched response is returned$")
     public void aNotMatchedResponseIsReturned() {
         Response response = getIndividualMatchingResponse();
 
-        assertNotNull(response);
-        assertEquals(404, response.getStatusCode());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(SC_NOT_FOUND);
+    }
+
+    @Then("^the following words will be used for the first part of the last name$")
+    public void theFollowingWordsWillBeUsedForTheFirstPartOfTheLastName(DataTable dataTable) {
+
+        List<String> lastNames = dataTable.asList(String.class);
+        long matches = numberOfMatchingRequests(lastNames, this::jsonContainingLastNameOf);
+
+        assertThat(matches).isEqualTo(lastNames.size());
+    }
+
+    @Then("^the following words will be used for the first name$")
+    public void theFollowingWordsWillBeUsedForTheFirstName(DataTable dataTable) {
+
+        List<String> firstNames = dataTable.asList(String.class);
+        long matches = numberOfMatchingRequests(firstNames, this::jsonContainingFirstNameOf);
+
+        assertThat(matches).isEqualTo(firstNames.size());
+    }
+
+    @Then("^the following names will be tried$")
+    public void theFollowingNamesWillBeTried(DataTable dataTable) {
+
+        List<IndividualRow> names = dataTable.asList(IndividualRow.class);
+        long matches = numberOfMatchingRequests(names, this::jsonContainingAllNamesOf);
+
+        assertThat(matches).isEqualTo(names.size());
+    }
+
+    @Then("^the following names will not be tried$")
+    public void theFollowingNamesWillNotBeTried(DataTable dataTable) {
+
+        List<IndividualRow> names = dataTable.asList(IndividualRow.class);
+        long matches = numberOfMatchingRequests(names, this::jsonContainingAllNamesOf);
+
+        assertThat(matches).isEqualTo(0);
+    }
+
+    private <T> long numberOfMatchingRequests(List<T> names, Function<T, String> produceJsonForName) {
+
+        List<LoggedRequest> loggedRequests = getIndividualMatchingRequestsInOrder();
+
+        //noinspection PointlessBooleanExpression - aRequestWasMadeForThisName == true is much easier to understand.
+        return names
+                   .stream()
+                   .map(produceJsonForName)
+                   .map(this::produceExpectedNameMatcher)
+                   .map(expectedNameMatcher -> loggedRequests
+                                                         .stream()
+                                                         .map(LoggedRequest::getBodyAsString)
+                                                         .anyMatch(requestBody -> expectedNameMatcher.match(requestBody).isExactMatch()))
+                   .filter(aRequestWasMadeForThisName -> aRequestWasMadeForThisName == true)
+                   .count();
+    }
+
+    private String jsonContainingAllNamesOf(IndividualRow individualRow) {
+        return new JSONObject()
+                       .put("firstName", individualRow.firstName())
+                       .put("lastName", individualRow.lastName())
+                       .toString();
+    }
+
+    private String jsonContainingFirstNameOf(String name) {
+        return new JSONObject()
+                .put("firstName", name)
+                .toString();
+    }
+
+    private String jsonContainingLastNameOf(String name) {
+        return new JSONObject()
+                       .put("lastName", name)
+                       .toString();
+    }
+
+    private StringValuePattern produceExpectedNameMatcher(String json) {
+        return equalToJson(json, IGNORE_JSON_ARRAY_ORDER, IGNORE_EXTRA_ELEMENTS);
+    }
+
+    @Then("^the following identity will be tried first$")
+    public void checkTheFirstNameMatchingCombination(DataTable dataTable) {
+        Individual expectedFirstMatchingCall = getIndividualFromSingleRowTable(dataTable);
+        LoggedRequest actualFirstMatchingCall = getFirstNameMatchingRequest();
+
+        verifyRequestContainsExpectedNames(actualFirstMatchingCall, expectedFirstMatchingCall);
+    }
+
+    @Then("^none of the name matching calls contain leading or trailing whitespace$")
+    public void noneOfTheNameMatchingCallsContainLeadingOrTrailingWhitespace() throws IOException {
+        ObjectMapper objectMapper = setupObjectMapper();
+
+        List<LoggedRequest> matchingRequests = getIndividualMatchingRequestsInOrder();
+        for (LoggedRequest matchingRequest : matchingRequests) {
+
+            HmrcIndividual matchingIdentity = objectMapper.readValue(matchingRequest.getBodyAsString(), HmrcIndividual.class);
+
+            boolean firstIsTrimmed = NO_LEADING_OR_TRAILING_SPACES_PATTERN.match(matchingIdentity.getFirstName()).isExactMatch();
+            boolean lastNameIsTrimmed = NO_LEADING_OR_TRAILING_SPACES_PATTERN.match(matchingIdentity.getLastName()).isExactMatch();
+            assertThat(firstIsTrimmed).isTrue();
+            assertThat(lastNameIsTrimmed).isTrue();
+        }
+    }
+
+    private Individual getIndividualFromSingleRowTable(DataTable dataTable) {
+        List<Individual> individuals = getIndividualsFromTable(dataTable);
+        assertThat(individuals.size()).isEqualTo(1);
+
+        return individuals.get(0);
+    }
+
+    private LoggedRequest getFirstNameMatchingRequest() {
+        return getIndividualMatchingRequestsInOrder().get(0);
     }
 
     private Response getIndividualMatchingResponse() {
@@ -422,4 +542,17 @@ public class NameMatchingSteps {
                        .replace("${matchId}", MATCH_ID);
     }
 
+
+    private List<Individual> getIndividualsFromTable(DataTable dataTable) {
+        return dataTable.asList(IndividualRow.class)
+                .stream()
+                .map(IndividualRow::toIndividual)
+                .collect(toList());
+    }
+
+    private static ObjectMapper setupObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SpringConfiguration.initialiseObjectMapper(objectMapper);
+        return objectMapper;
+    }
 }

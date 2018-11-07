@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.application;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -25,10 +26,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
-import uk.gov.digital.ho.pttg.application.util.CompositeNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.DiacriticNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.MaxLengthNameNormalizer;
-import uk.gov.digital.ho.pttg.application.util.NameNormalizer;
+import uk.gov.digital.ho.pttg.application.util.namenormalizer.*;
 
 import java.text.SimpleDateFormat;
 import java.time.Clock;
@@ -75,12 +73,13 @@ public class SpringConfiguration implements WebMvcConfigurer {
         this.supportedSslProtocols = supportedSslProtocols.toArray(new String[]{});
     }
 
-    private static void initialiseObjectMapper(final ObjectMapper mapper) {
+    public static void initialiseObjectMapper(final ObjectMapper mapper) {
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.registerModule(new Jackson2HalModule());
+        mapper.registerModule(new JavaTimeModule());
     }
 
     @Bean
@@ -188,7 +187,9 @@ public class SpringConfiguration implements WebMvcConfigurer {
     public NameNormalizer nameNormalizer() {
         NameNormalizer[] nameNormalizers = {
                 new MaxLengthNameNormalizer(hmrcNameMaxLength),
-                new DiacriticNameNormalizer()
+                new DiacriticNameNormalizer(),
+                new InvalidCharacterNameNormalizer(),
+                new TrimmingNameNormalizer(),
         };
         return new CompositeNameNormalizer(nameNormalizers);
     }

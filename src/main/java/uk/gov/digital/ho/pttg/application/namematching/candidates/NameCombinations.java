@@ -15,7 +15,7 @@ public class NameCombinations implements NameMatchingCandidateGenerator {
     @Override
     public List<CandidateName> generateCandidates(InputNames inputNames) {
         InputNames largestAllowedName = removeAdditionalNamesIfOverMax(inputNames);
-        List<String> namesToUse = largestAllowedName.allNames();
+        List<String> namesToUse = largestAllowedName.allNonAliasNames();
 
         int numberOfNames = namesToUse.size();
         return NamePairRules.forNameCount(numberOfNames)
