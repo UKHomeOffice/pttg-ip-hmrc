@@ -13,6 +13,7 @@ import uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpStatus.*;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.REQUEST_DURATION_MS;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @ControllerAdvice
@@ -29,7 +30,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(HmrcException e) {
         log.error("HmrcException: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
@@ -37,7 +38,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(HttpClientErrorException e) {
         log.error("HttpClientErrorException: {} {}", e.getStatusCode(), e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }
 
@@ -45,7 +46,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(HmrcUnauthorisedException e) {
         log.error("HmrcUnauthorisedException: {}", e.getMessage(),
                 value(EVENT, HMRC_AUTHENTICATION_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
@@ -53,7 +54,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(HttpServerErrorException e) {
         log.error("HttpServerErrorException: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), e.getStatusCode());
     }
 
@@ -61,7 +62,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(RestClientException e) {
         log.error("RestClientException:", e,
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
@@ -69,7 +70,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(Exception e) {
         log.error("Fault Detected:", e,
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
@@ -77,7 +78,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(HmrcNotFoundException e) {
         log.info("HmrcNotFoundException: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_NOT_FOUND),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), NOT_FOUND);
     }
 
@@ -85,7 +86,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(ProxyForbiddenException e) {
         log.error("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.",
                 value(EVENT, HMRC_PROXY_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
@@ -93,7 +94,7 @@ class ResourceExceptionHandler {
     ResponseEntity handle(InvalidIdentityException e) {
         log.error("Service called with invalid identity: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), UNPROCESSABLE_ENTITY);
     }
 
@@ -101,15 +102,15 @@ class ResourceExceptionHandler {
     ResponseEntity handle(InvalidNationalInsuranceNumberException e) {
         log.error("Service called with invalid NINO: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(e.getMessage(), UNPROCESSABLE_ENTITY);
     }
 
     @ExceptionHandler
-    void handle(HttpMessageConversionException e) {
+    ResponseEntity handle(HttpMessageConversionException e) {
         log.error("Failed to handle request due to: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
-                value("request_duration_ms", requestHeaderData.calculateRequestDuration()));
-        new ResponseEntity<>(e.getMessage(), UNPROCESSABLE_ENTITY);
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
+         return new ResponseEntity<>(e.getMessage(), UNPROCESSABLE_ENTITY);
     }
 }
