@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
@@ -27,15 +28,21 @@ import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceExceptionHandlerTest {
 
-    private ResourceExceptionHandler handler = new ResourceExceptionHandler();
+    private ResourceExceptionHandler handler;
+
     @Mock
     private Appender<ILoggingEvent> mockAppender;
+
+    @Mock
+    private RequestHeaderData mockRequestHeaderData;
 
     @Before
     public void setup() {
         Logger rootLogger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
+
+        handler = new ResourceExceptionHandler(mockRequestHeaderData);
     }
 
     @Test
@@ -278,5 +285,152 @@ public class ResourceExceptionHandlerTest {
                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
         }));
     }
+
+    @Test
+    public void shouldLogRequestDurationOnHmrcException(){
+        HmrcException mockHmrcException = mock(HmrcException.class);
+
+        handler.handle(mockHmrcException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+        return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnHttpClientErrorException(){
+        HttpClientErrorException mockHttpClientErrorException = mock(HttpClientErrorException.class);
+        when(mockHttpClientErrorException.getStatusCode()).thenReturn(I_AM_A_TEAPOT);
+
+        handler.handle(mockHttpClientErrorException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnHmrcUnauthorisedException(){
+        HmrcUnauthorisedException mockHmrcUnauthorisedException = mock(HmrcUnauthorisedException.class);
+
+        handler.handle(mockHmrcUnauthorisedException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnHttpServerErrorException(){
+        HttpServerErrorException mockHttpServerErrorException = mock(HttpServerErrorException.class);
+        when(mockHttpServerErrorException.getStatusCode()).thenReturn(I_AM_A_TEAPOT);
+
+        handler.handle(mockHttpServerErrorException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnRestClientException(){
+        RestClientException mockRestClientException = mock(RestClientException.class);
+
+        handler.handle(mockRestClientException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnFaultDetection(){
+        Exception mockException = mock(Exception.class);
+
+        handler.handle(mockException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnHmrcNotFoundException(){
+        HmrcNotFoundException mockHmrcNotFoundException = mock(HmrcNotFoundException.class);
+
+        handler.handle(mockHmrcNotFoundException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnProxyForbiddenException(){
+        ProxyForbiddenException mockProxyForbiddenException = mock(ProxyForbiddenException.class);
+
+        handler.handle(mockProxyForbiddenException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnInvalidIdentityException(){
+        InvalidIdentityException mockInvalidIdentityException = mock(InvalidIdentityException.class);
+
+        handler.handle(mockInvalidIdentityException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnInvalidNationalInsuranceNumberException(){
+        InvalidNationalInsuranceNumberException mockInvalidNinoException = mock(InvalidNationalInsuranceNumberException.class);
+
+        handler.handle(mockInvalidNinoException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void shouldLogRequestDurationOnHttpMessageConversionException(){
+        HttpMessageConversionException mockHttpMessageConversionException = mock(HttpMessageConversionException.class);
+
+        handler.handle(mockHttpMessageConversionException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
 
 }
