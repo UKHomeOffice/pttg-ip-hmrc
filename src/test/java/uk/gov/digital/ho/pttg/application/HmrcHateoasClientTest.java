@@ -458,13 +458,4 @@ public class HmrcHateoasClientTest {
 
         verify(mockNameMatchingCandidatesService).generateCandidateNames("some first names", "some last names", "some alias surnames");
     }
-
-    private void assertEmptyNameNotSentToHmrc(List<HttpEntity<HmrcIndividual>> capturedRequestEntities) {
-        assertThat(capturedRequestEntities.stream()
-                .noneMatch(httpEntity -> httpEntity.getBody().getFirstName().equals("")))
-                .isTrue();
-        assertThat(capturedRequestEntities.stream()
-                .noneMatch(httpEntity -> httpEntity.getBody().getLastName().equals("")))
-                .isTrue();
-    }
 }

@@ -37,6 +37,12 @@ public interface ApplicationExceptions {
         }
     }
 
+    class HmrcOverRateLimitException extends RuntimeException {
+        HmrcOverRateLimitException(String s) {
+            super(s);
+        }
+    }
+
     class ProxyForbiddenException extends RuntimeException {
         public ProxyForbiddenException(String s) {
             super(s);

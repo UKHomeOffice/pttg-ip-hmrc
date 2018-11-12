@@ -15,6 +15,7 @@ import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 import java.net.URI;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 
@@ -56,7 +57,8 @@ public class HmrcCallWrapper {
 
         } else if (statusCode.equals(UNAUTHORIZED)) {
             return new HmrcUnauthorisedException(ex.getMessage(), ex);
-
+        } else if (statusCode.equals(TOO_MANY_REQUESTS)) {
+            return new HmrcOverRateLimitException("Too many requests to HMRC");
         } else {
             return ex;
         }
