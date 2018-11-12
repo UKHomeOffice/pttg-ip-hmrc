@@ -116,7 +116,7 @@ class ResourceExceptionHandler {
 
     @ExceptionHandler
     ResponseEntity handle(HmrcOverRateLimitException e) {
-        log.error("HMRC Rate Limit Exceeded: {}", e.getMessage(), value(EVENT, HMRC_PROXY_ENABLED)); // TODO OJR: Proper event!
+        log.error("HMRC Rate Limit Exceeded: {}", e.getMessage(), value(EVENT, HMRC_OVER_RATE_LIMIT));
         return new ResponseEntity<>(TOO_MANY_REQUESTS);
     }
 }

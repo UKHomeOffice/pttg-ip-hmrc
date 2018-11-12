@@ -18,12 +18,14 @@ import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
+import uk.gov.digital.ho.pttg.application.LogEvent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceExceptionHandlerTest {
@@ -89,7 +91,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(unauthorisedException);
 
-        assertLoggedMessage("HmrcUnauthorisedException: any message", Level.ERROR, 1);
+        assertErrorLog("HmrcUnauthorisedException: any message", HMRC_AUTHENTICATION_ERROR, 1);
     }
 
     @Test
@@ -113,7 +115,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHttpClientErrorException);
 
-        assertLoggedMessage("HttpClientErrorException: 418 any message", Level.ERROR, 2);
+        assertErrorLog("HttpClientErrorException: 418 any message", HMRC_SERVICE_RESPONSE_ERROR, 2);
     }
 
     @Test
@@ -136,7 +138,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHttpServerErrorException);
 
-        assertLoggedMessage("HttpServerErrorException: any message", Level.ERROR, 1);
+        assertErrorLog("HttpServerErrorException: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
@@ -157,7 +159,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        assertLoggedMessage("Fault Detected:", Level.ERROR, 1);
+        assertErrorLog("Fault Detected:", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
@@ -178,7 +180,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        assertLoggedMessage("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", Level.ERROR, 0);
+        assertErrorLog("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", HMRC_PROXY_ERROR, 0);
     }
 
     @Test
@@ -200,7 +202,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHmrcNotFoundException);
 
-        assertLoggedMessage("HmrcNotFoundException: any message", Level.INFO, 1);
+        assertInfoLog("HmrcNotFoundException: any message", HMRC_SERVICE_RESPONSE_NOT_FOUND, 1);
     }
 
     @Test
@@ -221,9 +223,8 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockRestClientException);
 
-        assertLoggedMessage("RestClientException:", Level.ERROR, 1);
+        assertErrorLog("RestClientException:", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
-
     @Test
     public void shouldProduceUnprocessableEntityForInvalidNationalInsuranceNumberException() {
         InvalidNationalInsuranceNumberException mockInvalidNationalInsuranceNumberException = mock(InvalidNationalInsuranceNumberException.class);
@@ -437,16 +438,26 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(hmrcOverRateLimitException);
 
-        assertLoggedMessage("HMRC Rate Limit Exceeded: some message", Level.ERROR, 1);
+        assertErrorLog("HMRC Rate Limit Exceeded: some message", HMRC_OVER_RATE_LIMIT, 1);
     }
 
-    private void assertLoggedMessage(String expectedMessage, Level expectedLogLevel, int expectedEventIndex) {
+    private void assertInfoLog(String expectedMessage, LogEvent expectedLogEvent, int expectedEventIndex) {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
-                    loggingEvent.getLevel().equals(expectedLogLevel) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[expectedEventIndex]).getFieldName().equals("event_id");
+                    loggingEvent.getLevel().equals(Level.INFO) &&
+                    loggingEvent.getArgumentArray()[expectedEventIndex].equals(new ObjectAppendingMarker("event_id", expectedLogEvent));
+        }));
+    }
+
+    private void assertErrorLog(String expectedMessage, LogEvent expectedLogEvent, int expectedEventIndex) {
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
+                    loggingEvent.getLevel().equals(Level.ERROR) &&
+                    loggingEvent.getArgumentArray()[expectedEventIndex].equals(new ObjectAppendingMarker("event_id", expectedLogEvent));
         }));
     }
 }
