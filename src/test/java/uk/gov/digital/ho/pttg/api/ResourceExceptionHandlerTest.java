@@ -224,16 +224,6 @@ public class ResourceExceptionHandlerTest {
         assertLoggedMessage("RestClientException:", Level.ERROR, 1);
     }
 
-    private void assertLoggedMessage(String expectedMessage, Level expectedLogLevel, int expectedEventIndex) {
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
-                    loggingEvent.getLevel().equals(expectedLogLevel) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[expectedEventIndex]).getFieldName().equals("event_id");
-        }));
-    }
-
     @Test
     public void shouldProduceUnprocessableEntityForInvalidNationalInsuranceNumberException() {
         InvalidNationalInsuranceNumberException mockInvalidNationalInsuranceNumberException = mock(InvalidNationalInsuranceNumberException.class);
@@ -432,5 +422,31 @@ public class ResourceExceptionHandlerTest {
         }));
     }
 
+    @Test
+    public void handle_HmrcOverRateLimitException_produceTooManyRequestsResponse() {
+        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
 
+        ResponseEntity response = handler.handle(hmrcOverRateLimitException);
+
+        assertThat(response.getStatusCode()).isEqualTo(TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    public void handle_HmrcOverRateLimitException_logError() {
+        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
+
+        handler.handle(hmrcOverRateLimitException);
+
+        assertLoggedMessage("HMRC Rate Limit Exceeded: some message", Level.ERROR, 1);
+    }
+
+    private void assertLoggedMessage(String expectedMessage, Level expectedLogLevel, int expectedEventIndex) {
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
+                    loggingEvent.getLevel().equals(expectedLogLevel) &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[expectedEventIndex]).getFieldName().equals("event_id");
+        }));
+    }
 }

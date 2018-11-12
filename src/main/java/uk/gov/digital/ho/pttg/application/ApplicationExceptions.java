@@ -38,7 +38,7 @@ public interface ApplicationExceptions {
     }
 
     class HmrcOverRateLimitException extends RuntimeException {
-        HmrcOverRateLimitException(String s) {
+        public HmrcOverRateLimitException(String s) {
             super(s);
         }
     }
