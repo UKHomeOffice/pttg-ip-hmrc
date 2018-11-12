@@ -73,13 +73,13 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb-Ccc    | 1987-12-10    | SE 123456 B |
       | Bb-Ccc     | Aaa       | 1987-12-10    | SE 123456 B |
+      | Aaa        | BbCcc     | 1987-12-10    | SE 123456 B |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 3 times
 
 
   @name_matching
-  Scenario: Applicant enters hyphen when name does not contain a hyphen
+  Scenario: Applicant enters hyphen when name does not contain a hyphen 2
     Given HMRC has the following individual records
       | First name | Last name | Date of Birth | nino      |
       | Bb         | Aaa       | 1987-12-10    | SE123456B |
@@ -127,9 +127,9 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
       | First name | Last name | Date of Birth | nino        |
       | Aaa        | Bb'Ccc    | 1987-12-10    | SE 123456 B |
       | Bb'Ccc     | Aaa       | 1987-12-10    | SE 123456 B |
+      | Aaa        | BbCcc     | 1987-12-10    | SE 123456 B |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 3 times
 
 
   @name_matching

@@ -18,11 +18,11 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.Multipl
 public class MultipleLastNamesFunctionsTest {
 
     @Test
-    public void addAllLastNameCombinationsMultipleNames() {
+    public void generateAllLastNameCombinations() {
         List<String> firstNames = Arrays.asList("Aaa", "Bbb", "Ccc");
         List<String> lastNameCombinations = Arrays.asList("Ddd", "Eee", "Ddd Eee");
 
-        List<CandidateName> newCandidateNames = addAllLastNameCombinations(firstNames, lastNameCombinations);
+        List<CandidateName> newCandidateNames = MultipleLastNamesFunctions.generateAllLastNameCombinations(firstNames, lastNameCombinations);
 
         assertThat(newCandidateNames.size()).isEqualTo(9);
         assertThat(newCandidateNames.get(0)).isEqualTo(new CandidateName("Aaa", "Ddd"));

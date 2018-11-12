@@ -120,7 +120,7 @@ Feature: Last name combinations
       | nino          | NR123456C     |
     Then the following names will be tried
       | First name    | Last name |
-      | Arthur        | O Coates  |
+      | Arthur Brian  | O Coates  |
       | Brian         | O Coates  |
       | Arthur        | Coates    |
       | Brian         | Coates    |

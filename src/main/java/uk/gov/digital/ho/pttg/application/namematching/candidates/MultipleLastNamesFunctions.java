@@ -11,9 +11,9 @@ import java.util.List;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
-public class MultipleLastNamesFunctions {
+class MultipleLastNamesFunctions {
 
-    static List<CandidateName> addAllLastNameCombinations(List<String> firstNames, List<String> lastNameCombinations) {
+    static List<CandidateName> generateAllLastNameCombinations(List<String> firstNames, List<String> lastNameCombinations) {
         List<CandidateName> combinations =
                 firstNames.stream()
                         .flatMap(firstName -> lastNameCombinations.stream()

@@ -76,8 +76,8 @@ public class NameMatchingCandidatesServiceIT {
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(9));
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur", "O'Bobbins")));
         assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("O'Bobbins", "Arthur")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur", "O Bobbins")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Arthur", "OBobbins")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur", "OBobbins")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Arthur", "O Bobbins")));
         assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("Arthur", "Bobbins")));
         assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("O", "Bobbins")));
         assertThat(INCORRECT_ORDER, names.get(6), is(new CandidateName("Bobbins", "Arthur")));
@@ -96,9 +96,9 @@ public class NameMatchingCandidatesServiceIT {
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur-Brian", "O'Coates")));
         assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("O'Coates", "Arthur-Brian")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur", "O Coates")));
-        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Brian", "O Coates")));
-        assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("ArthurBrian", "OCoates")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("ArthurBrian", "OCoates")));
+        assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Arthur Brian", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("Brian", "O Coates")));
         assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("Arthur", "Coates")));
         assertThat(INCORRECT_ORDER, names.get(6), is(new CandidateName("Brian", "Coates")));
         assertThat(INCORRECT_ORDER, names.get(7), is(new CandidateName("O", "Coates")));

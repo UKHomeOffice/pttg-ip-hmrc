@@ -74,6 +74,20 @@ Feature: Names with full stops
     And a Matched response will be returned from the service
 
   @name_matching
+  Scenario: Name when middle name has a full stop and a space and is matched with HMRC 2
+    Given HMRC has the following individual records
+      | First name | Last name | Date of Birth | nino      |
+      | Ddd        | B. Ccc    | 1987-12-10    | SE123456B |
+    When an income request is made with the following identity
+      | First name    | Aaa B. Ccc  |
+      | Last name     | Ddd         |
+      | Date of Birth | 1987-12-10  |
+      | nino          | SE123456B   |
+    Then the following words will be used for the first part of the last name
+      | B. Ccc        |
+    And a Matched response will be returned from the service
+
+  @name_matching
   @aliases
   Scenario: Alias name with a full stop and no space is matched with HMRC details with space and no full stop
     Given HMRC has the following individual records

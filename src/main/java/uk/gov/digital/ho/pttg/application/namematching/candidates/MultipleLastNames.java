@@ -7,7 +7,7 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.Collections;
 import java.util.List;
 
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.addAllLastNameCombinations;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateAllLastNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateLastNameCombinations;
 
 @Component
@@ -22,6 +22,6 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
 
         List<String> lastNameCombinations = generateLastNameCombinations(inputNames.lastNames());
 
-        return addAllLastNameCombinations(inputNames.firstNames(), lastNameCombinations);
+        return generateAllLastNameCombinations(inputNames.firstNames(), lastNameCombinations);
     }
 }

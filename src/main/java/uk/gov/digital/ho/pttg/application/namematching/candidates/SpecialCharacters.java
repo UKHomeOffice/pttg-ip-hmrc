@@ -18,11 +18,15 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private static final String NAME_SPLITTERS = "-'.";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
 
+    private EntireNonAliasName entireNonAliasName;
+    private EntireLastNameAndEachFirstName entireLastNameAndEachFirstName;
     private NameCombinations nameCombinations;
     private AliasCombinations aliasCombinations;
     private MultipleLastNames multipleLastNames;
 
-    public SpecialCharacters(NameCombinations nameCombinations, AliasCombinations aliasCombinations, MultipleLastNames multipleLastNames) {
+    public SpecialCharacters(EntireNonAliasName entireNonAliasName, EntireLastNameAndEachFirstName entireLastNameAndEachFirstName, NameCombinations nameCombinations, AliasCombinations aliasCombinations, MultipleLastNames multipleLastNames) {
+        this.entireNonAliasName = entireNonAliasName;
+        this.entireLastNameAndEachFirstName = entireLastNameAndEachFirstName;
         this.nameCombinations = nameCombinations;
         this.aliasCombinations = aliasCombinations;
         this.multipleLastNames = multipleLastNames;
@@ -36,7 +40,10 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
             return Lists.newArrayList(candidateNames);
         }
 
+        candidateNames.addAll(getNameCandidates(inputNames, entireNonAliasName));
+        candidateNames.addAll(getNameCandidates(inputNames, entireLastNameAndEachFirstName));
         candidateNames.addAll(getNameCandidates(inputNames, multipleLastNames));
+
         if (inputNames.hasAliasSurnames()) {
             candidateNames.addAll(getNameCandidates(inputNames, aliasCombinations));
         } else {
