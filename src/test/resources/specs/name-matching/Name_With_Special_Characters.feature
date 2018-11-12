@@ -162,11 +162,12 @@ Feature: Accept Hyphens and Apostrophes as part of the name matching
     Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino        |
       | Pas Alb    | R De Fey  | 1987-12-10    | SE 123456 B |
+      | Alb        | R De Fey  | 1987-12-10    | SE 123456 B |
       | Pas        | R Fey     | 1987-12-10    | SE 123456 B |
       | Pas        | De R      | 1987-12-10    | SE 123456 B |
       | Pas        | De Fey    | 1987-12-10    | SE 123456 B |
     And a Matched response will be returned from the service
-    And HMRC was called 4 times
+    And HMRC was called 5 times
 
 
   @name_matching

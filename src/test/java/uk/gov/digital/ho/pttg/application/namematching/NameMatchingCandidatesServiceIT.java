@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.*;
         SpecialCharacters.class,
         AliasCombinations.class,
         EntireNonAliasName.class,
+        EntireLastNameAndEachFirstName.class,
         NamesWithFullStopSpaceCombinations.class
 })
 public class NameMatchingCandidatesServiceIT {
@@ -95,7 +96,7 @@ public class NameMatchingCandidatesServiceIT {
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("Arthur-Brian", "O'Coates")));
         assertThat(INCORRECT_ORDER, names.get(1), is(new CandidateName("O'Coates", "Arthur-Brian")));
-        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur Brian", "O Coates")));
+        assertThat(INCORRECT_ORDER, names.get(2), is(new CandidateName("Arthur", "O Coates")));
         assertThat(INCORRECT_ORDER, names.get(3), is(new CandidateName("Brian", "O Coates")));
         assertThat(INCORRECT_ORDER, names.get(4), is(new CandidateName("ArthurBrian", "OCoates")));
         assertThat(INCORRECT_ORDER, names.get(5), is(new CandidateName("Arthur", "Coates")));

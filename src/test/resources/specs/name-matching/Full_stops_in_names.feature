@@ -70,7 +70,7 @@ Feature: Names with full stops
     Then the following identities will be tried in this order
       | First name  | Last name | Date of Birth | nino      |
       | Aaa Bb. Ccc | Ddd       | 1987-12-10    | SE123456B |
-      | Bb. Ccc     | Ddd       | 1987-12-10    | SE123456B |
+      | Bb.         | Ddd       | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
 
   @name_matching

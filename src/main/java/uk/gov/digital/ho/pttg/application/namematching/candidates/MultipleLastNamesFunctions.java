@@ -13,17 +13,14 @@ import static java.util.stream.Collectors.toList;
 
 public class MultipleLastNamesFunctions {
 
-    static List<CandidateName> addAllLastNameCombinations(List<CandidateName> candidates, List<String> firstNames, List<String> lastNameCombinations) {
-        List<CandidateName> newCandidates = new ArrayList<>(candidates);
-
-        List<CandidateName> extraCombinations =
+    static List<CandidateName> addAllLastNameCombinations(List<String> firstNames, List<String> lastNameCombinations) {
+        List<CandidateName> combinations =
                 firstNames.stream()
                         .flatMap(firstName -> lastNameCombinations.stream()
                                 .map(lastNameCombination -> new CandidateName(firstName, lastNameCombination)))
                         .collect(toList());
 
-        newCandidates.addAll(extraCombinations);
-        return Collections.unmodifiableList(newCandidates);
+        return Collections.unmodifiableList(combinations);
     }
 
     static List<String> addMultiPartLastNameToCombination(List<String> lastNameCombinations, List<String> listOfLastNames) {

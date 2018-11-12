@@ -17,6 +17,7 @@ public class NameMatchingCandidatesService {
     private NameMatchingCandidateGenerator specialCharacters;
     private NameMatchingCandidateGenerator aliasCombinations;
     private NameMatchingCandidateGenerator entireNonAliasName;
+    private NameMatchingCandidateGenerator entireLastNameAndEachFirstName;
     private NameMatchingCandidateGenerator namesWithFullStopSpaceCombinations;
 
     public NameMatchingCandidatesService(NameMatchingCandidateGenerator nameCombinations,
@@ -24,12 +25,14 @@ public class NameMatchingCandidatesService {
                                          NameMatchingCandidateGenerator specialCharacters,
                                          NameMatchingCandidateGenerator aliasCombinations,
                                          NameMatchingCandidateGenerator entireNonAliasName,
+                                         NameMatchingCandidateGenerator entireLastNameAndEachFirstName,
                                          NameMatchingCandidateGenerator namesWithFullStopSpaceCombinations) {
         this.nameCombinations = nameCombinations;
         this.multipleLastNames = multipleLastNames;
         this.specialCharacters = specialCharacters;
         this.aliasCombinations = aliasCombinations;
         this.entireNonAliasName = entireNonAliasName;
+        this.entireLastNameAndEachFirstName = entireLastNameAndEachFirstName;
         this.namesWithFullStopSpaceCombinations = namesWithFullStopSpaceCombinations;
     }
 
@@ -37,6 +40,8 @@ public class NameMatchingCandidatesService {
         InputNames inputNames = new InputNames(firstNames, lastNames, aliasSurnames);
 
         List<CandidateName> candidates = new ArrayList<>(entireNonAliasName.generateCandidates(inputNames));
+
+        candidates.addAll(entireLastNameAndEachFirstName.generateCandidates(inputNames));
 
         candidates.addAll(multipleLastNames.generateCandidates(inputNames));
 

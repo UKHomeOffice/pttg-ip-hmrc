@@ -93,12 +93,12 @@ Feature: name sequence when making calls
     Then the following identities will be tried in this order
       | First name  | Last name | Date of Birth | nino      |
       | Aaa Bbb Ccc | Ddd Eee   | 1987-12-10    | SE123456B |
+      | Bbb         | Ddd Eee   | 1987-12-10    | SE123456B |
+      | Ccc         | Ddd Eee   | 1987-12-10    | SE123456B |
       | Aaa         | Eee       | 1987-12-10    | SE123456B |
       | Bbb         | Eee       | 1987-12-10    | SE123456B |
       | Ccc         | Eee       | 1987-12-10    | SE123456B |
       | Ddd         | Eee       | 1987-12-10    | SE123456B |
-      | Bbb         | Ddd       | 1987-12-10    | SE123456B |
-      | Ccc         | Ddd       | 1987-12-10    | SE123456B |
       | Eee         | Ddd       | 1987-12-10    | SE123456B |
       | Aaa         | Hhh       | 1987-12-10    | SE123456B |
       | Bbb         | Hhh       | 1987-12-10    | SE123456B |

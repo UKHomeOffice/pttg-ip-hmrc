@@ -31,11 +31,19 @@ public class NameMatchingCandidatesServiceTest {
     @Mock
     private EntireNonAliasName entireNonAliasName;
     @Mock
+    private EntireLastNameAndEachFirstName entireLastNameAndEachFirstName;
+    @Mock
     private NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations;
 
     @Before
     public void setUp() {
-        nameMatchingCandidatesService = new NameMatchingCandidatesService(nameCombinations, multipleLastNames, specialCharacters, aliasCombinations, entireNonAliasName,
+        nameMatchingCandidatesService = new NameMatchingCandidatesService(
+                nameCombinations,
+                multipleLastNames,
+                specialCharacters,
+                aliasCombinations,
+                entireNonAliasName,
+                entireLastNameAndEachFirstName,
                 namesWithFullStopSpaceCombinations);
     }
 
@@ -47,6 +55,7 @@ public class NameMatchingCandidatesServiceTest {
         nameMatchingCandidatesService.generateCandidateNames("firstname1 firstname2", "lastname1 lastname2", "");
 
         verify(entireNonAliasName).generateCandidates(expectedInputNames);
+        verify(entireLastNameAndEachFirstName).generateCandidates(expectedInputNames);
         verify(nameCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
         verify(specialCharacters).generateCandidates(expectedInputNames);
@@ -63,6 +72,7 @@ public class NameMatchingCandidatesServiceTest {
         nameMatchingCandidatesService.generateCandidateNames("firstname1 firstname2", "lastname1 lastname2", "aliasSurname1 aliasSurname2");
 
         verify(entireNonAliasName).generateCandidates(expectedInputNames);
+        verify(entireLastNameAndEachFirstName).generateCandidates(expectedInputNames);
         verify(aliasCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
         verify(specialCharacters).generateCandidates(expectedInputNames);
