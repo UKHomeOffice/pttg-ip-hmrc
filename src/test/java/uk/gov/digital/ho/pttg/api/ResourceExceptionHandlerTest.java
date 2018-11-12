@@ -441,6 +441,19 @@ public class ResourceExceptionHandlerTest {
         assertErrorLog("HMRC Rate Limit Exceeded: some message", HMRC_OVER_RATE_LIMIT, 1);
     }
 
+    @Test
+    public void handle_HmrcOverRateLimitException_logRequestDuration() {
+        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
+
+        handler.handle(hmrcOverRateLimitException);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
     private void assertInfoLog(String expectedMessage, LogEvent expectedLogEvent, int expectedEventIndex) {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;

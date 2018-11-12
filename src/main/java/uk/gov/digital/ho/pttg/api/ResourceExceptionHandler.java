@@ -116,7 +116,9 @@ class ResourceExceptionHandler {
 
     @ExceptionHandler
     ResponseEntity handle(HmrcOverRateLimitException e) {
-        log.error("HMRC Rate Limit Exceeded: {}", e.getMessage(), value(EVENT, HMRC_OVER_RATE_LIMIT));
+        log.error("HMRC Rate Limit Exceeded: {}", e.getMessage(),
+                value(EVENT, HMRC_OVER_RATE_LIMIT),
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()));
         return new ResponseEntity<>(TOO_MANY_REQUESTS);
     }
 }
