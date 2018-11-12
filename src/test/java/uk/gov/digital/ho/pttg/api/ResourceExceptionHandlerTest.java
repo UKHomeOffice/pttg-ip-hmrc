@@ -225,6 +225,7 @@ public class ResourceExceptionHandlerTest {
 
         assertErrorLog("RestClientException:", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
+
     @Test
     public void shouldProduceUnprocessableEntityForInvalidNationalInsuranceNumberException() {
         InvalidNationalInsuranceNumberException mockInvalidNationalInsuranceNumberException = mock(InvalidNationalInsuranceNumberException.class);
@@ -430,6 +431,15 @@ public class ResourceExceptionHandlerTest {
         ResponseEntity response = handler.handle(hmrcOverRateLimitException);
 
         assertThat(response.getStatusCode()).isEqualTo(TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    public void handle_HmrcOverRateLimitException_returnExceptionMessageInResponse() {
+        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
+
+        ResponseEntity response = handler.handle(hmrcOverRateLimitException);
+
+        assertThat(response.getBody()).isEqualTo("some message");
     }
 
     @Test

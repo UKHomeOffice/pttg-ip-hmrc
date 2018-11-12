@@ -352,8 +352,8 @@ public class HmrcHateoasClientTest {
         List<Summary> summaries2 = Arrays.asList(new Summary(new BigDecimal("3.00")), new Summary(new BigDecimal("4.00")));
         List<SummaryTaxReturn> summaryTaxReturns =
                 Arrays.asList(
-                        new SummaryTaxReturn("2015-16", summaries1),
-                        new SummaryTaxReturn("2016-17", summaries2)
+                    new SummaryTaxReturn("2015-16", summaries1),
+                    new SummaryTaxReturn("2016-17", summaries2)
                 );
 
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
@@ -464,7 +464,7 @@ public class HmrcHateoasClientTest {
 
     @Test
     public void getMatchResource_hmrcOverRateLimitException_notCaught() {
-        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("Too much!");
+        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
         when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(hmrcOverRateLimitException);
 
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
