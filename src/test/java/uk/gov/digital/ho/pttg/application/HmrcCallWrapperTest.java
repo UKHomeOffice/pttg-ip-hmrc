@@ -9,6 +9,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
@@ -22,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -67,6 +69,15 @@ public class HmrcCallWrapperTest {
     }
 
     @Test
+    public void shouldThrowCustomExceptionForHmrcOverRateLimit() {
+        when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.TOO_MANY_REQUESTS));
+
+        assertThatThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {}))
+                .isInstanceOf(ApplicationExceptions.HmrcOverRateLimitException.class);
+    }
+
+    @Test
     public void shouldRethrowOtherExceptions() {
         when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .thenThrow(new NullPointerException());
@@ -102,6 +113,15 @@ public class HmrcCallWrapperTest {
 
         assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
                 .isInstanceOf(ApplicationExceptions.HmrcNotFoundException.class);
+    }
+
+    @Test
+    public void shouldThrowCustomExceptionForHmrcOverRateLimitWithTraverson() {
+        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .thenThrow(new HttpClientErrorException(TOO_MANY_REQUESTS));
+
+        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
+                .isInstanceOf(ApplicationExceptions.HmrcOverRateLimitException.class);
     }
 
     @Test
