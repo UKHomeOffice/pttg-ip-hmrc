@@ -7,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
-import java.util.List;
-
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -20,6 +18,10 @@ public class SpecialCharactersTest {
     private static final String SOME_ALIAS_SURNAME = "somealiassurname";
 
     @Mock
+    private EntireNonAliasName mockEntireNonAliasName;
+    @Mock
+    private EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
+    @Mock
     private NameCombinations mockNameCombinations;
     @Mock
     private AliasCombinations mockAliasCombinations;
@@ -30,7 +32,10 @@ public class SpecialCharactersTest {
 
     @Before
     public void setUp() {
-        specialCharacters = new SpecialCharacters(mockNameCombinations, mockAliasCombinations, mockMultipleLastNames);
+        specialCharacters = new SpecialCharacters(mockEntireNonAliasName, mockEntireLastNameAndEachFirstName, mockNameCombinations, mockAliasCombinations, mockMultipleLastNames);
+
+        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
+        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
         when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
         when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
     }
@@ -42,8 +47,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithHyphensRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithHyphensRemoved);
+        verifyMandatoryGenerators(inputWithHyphensRemoved);
     }
 
     @Test
@@ -53,8 +57,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithApostrophesRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithApostrophesRemoved);
+        verifyMandatoryGenerators(inputWithApostrophesRemoved);
     }
 
     @Test
@@ -64,8 +67,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpaces);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpaces);
+        verifyMandatoryGenerators(inputWithSpaces);
     }
 
     @Test
@@ -75,8 +77,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpaces);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpaces);
+        verifyMandatoryGenerators(inputWithSpaces);
     }
 
     @Test
@@ -86,8 +87,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithHyphensRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithHyphensRemoved);
+        verifyMandatoryGenerators(inputWithHyphensRemoved);
     }
 
     @Test
@@ -97,8 +97,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithApostrophesRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithApostrophesRemoved);
+        verifyMandatoryGenerators(inputWithApostrophesRemoved);
     }
 
     @Test
@@ -108,8 +107,14 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpaces);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpaces);
+        verifyMandatoryGenerators(inputWithSpaces);
+    }
+
+    private void verifyMandatoryGenerators(InputNames inputNames) {
+        verify(mockEntireNonAliasName).generateCandidates(inputNames);
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(inputNames);
+        verify(mockNameCombinations).generateCandidates(inputNames);
+        verify(mockMultipleLastNames).generateCandidates(inputNames);
     }
 
     @Test
@@ -119,8 +124,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpaces);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpaces);
+        verifyMandatoryGenerators(inputWithSpaces);
     }
 
     @Test
@@ -130,8 +134,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithFullStopsRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputWithFullStopsRemoved);
     }
 
     @Test
@@ -141,8 +144,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithFullStopsRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputWithFullStopsRemoved);
     }
 
     @Test
@@ -152,8 +154,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithFullStopsRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputWithFullStopsRemoved);
     }
 
     @Test
@@ -163,8 +164,7 @@ public class SpecialCharactersTest {
 
         specialCharacters.generateCandidates(inputNames);
 
-        verify(mockNameCombinations).generateCandidates(inputWithFullStopsRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputWithFullStopsRemoved);
     }
 
     @Test
