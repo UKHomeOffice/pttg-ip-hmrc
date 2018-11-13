@@ -7,7 +7,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -19,12 +18,11 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.Multipl
 public class MultipleLastNamesFunctionsTest {
 
     @Test
-    public void addAllLastNameCombinationsMultipleNames() {
-        List<CandidateName> candidateNames = new ArrayList<>();
+    public void generateAllLastNameCombinations() {
         List<String> firstNames = Arrays.asList("Aaa", "Bbb", "Ccc");
         List<String> lastNameCombinations = Arrays.asList("Ddd", "Eee", "Ddd Eee");
 
-        List<CandidateName> newCandidateNames = addAllLastNameCombinations(candidateNames, firstNames, lastNameCombinations);
+        List<CandidateName> newCandidateNames = MultipleLastNamesFunctions.generateAllLastNameCombinations(firstNames, lastNameCombinations);
 
         assertThat(newCandidateNames.size()).isEqualTo(9);
         assertThat(newCandidateNames.get(0)).isEqualTo(new CandidateName("Aaa", "Ddd"));
@@ -36,17 +34,6 @@ public class MultipleLastNamesFunctionsTest {
         assertThat(newCandidateNames.get(6)).isEqualTo(new CandidateName("Ccc", "Ddd"));
         assertThat(newCandidateNames.get(7)).isEqualTo(new CandidateName("Ccc", "Eee"));
         assertThat(newCandidateNames.get(8)).isEqualTo(new CandidateName("Ccc", "Ddd Eee"));
-    }
-
-    @Test
-    public void addAllLastNameCombinationsNoSideEffects() {
-        List<CandidateName> candidateNames = new ArrayList<>();
-        List<String> firstNames = Arrays.asList("Aaa");
-        List<String> lastNameCombinations = Arrays.asList("Ddd", "Eee", "Ddd Eee");
-
-        addAllLastNameCombinations(candidateNames, firstNames, lastNameCombinations);
-
-        assertThat(candidateNames.size()).isEqualTo(0);
     }
 
     @Test
