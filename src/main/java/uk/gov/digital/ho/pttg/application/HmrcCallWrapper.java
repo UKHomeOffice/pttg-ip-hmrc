@@ -14,9 +14,7 @@ import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 
 @Service

@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
@@ -8,7 +9,10 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.ArrayList;
 import java.util.List;
 
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_NON_ALIAS_NAME_STRATEGY_PRIORITY;
+
 @Component
+@Order(value = ENTIRE_NON_ALIAS_NAME_STRATEGY_PRIORITY)
 public class EntireNonAliasName implements NameMatchingCandidateGenerator {
 
     @Override

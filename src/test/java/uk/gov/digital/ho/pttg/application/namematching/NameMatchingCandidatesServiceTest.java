@@ -9,42 +9,47 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NameMatchingCandidatesServiceTest {
 
     private NameMatchingCandidatesService nameMatchingCandidatesService;
 
-    @Mock
-    private NameCombinations nameCombinations;
-    @Mock
-    private MultipleLastNames multipleLastNames;
-    @Mock
-    private SpecialCharacters specialCharacters;
-    @Mock
-    private AliasCombinations aliasCombinations;
-    @Mock
-    private EntireNonAliasName entireNonAliasName;
-    @Mock
-    private EntireLastNameAndEachFirstName entireLastNameAndEachFirstName;
-    @Mock
-    private NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations;
+    @Mock private EntireNonAliasName entireNonAliasName;
+    @Mock private EntireLastNameAndEachFirstName entireLastNameAndEachFirstName;
+    @Mock private MultipleLastNames multipleLastNames;
+    @Mock private NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations;
+    @Mock private AliasCombinations aliasCombinations;
+    @Mock private NameCombinations nameCombinations;
+    @Mock private SpecialCharacters specialCharacters;
 
     @Before
     public void setUp() {
         nameMatchingCandidatesService = new NameMatchingCandidatesService(
-                nameCombinations,
-                multipleLastNames,
-                specialCharacters,
-                aliasCombinations,
-                entireNonAliasName,
-                entireLastNameAndEachFirstName,
-                namesWithFullStopSpaceCombinations);
+                Arrays.asList(
+                        entireNonAliasName,
+                        entireLastNameAndEachFirstName,
+                        multipleLastNames,
+                        namesWithFullStopSpaceCombinations,
+                        aliasCombinations,
+                        nameCombinations,
+                        specialCharacters
+                        ));
+
+        when(entireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(entireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(multipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(namesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(aliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(nameCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(specialCharacters.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
     }
 
     @Test
@@ -56,12 +61,11 @@ public class NameMatchingCandidatesServiceTest {
 
         verify(entireNonAliasName).generateCandidates(expectedInputNames);
         verify(entireLastNameAndEachFirstName).generateCandidates(expectedInputNames);
-        verify(nameCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
-        verify(specialCharacters).generateCandidates(expectedInputNames);
         verify(namesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames);
-
-        verify(aliasCombinations, never()).generateCandidates(any());
+        verify(aliasCombinations).generateCandidates(expectedInputNames);
+        verify(nameCombinations).generateCandidates(expectedInputNames);
+        verify(specialCharacters).generateCandidates(expectedInputNames);
     }
 
     @Test
@@ -73,13 +77,11 @@ public class NameMatchingCandidatesServiceTest {
 
         verify(entireNonAliasName).generateCandidates(expectedInputNames);
         verify(entireLastNameAndEachFirstName).generateCandidates(expectedInputNames);
-        verify(aliasCombinations).generateCandidates(expectedInputNames);
         verify(multipleLastNames).generateCandidates(expectedInputNames);
-        verify(specialCharacters).generateCandidates(expectedInputNames);
         verify(namesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames);
-
-
-        verify(nameCombinations, never()).generateCandidates(any());
+        verify(aliasCombinations).generateCandidates(expectedInputNames);
+        verify(nameCombinations).generateCandidates(expectedInputNames);
+        verify(specialCharacters).generateCandidates(expectedInputNames);
     }
 
     @Test
