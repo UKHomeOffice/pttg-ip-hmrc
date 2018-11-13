@@ -10,8 +10,6 @@ import java.util.List;
 
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateAllLastNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateLastNameCombinations;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateAllLastNameCombinations;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateLastNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.MULTIPLE_NAMES_STRATEGY_PRIORITY;
 
 @Component

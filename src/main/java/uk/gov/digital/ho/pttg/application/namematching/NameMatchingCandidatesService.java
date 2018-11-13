@@ -13,17 +13,17 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandid
 @Service
 public class NameMatchingCandidatesService {
 
-    private List<NameMatchingCandidateGenerator> candidateStrategies;
+    private List<NameMatchingCandidateGenerator> candidateGenerators;
 
-    public NameMatchingCandidatesService(List<NameMatchingCandidateGenerator> candidateStrategies) {
-        this.candidateStrategies = candidateStrategies;
+    public NameMatchingCandidatesService(List<NameMatchingCandidateGenerator> candidateGenerators) {
+        this.candidateGenerators = candidateGenerators;
     }
 
     public List<CandidateName> generateCandidateNames(String firstNames, String lastNames, String aliasSurnames) {
 
         InputNames inputNames = new InputNames(firstNames, lastNames, aliasSurnames);
 
-        List<CandidateName> candidates = candidateStrategies
+        List<CandidateName> candidates = candidateGenerators
                                                  .stream()
                                                  .map(cs -> cs.generateCandidates(inputNames))
                                                  .flatMap(Collection::stream)
