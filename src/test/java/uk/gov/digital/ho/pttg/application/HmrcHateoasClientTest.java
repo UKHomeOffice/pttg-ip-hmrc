@@ -20,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverRateLimitException;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
@@ -44,6 +45,8 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Java6Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -52,11 +55,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcHateoasClientTest {
 
-    private static final String SOME_NINO = "nino";
     private static final LocalDate SOME_DOB = LocalDate.now();
 
     @Mock private HmrcCallWrapper mockHmrcCallWrapper;
@@ -459,12 +462,14 @@ public class HmrcHateoasClientTest {
         verify(mockNameMatchingCandidatesService).generateCandidateNames("some first names", "some last names", "some alias surnames");
     }
 
-    private void assertEmptyNameNotSentToHmrc(List<HttpEntity<HmrcIndividual>> capturedRequestEntities) {
-        assertThat(capturedRequestEntities.stream()
-                .noneMatch(httpEntity -> httpEntity.getBody().getFirstName().equals("")))
-                .isTrue();
-        assertThat(capturedRequestEntities.stream()
-                .noneMatch(httpEntity -> httpEntity.getBody().getLastName().equals("")))
-                .isTrue();
+    @Test
+    public void getMatchResource_hmrcOverRateLimitException_notCaught() {
+        HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
+        when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(hmrcOverRateLimitException);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
+
+        assertThatThrownBy(() -> client.getMatchResource(individual, "some access token"))
+                .isEqualTo(hmrcOverRateLimitException);
     }
 }
