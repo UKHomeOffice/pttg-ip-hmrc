@@ -2,6 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
@@ -11,9 +12,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.SPECIAL_CHARACTERS_STRATEGY_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
 
 @Component
+@Order(value = SPECIAL_CHARACTERS_STRATEGY_PRIORITY)
 public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private static final String NAME_SPLITTERS = "-'.";
     private static final String NAME_SPLITTER_REGEX = "[" + NAME_SPLITTERS + "]";
