@@ -10,7 +10,6 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_STRATEGY_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.doesNotContainFullStopSpaceBetweenNames;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.splitNamesIgnoringFullStopSpace;
 
 @Component
 @Order(value = NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_STRATEGY_PRIORITY)
@@ -30,20 +29,13 @@ public class NamesWithFullStopSpaceCombinations implements NameMatchingCandidate
             return emptyList();
         }
 
-        InputNames inputNamesWithFullStopSpaceNotSplit = createNewInputNamesWithFullStopSpaceNotSplit(inputNames);
+        InputNames abbrieviatedNames = inputNames.groupByAbbrieviatedNames();
 
-        if (inputNamesWithFullStopSpaceNotSplit.hasAliasSurnames()) {
-            return aliasCombinations.generateCandidates(inputNamesWithFullStopSpaceNotSplit);
+        if (abbrieviatedNames.hasAliasSurnames()) {
+            return aliasCombinations.generateCandidates(abbrieviatedNames);
         }
-        return nameCombinations.generateCandidates(inputNamesWithFullStopSpaceNotSplit);
-    }
 
-    private InputNames createNewInputNamesWithFullStopSpaceNotSplit(InputNames inputNames) {
-        List<String> firstNames = splitNamesIgnoringFullStopSpace(inputNames.fullFirstName());
-        List<String> lastNames = splitNamesIgnoringFullStopSpace(inputNames.fullLastName());
-        List<String> aliasSurnames = splitNamesIgnoringFullStopSpace(inputNames.allAliasSurnamesAsString());
-
-        return new InputNames(firstNames, lastNames, aliasSurnames);
+        return nameCombinations.generateCandidates(abbrieviatedNames);
     }
 
 }

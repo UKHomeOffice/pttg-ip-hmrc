@@ -106,7 +106,9 @@ public class HmrcHateoasClientTest {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals("Successfully matched individual NR123456C") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("combination") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("meta-data") &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("event_id");
         }));
     }
 

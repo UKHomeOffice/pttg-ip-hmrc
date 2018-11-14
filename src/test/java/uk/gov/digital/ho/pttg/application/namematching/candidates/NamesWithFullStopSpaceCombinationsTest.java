@@ -9,9 +9,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 public class NamesWithFullStopSpaceCombinationsTest {
 
@@ -61,8 +59,8 @@ public class NamesWithFullStopSpaceCombinationsTest {
 
     @Test
     public void shouldOnlyUseFirst4ForenamesAndLast3SurnamesIfOver7NamesAfterSplitting() {
-        List<String> firstNames = asList("St. John", "Dr. Pepper", "Mr. Mister", "An. Other", "Dr. No");
-        List<String> lastNames = asList("Ms. Smith", "Mr. Jones", "Sgt. Price", "Dme. Bassey");
+        String firstNames = "St. John Dr. Pepper Mr. Mister An. Other Dr. No";
+        String lastNames = "Ms. Smith Mr. Jones Sgt. Price Dme. Bassey";
         InputNames inputNames = new InputNames(firstNames, lastNames);
 
         List<CandidateName> candidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNames);

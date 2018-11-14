@@ -5,7 +5,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -89,7 +88,7 @@ public class InputNamesTest {
     
     @Test
     public void allNonAliasNamesListConstructor() {
-        InputNames inputNames = new InputNames(Arrays.asList("firstname1", "firstname2"), Arrays.asList("lastname1", "lastname2"));
+        InputNames inputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2");
 
         List<String> allNames = inputNames.allNonAliasNames();
 
@@ -100,7 +99,7 @@ public class InputNamesTest {
     
     @Test
     public void fullName() {
-        InputNames inputNames = new InputNames(Collections.singletonList("firstname1 firstname2"), Collections.singletonList("lastname1 lastname2"));
+        InputNames inputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2");
 
         String fullName = inputNames.fullName();
         
@@ -109,7 +108,7 @@ public class InputNamesTest {
 
     @Test
     public void fullFirstName() {
-        InputNames inputNames = new InputNames(Collections.singletonList("firstname1 firstname2"), Collections.singletonList("lastname1 lastname2"));
+        InputNames inputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2");
 
         String firstName = inputNames.fullFirstName();
 
@@ -118,7 +117,7 @@ public class InputNamesTest {
 
     @Test
     public void fullLastName() {
-        InputNames inputNames = new InputNames(Collections.singletonList("firstname1 firstname2"), Collections.singletonList("lastname1 lastname2"));
+        InputNames inputNames = new InputNames("firstname1 firstname2", "lastname1 lastname2");
 
         String lastName = inputNames.fullLastName();
 
@@ -182,18 +181,18 @@ public class InputNamesTest {
     @Test
     public void allAliasSurnamesAsString_emptyAliasNames_emptyString() {
         InputNames emptyAliasNames = new InputNames(SOME_NAME, SOME_NAME, "");
-        assertThat(emptyAliasNames.allAliasSurnamesAsString()).isEmpty();
+        assertThat(emptyAliasNames.fullAliasNames()).isEmpty();
     }
 
     @Test
     public void allAliasSurnamesAsString_oneAliasNames_aliasNameReturned() {
         InputNames oneAliasName = new InputNames(SOME_NAME, SOME_NAME, "aliasName");
-        assertThat(oneAliasName.allAliasSurnamesAsString()).isEqualTo("aliasName");
+        assertThat(oneAliasName.fullAliasNames()).isEqualTo("aliasName");
     }
 
     @Test
     public void allAliasSurnamesAsString_twoAliasNames_aliasNamesJoined() {
         InputNames twoAliasNames = new InputNames(SOME_NAME, SOME_NAME, "aliasName1 aliasName2");
-        assertThat(twoAliasNames.allAliasSurnamesAsString()).isEqualTo("aliasName1 aliasName2");
+        assertThat(twoAliasNames.fullAliasNames()).isEqualTo("aliasName1 aliasName2");
     }
 }

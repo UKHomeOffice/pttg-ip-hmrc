@@ -22,7 +22,7 @@ final class AliasCombinationsFunctions {
     static List<CandidateName> nonAliasFirstAliasLastCombinations(InputNames inputNames) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        List<String> reversedAliasSurnames = new ArrayList<>(inputNames.aliasSurnames());
+        List<String> reversedAliasSurnames = new ArrayList<>(inputNames.rawAliasSurnames());
         Collections.reverse(reversedAliasSurnames);
 
         for(String aliasSurname: reversedAliasSurnames){
@@ -38,8 +38,8 @@ final class AliasCombinationsFunctions {
     static List<CandidateName> firstNameCombinations(InputNames inputNames) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        for (String firstName : inputNames.firstNames()) {
-            for (String otherFirstName : removeName(firstName, inputNames.firstNames())) {
+        for (String firstName : inputNames.rawFirstNames()) {
+            for (String otherFirstName : removeName(firstName, inputNames.rawFirstNames())) {
                 candidateNames.add(new CandidateName(firstName, otherFirstName));
             }
         }
@@ -50,8 +50,8 @@ final class AliasCombinationsFunctions {
     static List<CandidateName> nonAliasSurnameAsFirstNameCombinations(InputNames inputNames) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        for (String lastName : inputNames.lastNames()) {
-            for (String otherName : inputNames.firstNames()) {
+        for (String lastName : inputNames.rawLastNames()) {
+            for (String otherName : inputNames.rawFirstNames()) {
                 candidateNames.add(new CandidateName(lastName, otherName));
             }
         }
@@ -62,7 +62,7 @@ final class AliasCombinationsFunctions {
     static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames inputNames) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        for (String aliasSurname : inputNames.aliasSurnames()) {
+        for (String aliasSurname : inputNames.rawAliasSurnames()) {
             for (String nonAliasName : removeName(aliasSurname, inputNames.allNames())) {
                 candidateNames.add(new CandidateName(aliasSurname, nonAliasName));
             }
@@ -73,7 +73,7 @@ final class AliasCombinationsFunctions {
     static List<CandidateName> nonAliasFirstNamesAndLastNameCombinations(InputNames inputNames) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        List<String> reversedLastNames = new ArrayList<>(inputNames.lastNames());
+        List<String> reversedLastNames = new ArrayList<>(inputNames.rawLastNames());
         Collections.reverse(reversedLastNames);
 
         for (String lastName : reversedLastNames) {

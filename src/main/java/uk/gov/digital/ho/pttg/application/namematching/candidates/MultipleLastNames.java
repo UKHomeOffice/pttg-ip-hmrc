@@ -5,11 +5,12 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
-import java.util.Collections;
 import java.util.List;
 
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateAllLastNameCombinations;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateLastNameCombinations;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateNameCombinations;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateNobiliaryLastNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.MULTIPLE_NAMES_STRATEGY_PRIORITY;
 
 @Component
@@ -20,11 +21,11 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
     public List<CandidateName> generateCandidates(InputNames inputNames) {
 
         if (!inputNames.multiPartLastName()) {
-            return Collections.emptyList();
+            return emptyList();
         }
 
-        List<String> lastNameCombinations = generateLastNameCombinations(inputNames.lastNames());
+        List<CandidateName> lastNameCombinations = generateNobiliaryLastNameCombinations(singletonList(MULTIPLE_NAMES_STRATEGY_PRIORITY), inputNames.lastNames());
 
-        return generateAllLastNameCombinations(inputNames.firstNames(), lastNameCombinations);
+        return generateNameCombinations(inputNames.firstNames(), lastNameCombinations);
     }
 }

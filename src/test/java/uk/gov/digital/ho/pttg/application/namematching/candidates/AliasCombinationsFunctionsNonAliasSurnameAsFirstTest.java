@@ -16,14 +16,14 @@ public class AliasCombinationsFunctionsNonAliasSurnameAsFirstTest {
 
     @Test
     public void shouldReturnEmptyListForEmptyInput() {
-        InputNames emptyInputNames = new InputNames(emptyList(), emptyList());
+        InputNames emptyInputNames = new InputNames("", "");
         assertThat(nonAliasSurnameAsFirstNameCombinations(emptyInputNames)).isEqualTo(emptyList());
     }
 
     @Test
     public void shouldReturnEmptyListForSingleInputName() {
-        InputNames oneFirstNameOnly = new InputNames(singletonList("somename"), emptyList());
-        InputNames oneLastNameOnly = new InputNames(emptyList(), singletonList("somename"));
+        InputNames oneFirstNameOnly = new InputNames("somename", "");
+        InputNames oneLastNameOnly = new InputNames("", "somename");
 
         assertThat(nonAliasSurnameAsFirstNameCombinations(oneFirstNameOnly)).isEqualTo(emptyList());
         assertThat(nonAliasSurnameAsFirstNameCombinations(oneLastNameOnly)).isEqualTo(emptyList());

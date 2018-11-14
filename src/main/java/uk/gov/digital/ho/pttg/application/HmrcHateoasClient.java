@@ -209,7 +209,7 @@ public class HmrcHateoasClient {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
-        List<CandidateName> candidateNames =   nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName(), individual.getAliasSurnames());
+        List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName(), individual.getAliasSurnames());
 
         int retries = 0;
 
@@ -218,7 +218,13 @@ public class HmrcHateoasClient {
 
             try {
                 final Resource<String> matchedIndividual = performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
-                log.info("Successfully matched individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+
+                log.info("Successfully matched individual {}",
+                        individual.getNino(),
+                        value("combination", String.format("%d of %d", retries + 1, candidateNames.size())),
+                        value("meta-data", candidateNames.get(retries).derivation()),
+                        value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+
                 return matchedIndividual;
 
             } catch (ApplicationExceptions.HmrcNotFoundException ex) {

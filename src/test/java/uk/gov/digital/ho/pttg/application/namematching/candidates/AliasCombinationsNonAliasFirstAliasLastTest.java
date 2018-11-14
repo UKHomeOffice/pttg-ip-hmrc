@@ -14,7 +14,6 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCo
 
 public class AliasCombinationsNonAliasFirstAliasLastTest {
 
-
     @Test
     public void shouldReturnEmptyListForEmptyInputs() {
         InputNames emptyNonAliasInputNames = new InputNames("", "", "somename");

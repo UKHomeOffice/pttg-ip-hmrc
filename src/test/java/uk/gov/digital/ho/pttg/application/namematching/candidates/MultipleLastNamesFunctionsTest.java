@@ -64,8 +64,9 @@ public class MultipleLastNamesFunctionsTest {
         List<String> lastNameCombinations = Arrays.asList("Aaa");
         List<String> listOfLastNames = Arrays.asList("Bbb", "Ccc", "Ddd");
 
-        addMultiPartLastNameToCombination(lastNameCombinations, listOfLastNames);
+        List<String> multipartCombinations = addMultiPartLastNameToCombination(lastNameCombinations, listOfLastNames);
 
+        assertThat(multipartCombinations.size()).isEqualTo(2);
         assertThat(lastNameCombinations.size()).isEqualTo(1);
     }
 
