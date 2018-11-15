@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import uk.gov.digital.ho.pttg.application.namematching.*;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +13,6 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.COMBINATION;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
-import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 
 class MultipleLastNamesFunctions {
@@ -57,19 +57,11 @@ class MultipleLastNamesFunctions {
                 new CandidateDerivation(
                         inputNames,
                         lastNameCandidate.derivation().generators(),
-                        new Derivation(
-                                FIRST,
-                                singletonList(firstName.index()),
-                                firstName.name().length(),
-                                firstName.containsDiacritics(),
-                                firstName.containsUmlauts(),
-                                firstName.containsFullStopSpace(),
-                                firstName.containsNameSplitter(),
-                                singletonList(ORIGINAL)),
+                        new Derivation(firstName, ORIGINAL),
                         lastNameCandidate.derivation().lastName()));
     }
 
-    static List<CandidateName> generateNobiliaryLastNameCombinations(InputNames inputNames, List<Integer> generators, List<Name> lastNames) {
+    static List<CandidateName> generateNobiliaryLastNameCombinations(InputNames inputNames, List<Generator> generators, List<Name> lastNames) {
         final int HMRC_SURNAME_LENGTH = 3;
 
         return lastNames.stream()
@@ -81,7 +73,7 @@ class MultipleLastNamesFunctions {
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    static CandidateName generateCandidateLastName(InputNames inputNames, List<Integer> generators, Name lastName1, Name lastname2) {
+    static CandidateName generateCandidateLastName(InputNames inputNames, List<Generator> generators, Name lastName1, Name lastname2) {
         return new CandidateName(
                 null,
                 String.format("%s %s", lastName1.name(), lastname2.name()),

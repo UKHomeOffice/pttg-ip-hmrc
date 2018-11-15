@@ -43,4 +43,15 @@ public class Derivation {
 
     @JsonProperty(value = "derivationActions")
     private List<DerivationAction> derivationActions;
+
+    public Derivation(Name name, DerivationAction derivationAction) {
+        this(name.nameType(),
+                singletonList(name.index()),
+                name.name().length(),
+                name.containsDiacritics(),
+                name.containsUmlauts(),
+                name.containsFullStopSpace(),
+                name.containsNameSplitter(),
+                singletonList(derivationAction));
+    }
 }

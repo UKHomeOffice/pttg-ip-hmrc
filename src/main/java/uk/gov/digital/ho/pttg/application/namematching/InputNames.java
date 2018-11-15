@@ -100,7 +100,7 @@ public class InputNames {
         return !aliasSurnames.isEmpty();
     }
 
-    public InputNames groupByAbbrieviatedNames() {
+    public InputNames groupByAbbreviatedNames() {
         List<Name> firstNames = analyseAbbreviatedName(FIRST, splitNamesIgnoringFullStopSpace(this.fullFirstName()));
         List<Name> lastNames = analyseAbbreviatedName(LAST, splitNamesIgnoringFullStopSpace(this.fullLastName()));
         List<Name> aliasNames = analyseAbbreviatedName(ALIAS, splitNamesIgnoringFullStopSpace(this.fullAliasNames()));

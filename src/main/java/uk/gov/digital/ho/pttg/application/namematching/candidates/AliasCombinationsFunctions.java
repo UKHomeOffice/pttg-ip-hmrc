@@ -1,11 +1,15 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
-import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
-import uk.gov.digital.ho.pttg.application.namematching.InputNames;
+import uk.gov.digital.ho.pttg.application.namematching.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.reverse;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ALIAS_COMBINATIONS;
 
 final class AliasCombinationsFunctions {
 
@@ -19,68 +23,80 @@ final class AliasCombinationsFunctions {
         return filteredNames;
     }
 
-    static List<CandidateName> nonAliasFirstAliasLastCombinations(InputNames inputNames) {
-        List<CandidateName> candidateNames = new ArrayList<>();
-
-        List<String> reversedAliasSurnames = new ArrayList<>(inputNames.rawAliasSurnames());
-        Collections.reverse(reversedAliasSurnames);
-
-        for(String aliasSurname: reversedAliasSurnames){
-            for (String nonAliasName : inputNames.allNonAliasNames()) {
-                candidateNames.add(new CandidateName(nonAliasName, aliasSurname));
-            }
-        }
-
-        return candidateNames;
+    static List<Name> removeName(Name nameToRemove, List<Name> names) {
+        List<Name> filteredNames = new ArrayList<>(names);
+        filteredNames.remove(nameToRemove);
+        return filteredNames;
     }
 
+    static List<CandidateName> nonAliasFirstAliasLastCombinations(InputNames inputNames) {
+
+        List<Name> reversedAliasSurnames = new ArrayList<>(inputNames.aliasSurnames());
+        reverse(reversedAliasSurnames);
+
+        List<Name> nonAliasNames = new ArrayList<>(inputNames.firstNames());
+        nonAliasNames.addAll(inputNames.lastNames());
+
+        return reversedAliasSurnames.stream()
+                       .flatMap(last -> nonAliasNames.stream()
+                                                        .map(first -> createCandidateName(first, last, inputNames)))
+                       .collect(toList());
+    }
 
     static List<CandidateName> firstNameCombinations(InputNames inputNames) {
-        List<CandidateName> candidateNames = new ArrayList<>();
 
-        for (String firstName : inputNames.rawFirstNames()) {
-            for (String otherFirstName : removeName(firstName, inputNames.rawFirstNames())) {
-                candidateNames.add(new CandidateName(firstName, otherFirstName));
-            }
-        }
-        return candidateNames;
+        return inputNames.firstNames().stream()
+                       .flatMap(first -> removeName(first, inputNames.firstNames()).stream()
+                                                     .map(last -> createCandidateName(first, last, inputNames)))
+                       .collect(toList());
     }
 
-
     static List<CandidateName> nonAliasSurnameAsFirstNameCombinations(InputNames inputNames) {
-        List<CandidateName> candidateNames = new ArrayList<>();
 
-        for (String lastName : inputNames.rawLastNames()) {
-            for (String otherName : inputNames.rawFirstNames()) {
-                candidateNames.add(new CandidateName(lastName, otherName));
-            }
-        }
+        return inputNames.lastNames().stream()
+                       .flatMap(first -> inputNames.firstNames().stream()
+                                                     .map(last -> createCandidateName(first, last, inputNames)))
+                       .collect(toList());
 
-        return candidateNames;
     }
 
     static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames inputNames) {
-        List<CandidateName> candidateNames = new ArrayList<>();
 
-        for (String aliasSurname : inputNames.rawAliasSurnames()) {
-            for (String nonAliasName : removeName(aliasSurname, inputNames.allNames())) {
-                candidateNames.add(new CandidateName(aliasSurname, nonAliasName));
-            }
-        }
-        return candidateNames;
+        List<Name> allNames = new ArrayList<>(inputNames.firstNames());
+        allNames.addAll(inputNames.lastNames());
+        allNames.addAll(inputNames.aliasSurnames());
+
+        return inputNames.aliasSurnames().stream()
+                       .flatMap(first -> removeName(first, allNames).stream()
+                                                     .map(last -> createCandidateName(first, last, inputNames)))
+                       .collect(toList());
     }
 
     static List<CandidateName> nonAliasFirstNamesAndLastNameCombinations(InputNames inputNames) {
-        List<CandidateName> candidateNames = new ArrayList<>();
 
-        List<String> reversedLastNames = new ArrayList<>(inputNames.rawLastNames());
-        Collections.reverse(reversedLastNames);
+        List<Name> reversedLastNames = new ArrayList<>(inputNames.lastNames());
+        reverse(reversedLastNames);
 
-        for (String lastName : reversedLastNames) {
-            for (String otherName : removeName(lastName, inputNames.allNonAliasNames())) {
-                candidateNames.add(new CandidateName(otherName, lastName));
-            }
-        }
-        return candidateNames;
+        List<Name> nonAliasNames = new ArrayList<>(inputNames.firstNames());
+        nonAliasNames.addAll(inputNames.lastNames());
+
+        return reversedLastNames.stream()
+                       .flatMap(last -> removeName(last, nonAliasNames).stream()
+                                                        .map(first -> createCandidateName(first, last, inputNames)))
+                       .collect(toList());
+    }
+
+    private static CandidateName createCandidateName(Name first, Name last, InputNames inputNames) {
+        Derivation firstNameDerivation = new Derivation(first, ORIGINAL);
+        Derivation lastNameDerivation = new Derivation(last, ORIGINAL);
+
+        return new CandidateName(
+                first.name(),
+                last.name(),
+                new CandidateDerivation(
+                        inputNames,
+                        singletonList(ALIAS_COMBINATIONS),
+                        firstNameDerivation,
+                        lastNameDerivation));
     }
 }

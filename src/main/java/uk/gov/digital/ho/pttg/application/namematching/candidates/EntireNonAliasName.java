@@ -13,10 +13,11 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_FIRST_NAMES;
 import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_NON_ALIAS_NAME_STRATEGY_PRIORITY;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_NON_ALIAS_NAME_GENERATOR_PRIORITY;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_NON_ALIAS_NAME;
 
 @Component
-@Order(value = ENTIRE_NON_ALIAS_NAME_STRATEGY_PRIORITY)
+@Order(value = ENTIRE_NON_ALIAS_NAME_GENERATOR_PRIORITY)
 public class EntireNonAliasName implements NameMatchingCandidateGenerator {
 
     @Override
@@ -48,7 +49,7 @@ public class EntireNonAliasName implements NameMatchingCandidateGenerator {
                         lastName,
                         new CandidateDerivation(
                                 inputNames,
-                                singletonList(ENTIRE_NON_ALIAS_NAME_STRATEGY_PRIORITY),
+                                singletonList(ENTIRE_NON_ALIAS_NAME),
                                 firstNameDerivation,
                                 lastNameDerivation)));
     }

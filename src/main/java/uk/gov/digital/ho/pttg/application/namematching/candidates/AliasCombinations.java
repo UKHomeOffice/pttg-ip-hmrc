@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinationsFunctions.*;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ALIAS_COMBINATIONS_STRATEGY_PRIORITY;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ALIAS_COMBINATIONS_GENERATOR_PRIORITY;
 
 @Component
-@Order(value = ALIAS_COMBINATIONS_STRATEGY_PRIORITY)
+@Order(value = ALIAS_COMBINATIONS_GENERATOR_PRIORITY)
 public class AliasCombinations implements NameMatchingCandidateGenerator {
 
     @Override

@@ -10,10 +10,10 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.CandidateFunctions.removeAdditionalNamesIfOverMax;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAME_MATCHING_STRATEGY_PRIORITY;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAME_MATCHING_GENERATOR_PRIORITY;
 
 @Component
-@Order(value = NAME_MATCHING_STRATEGY_PRIORITY)
+@Order(value = NAME_MATCHING_GENERATOR_PRIORITY)
 public class NameCombinations implements NameMatchingCandidateGenerator {
 
     @Override

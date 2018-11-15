@@ -8,11 +8,11 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_STRATEGY_PRIORITY;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_GENERATOR_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.doesNotContainFullStopSpaceBetweenNames;
 
 @Component
-@Order(value = NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_STRATEGY_PRIORITY)
+@Order(value = NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_GENERATOR_PRIORITY)
 public class NamesWithFullStopSpaceCombinations implements NameMatchingCandidateGenerator {
 
     private final NameCombinations nameCombinations;
@@ -29,13 +29,13 @@ public class NamesWithFullStopSpaceCombinations implements NameMatchingCandidate
             return emptyList();
         }
 
-        InputNames abbrieviatedNames = inputNames.groupByAbbrieviatedNames();
+        InputNames abbreviatedNames = inputNames.groupByAbbreviatedNames();
 
-        if (abbrieviatedNames.hasAliasSurnames()) {
-            return aliasCombinations.generateCandidates(abbrieviatedNames);
+        if (abbreviatedNames.hasAliasSurnames()) {
+            return aliasCombinations.generateCandidates(abbreviatedNames);
         }
 
-        return nameCombinations.generateCandidates(abbrieviatedNames);
+        return nameCombinations.generateCandidates(abbreviatedNames);
     }
 
 }
