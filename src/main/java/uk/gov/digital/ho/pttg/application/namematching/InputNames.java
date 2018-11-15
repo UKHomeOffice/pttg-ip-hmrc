@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -26,8 +27,13 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWi
 @ToString
 public class InputNames {
 
+    @JsonProperty(value = "firstNames")
     private List<Name> firstNames;
+
+    @JsonProperty(value = "lastNames")
     private List<Name> lastNames;
+
+    @JsonProperty(value = "aliasSurnames")
     private List<Name> aliasSurnames;
 
     public InputNames(String firstNames, String lastNames) {

@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -13,15 +14,28 @@ import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunction
 @EqualsAndHashCode(of = "name")
 public class Name {
 
-    public enum End {LEFT, RIGHT};
+    public enum End {LEFT, RIGHT;}
 
-    private NameType nameType;
-    private int index;
     private String name;
+
+    @JsonProperty(value = "nameType")
+    private NameType nameType;
+
+    @JsonProperty(value = "index")
+    private int index;
+
+    @JsonProperty(value = "diacritics")
     private boolean containsDiacritics;
+
+    @JsonProperty(value = "umlauts")
     private boolean containsUmlauts;
+
+    @JsonProperty(value = "fullStopSpace")
     private boolean containsFullStopSpace;
+
+    @JsonProperty(value = "nameSplitter")
     private boolean containsNameSplitter;
+
     private boolean containsSplitters;
 
     Name(NameType nameType, int index, String name) {
@@ -35,4 +49,8 @@ public class Name {
         this.containsSplitters = containsFullStopSpace || containsNameSplitter;
     }
 
+    @JsonProperty(value = "length")
+    public int getLength() {
+        return name.length();
+    }
 }

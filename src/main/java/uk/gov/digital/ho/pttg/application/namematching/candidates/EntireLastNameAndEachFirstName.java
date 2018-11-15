@@ -24,14 +24,15 @@ public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGene
         String entireLastName = inputNames.fullLastName();
 
         return inputNames.firstNames().stream()
-                .map(firstName -> combine(firstName, entireLastName))
+                .map(firstName -> combine(inputNames, firstName, entireLastName))
                 .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    private CandidateName combine(Name firstName, String entireLastName) {
+    private CandidateName combine(InputNames inputNames, Name firstName, String entireLastName) {
 
         CandidateDerivation derivation =
                 new CandidateDerivation(
+                        inputNames,
                         singletonList(ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_PRIORITY),
                         new Derivation(
                                 FIRST,

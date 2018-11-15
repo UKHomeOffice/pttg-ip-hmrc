@@ -12,6 +12,9 @@ import java.util.List;
 @Accessors(fluent = true)
 public class CandidateDerivation {
 
+    @JsonProperty(value = "inputNames")
+    private InputNames inputNames;
+
     @JsonProperty(value = "generators")
     private List<Integer> generators;
 

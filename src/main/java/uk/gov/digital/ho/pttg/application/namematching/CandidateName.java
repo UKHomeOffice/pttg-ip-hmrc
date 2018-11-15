@@ -25,6 +25,7 @@ public class CandidateName {
         this(firstName,
                 lastName,
                 new CandidateDerivation(
+                        null,
                         singletonList(0),
                         Derivation.ALL_FIRST_NAMES,
                         Derivation.ALL_LAST_NAMES));

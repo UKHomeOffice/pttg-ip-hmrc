@@ -3,10 +3,10 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 import uk.gov.digital.ho.pttg.application.namematching.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -39,25 +39,27 @@ class MultipleLastNamesFunctions {
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    static List<CandidateName> generateNameCombinations(List<Name> firstNames, List<CandidateName> lastNameCandidates) {
+    static List<CandidateName> generateNameCombinations(InputNames inputNames, List<CandidateName> lastNameCandidates) {
+
         List<CandidateName> combinations =
-                firstNames.stream()
+                inputNames.firstNames().stream()
                         .flatMap(firstName -> lastNameCandidates.stream()
-                                                      .map(lastNameCandidate -> generateCandidate(firstName, lastNameCandidate)))
+                                                      .map(lastNameCandidate -> generateCandidate(inputNames, firstName, lastNameCandidate)))
                         .collect(toList());
 
         return Collections.unmodifiableList(combinations);
     }
 
-    private static CandidateName generateCandidate(Name firstName, CandidateName lastNameCandidate) {
+    private static CandidateName generateCandidate(InputNames inputNames, Name firstName, CandidateName lastNameCandidate) {
         return new CandidateName(
                 firstName.name(),
                 lastNameCandidate.lastName(),
                 new CandidateDerivation(
+                        inputNames,
                         lastNameCandidate.derivation().generators(),
                         new Derivation(
                                 FIRST,
-                                Arrays.asList(firstName.index()),
+                                singletonList(firstName.index()),
                                 firstName.name().length(),
                                 firstName.containsDiacritics(),
                                 firstName.containsUmlauts(),
@@ -67,7 +69,7 @@ class MultipleLastNamesFunctions {
                         lastNameCandidate.derivation().lastName()));
     }
 
-    static List<CandidateName> generateNobiliaryLastNameCombinations(List<Integer> generators, List<Name> lastNames) {
+    static List<CandidateName> generateNobiliaryLastNameCombinations(InputNames inputNames, List<Integer> generators, List<Name> lastNames) {
         final int HMRC_SURNAME_LENGTH = 3;
 
         return lastNames.stream()
@@ -75,20 +77,21 @@ class MultipleLastNamesFunctions {
                        .distinct()
                        .flatMap(lastName1 -> lastNames.stream()
                                                      .filter(lastName2 -> !lastName1.equals(lastName2))
-                                                     .map(lastname2 -> generateCandidateLastName(generators, lastName1, lastname2)))
+                                                     .map(lastname2 -> generateCandidateLastName(inputNames, generators, lastName1, lastname2)))
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    static CandidateName generateCandidateLastName(List<Integer> generators, Name lastName1, Name lastname2) {
+    static CandidateName generateCandidateLastName(InputNames inputNames, List<Integer> generators, Name lastName1, Name lastname2) {
         return new CandidateName(
                 null,
                 String.format("%s %s", lastName1.name(), lastname2.name()),
                 new CandidateDerivation(
+                        inputNames,
                         generators,
                         null,
                         new Derivation(
                                 LAST,
-                                Arrays.asList(lastName1.index(), lastname2.index()),
+                                asList(lastName1.index(), lastname2.index()),
                                 lastName1.name().length() + lastname2.name().length(),
                                 lastName1.containsDiacritics() || lastname2.containsDiacritics(),
                                 lastName1.containsUmlauts() || lastname2.containsUmlauts(),
