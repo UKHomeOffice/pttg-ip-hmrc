@@ -17,16 +17,11 @@ public class SpecialCharactersTest {
     private static final String SOME_NAME = "somelastname";
     private static final String SOME_ALIAS_SURNAME = "somealiassurname";
 
-    @Mock
-    private EntireNonAliasName mockEntireNonAliasName;
-    @Mock
-    private EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
-    @Mock
-    private NameCombinations mockNameCombinations;
-    @Mock
-    private AliasCombinations mockAliasCombinations;
-    @Mock
-    private MultipleLastNames mockMultipleLastNames;
+    @Mock private EntireNonAliasName mockEntireNonAliasName;
+    @Mock private EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
+    @Mock private NameCombinations mockNameCombinations;
+    @Mock private AliasCombinations mockAliasCombinations;
+    @Mock private MultipleLastNames mockMultipleLastNames;
 
     private SpecialCharacters specialCharacters;
 
@@ -192,30 +187,12 @@ public class SpecialCharactersTest {
     }
 
     @Test
-    public void shouldNotCallAliasCombinationsWhenNoAlias() {
-        InputNames inputNamesWithoutAliases = new InputNames("some-name", "some-name");
-
-        specialCharacters.generateCandidates(inputNamesWithoutAliases);
-
-        verifyNoMoreInteractions(mockAliasCombinations);
-    }
-
-    @Test
     public void shouldCallAliasCombinationsWhenAliasIsPresent() {
         InputNames inputNameWithAliases = new InputNames("John-Bob", SOME_NAME, SOME_ALIAS_SURNAME);
 
         specialCharacters.generateCandidates(inputNameWithAliases);
 
         verify(mockAliasCombinations).generateCandidates(new InputNames("John Bob", SOME_NAME, SOME_ALIAS_SURNAME));
-    }
-
-    @Test
-    public void shouldNotCallNameCombinationsWhenAliasIsPresent() {
-        InputNames inputNameWithAliases = new InputNames("some-name", SOME_NAME, SOME_ALIAS_SURNAME);
-
-        specialCharacters.generateCandidates(inputNameWithAliases);
-
-        verifyNoMoreInteractions(mockNameCombinations);
     }
 
     @Test
