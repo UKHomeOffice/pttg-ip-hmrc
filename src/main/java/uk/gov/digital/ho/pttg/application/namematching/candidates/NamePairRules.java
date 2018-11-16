@@ -1,9 +1,11 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import com.google.common.collect.ImmutableList;
+import lombok.Getter;
 
 import java.util.List;
 
+// TODO: This isn't really used as an enum
 public enum NamePairRules {
     ONE(ImmutableList.of(
             NamePair.of(0, 0)
@@ -56,6 +58,7 @@ public enum NamePairRules {
             NamePair.of(6, 0), NamePair.of(6, 1), NamePair.of(6, 2), NamePair.of(6, 3), NamePair.of(6, 4), NamePair.of(6, 5)
     ));
 
+    @Getter
     private final List<NamePair> namePairs;
 
     NamePairRules(List<NamePair> namePairs) {
@@ -74,9 +77,5 @@ public enum NamePairRules {
         if (isInvalidNameCount) {
             throw new IllegalArgumentException(String.format("There are no name rules for `%d` number of names", nameCount));
         }
-    }
-
-    List<NamePair> getNamePairs() {
-        return namePairs;
     }
 }

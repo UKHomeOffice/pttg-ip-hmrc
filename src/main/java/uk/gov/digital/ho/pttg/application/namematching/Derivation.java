@@ -29,15 +29,19 @@ public class Derivation {
     @JsonProperty(value = "originalLength")
     private Integer originalLength;
 
+    // TODO: Remove this property - not needed as we can refer to the InputNames data
     @JsonProperty(value = "containsDiacritics")
     private boolean containsDiacritics;
 
+    // TODO: Remove this property - not needed as we can refer to the InputNames data
     @JsonProperty(value = "containsUmlauts")
     private boolean containsUmlauts;
 
+    // TODO: Remove this property - not needed as we can refer to the InputNames data
     @JsonProperty(value = "containsFullStopSpace")
     private boolean containsFullStopSpace;
 
+    // TODO: Remove this property - not needed as we can refer to the InputNames data
     @JsonProperty(value = "containsNameSplitter")
     private boolean containsNameSplitter;
 

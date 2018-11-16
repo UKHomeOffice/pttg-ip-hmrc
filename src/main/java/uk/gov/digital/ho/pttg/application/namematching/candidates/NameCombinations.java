@@ -4,6 +4,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
+import uk.gov.digital.ho.pttg.application.namematching.Name;
 
 import java.util.List;
 
@@ -24,11 +25,12 @@ public class NameCombinations implements NameMatchingCandidateGenerator {
         }
 
         InputNames largestAllowedName = removeAdditionalNamesIfOverMax(inputNames);
-        List<String> namesToUse = largestAllowedName.allNonAliasNames();
+
+        List<Name> namesToUse = largestAllowedName.combine(largestAllowedName.firstNames(), largestAllowedName.lastNames());
 
         return NamePairRules.forNameCount(namesToUse.size())
                 .stream()
-                .map(namePairRule -> namePairRule.calculateName(namesToUse))
+                .map(namePair -> namePair.calculateName(inputNames, namesToUse))
                 .collect(toList());
     }
 }
