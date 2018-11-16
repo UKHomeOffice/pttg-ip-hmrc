@@ -9,6 +9,7 @@ import static java.util.Collections.reverse;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
+import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.combine;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ALIAS_COMBINATIONS;
 
 final class AliasCombinationsFunctions {
@@ -34,8 +35,7 @@ final class AliasCombinationsFunctions {
         List<Name> reversedAliasSurnames = new ArrayList<>(inputNames.aliasSurnames());
         reverse(reversedAliasSurnames);
 
-        List<Name> nonAliasNames = new ArrayList<>(inputNames.firstNames());
-        nonAliasNames.addAll(inputNames.lastNames());
+        List<Name> nonAliasNames = combine(inputNames.firstNames(), inputNames.lastNames());
 
         return reversedAliasSurnames.stream()
                        .flatMap(last -> nonAliasNames.stream()
@@ -62,9 +62,7 @@ final class AliasCombinationsFunctions {
 
     static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames inputNames) {
 
-        List<Name> allNames = new ArrayList<>(inputNames.firstNames());
-        allNames.addAll(inputNames.lastNames());
-        allNames.addAll(inputNames.aliasSurnames());
+        List<Name> allNames = combine(inputNames.firstNames(), inputNames.lastNames(), inputNames.aliasSurnames());
 
         return inputNames.aliasSurnames().stream()
                        .flatMap(first -> removeName(first, allNames).stream()
@@ -77,8 +75,7 @@ final class AliasCombinationsFunctions {
         List<Name> reversedLastNames = new ArrayList<>(inputNames.lastNames());
         reverse(reversedLastNames);
 
-        List<Name> nonAliasNames = new ArrayList<>(inputNames.firstNames());
-        nonAliasNames.addAll(inputNames.lastNames());
+        List<Name> nonAliasNames = combine(inputNames.firstNames(), inputNames.lastNames());
 
         return reversedLastNames.stream()
                        .flatMap(last -> removeName(last, nonAliasNames).stream()

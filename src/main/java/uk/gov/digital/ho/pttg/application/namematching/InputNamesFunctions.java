@@ -3,13 +3,17 @@ package uk.gov.digital.ho.pttg.application.namematching;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-final class InputNamesFunctions {
+public final class InputNamesFunctions {
 
     private static final String NAME_SPLITTERS = "-'.";
     private static final String DIACRITICS = "";
@@ -51,5 +55,11 @@ final class InputNamesFunctions {
 
     static boolean hasUmnlauts(String name) {
         return StringUtils.containsAny(name, UMLAUT);
+    }
+
+    public static List<Name> combine(List<Name>... namesToCombine) {
+        return Stream.of(namesToCombine)
+                       .flatMap(Collection::stream)
+                       .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 }

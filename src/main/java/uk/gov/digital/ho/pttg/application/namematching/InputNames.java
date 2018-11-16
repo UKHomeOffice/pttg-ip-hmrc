@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import uk.gov.digital.ho.pttg.application.namematching.Name.End;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -160,12 +159,6 @@ public class InputNames {
         return names.stream()
                        .map(Name::name)
                        .collect(toList());
-    }
-
-    public List<Name> combine(List<Name>... namesToCombine) {
-        return Stream.of(namesToCombine)
-                .flatMap(Collection::stream)
-                .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
     public int indexOfFirstName(Name name) {

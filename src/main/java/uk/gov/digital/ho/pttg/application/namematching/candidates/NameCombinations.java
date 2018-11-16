@@ -10,6 +10,7 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.combine;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.CandidateFunctions.removeAdditionalNamesIfOverMax;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAME_MATCHING_GENERATOR_PRIORITY;
 
@@ -26,7 +27,7 @@ public class NameCombinations implements NameMatchingCandidateGenerator {
 
         InputNames largestAllowedName = removeAdditionalNamesIfOverMax(inputNames);
 
-        List<Name> namesToUse = largestAllowedName.combine(largestAllowedName.firstNames(), largestAllowedName.lastNames());
+        List<Name> namesToUse = combine(largestAllowedName.firstNames(), largestAllowedName.lastNames());
 
         return NamePairRules.forNameCount(namesToUse.size())
                 .stream()
