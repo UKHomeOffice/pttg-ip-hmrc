@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
         NameMatchingCandidatesService.class,
+        GeneratorFactory.class,
         NameCombinations.class,
         MultipleLastNames.class,
         SpecialCharacters.class,

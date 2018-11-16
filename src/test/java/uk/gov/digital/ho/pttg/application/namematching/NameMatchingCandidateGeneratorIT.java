@@ -14,11 +14,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
-        NameMatchingCandidatesService.class
+        NameMatchingCandidatesService.class,
+        GeneratorFactory.class
 })
 public class NameMatchingCandidateGeneratorIT {
 
@@ -42,6 +44,19 @@ public class NameMatchingCandidateGeneratorIT {
         when(mockAliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("5", "5")));
         when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("6", "6")));
         when(mockSpecialCharacters.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("7", "7")));
+    }
+
+    @Test
+    public void shouldUseCollaborators() {
+        nameMatchingCandidatesService.generateCandidateNames("Some First Names", "Some Last Names", "Some Alias");
+
+        verify(mockEntireNonAliasName).generateCandidates(any(InputNames.class));
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(any(InputNames.class));
+        verify(mockMultipleLastNames).generateCandidates(any(InputNames.class));
+        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(any(InputNames.class));
+        verify(mockAliasCombinations).generateCandidates(any(InputNames.class));
+        verify(mockNameCombinations).generateCandidates(any(InputNames.class));
+        verify(mockSpecialCharacters).generateCandidates(any(InputNames.class));
     }
 
     @Test
