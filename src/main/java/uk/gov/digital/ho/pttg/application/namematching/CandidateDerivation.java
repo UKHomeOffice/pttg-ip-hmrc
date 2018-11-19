@@ -24,10 +24,10 @@ public class CandidateDerivation {
     private List<Generator> generators;
 
     @JsonProperty(value = "firstName")
-    private Derivation firstName;
+    private NameDerivation firstName;
 
     @JsonProperty(value = "lastName")
-    private Derivation lastName;
+    private NameDerivation lastName;
 
     public void addGenerator(Generator generator) {
         List<Generator> enlargedGenerators = new ArrayList<>();

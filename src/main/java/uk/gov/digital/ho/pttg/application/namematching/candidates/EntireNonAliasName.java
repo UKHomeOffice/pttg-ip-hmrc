@@ -5,8 +5,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateDerivation;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
-import uk.gov.digital.ho.pttg.application.namematching.Derivation;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
+import uk.gov.digital.ho.pttg.application.namematching.NameDerivation;
 
 import java.util.List;
 
@@ -27,21 +27,21 @@ public class EntireNonAliasName implements NameMatchingCandidateGenerator {
         String firstName = inputNames.fullFirstName();
         String lastName = inputNames.fullLastName();
 
-        Derivation firstNameDerivation;
-        Derivation lastNameDerivation;
+        NameDerivation firstNameDerivation;
+        NameDerivation lastNameDerivation;
 
         if (StringUtils.isBlank(firstName)) {
             firstName = lastName;
-            firstNameDerivation = new Derivation(LAST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            firstNameDerivation = new NameDerivation(LAST, null, firstName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         } else {
-            firstNameDerivation = new Derivation(FIRST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            firstNameDerivation = new NameDerivation(FIRST, null, firstName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         }
 
         if (StringUtils.isBlank(lastName)) {
             lastName = firstName;
-            lastNameDerivation = new Derivation(FIRST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            lastNameDerivation = new NameDerivation(FIRST, null, lastName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         } else {
-            lastNameDerivation = new Derivation(LAST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            lastNameDerivation = new NameDerivation(LAST, null, lastName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         }
 
         return singletonList(

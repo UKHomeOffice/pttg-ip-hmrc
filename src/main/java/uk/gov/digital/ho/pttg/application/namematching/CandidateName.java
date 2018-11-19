@@ -8,8 +8,8 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
 import static java.util.Collections.singletonList;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_FIRST_NAMES;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_LAST_NAMES;
 
 @AllArgsConstructor
 @Getter

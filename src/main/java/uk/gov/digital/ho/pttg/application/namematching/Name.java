@@ -14,7 +14,7 @@ import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunction
 @EqualsAndHashCode(of = "name")
 public class Name {
 
-    public enum End {LEFT, RIGHT;}
+    public enum End {LEFT, RIGHT}
 
     private String name;
 

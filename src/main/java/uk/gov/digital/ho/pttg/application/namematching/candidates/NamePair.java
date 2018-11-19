@@ -32,14 +32,14 @@ class NamePair {
                 new CandidateDerivation(
                         inputNames,
                         singletonList(NAME_MATCHING),
-                        new Derivation(
+                        new NameDerivation(
                                 FIRST,
                                 singletonList(inputNames.indexOfFirstName(firstName)),
                                 firstName.name().length(),
                                 inputNames.splittersRemoved(),
                                 inputNames.splittersReplaced(),
                                 singletonList(COMBINATION)),
-                        new Derivation(
+                        new NameDerivation(
                                 LAST,
                                 singletonList(inputNames.indexOfLastName(lastName)),
                                 lastName.name().length(),

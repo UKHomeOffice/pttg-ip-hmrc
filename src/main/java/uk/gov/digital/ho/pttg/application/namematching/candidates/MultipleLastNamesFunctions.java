@@ -11,10 +11,10 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_FIRST_NAMES;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.COMBINATION;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_LAST_NAMES;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 
 class MultipleLastNamesFunctions {
@@ -68,7 +68,7 @@ class MultipleLastNamesFunctions {
                 new CandidateDerivation(
                         inputNames,
                         lastNameCandidate.derivation().generators(),
-                        new Derivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
+                        new NameDerivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
                         lastNameCandidate.derivation().lastName()));
     }
 
@@ -84,18 +84,18 @@ class MultipleLastNamesFunctions {
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    static CandidateName generateCandidateLastName(InputNames inputNames, List<Generator> generators, Name lastName1, Name lastname2) {
+    static CandidateName generateCandidateLastName(InputNames inputNames, List<Generator> generators, Name lastName1, Name lastName2) {
         return new CandidateName(
                 null,
-                String.format("%s %s", lastName1.name(), lastname2.name()),
+                String.format("%s %s", lastName1.name(), lastName2.name()),
                 new CandidateDerivation(
                         inputNames,
                         generators,
                         null,
-                        new Derivation(
+                        new NameDerivation(
                                 LAST,
-                                asList(lastName1.index(), lastname2.index()),
-                                lastName1.name().length() + lastname2.name().length(),
+                                asList(lastName1.index(), lastName2.index()),
+                                lastName1.name().length() + lastName2.name().length(),
                                 false,
                                 false,
                                 singletonList(COMBINATION))));

@@ -15,10 +15,10 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class Derivation {
+public class NameDerivation {
 
-    public static final Derivation ALL_FIRST_NAMES = new Derivation(FIRST, null, null, false, false, singletonList(ENTIRE));
-    public static final Derivation ALL_LAST_NAMES = new Derivation(LAST, null, null, false, false, singletonList(ENTIRE));
+    public static final NameDerivation ALL_FIRST_NAMES = new NameDerivation(FIRST, null, null, false, false, singletonList(ENTIRE));
+    public static final NameDerivation ALL_LAST_NAMES = new NameDerivation(LAST, null, null, false, false, singletonList(ENTIRE));
 
     @JsonProperty(value = "section")
     private NameType section;
@@ -38,7 +38,7 @@ public class Derivation {
     @JsonProperty(value = "derivationActions")
     private List<DerivationAction> derivationActions;
 
-    public Derivation(Name name, DerivationAction derivationAction, boolean splittersRemoved, boolean splittersReplaced) {
+    public NameDerivation(Name name, DerivationAction derivationAction, boolean splittersRemoved, boolean splittersReplaced) {
         this(name.nameType(),
                 singletonList(name.index()),
                 name.name().length(),

@@ -32,14 +32,14 @@ public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGene
 
     private CandidateName combine(InputNames inputNames, Name firstName, String entireLastName) {
 
-        CandidateDerivation derivation =
+        CandidateDerivation candidateDerivation =
                 new CandidateDerivation(
                         inputNames,
                         singletonList(ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME),
-                        new Derivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
-                        new Derivation(LAST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE))
+                        new NameDerivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
+                        new NameDerivation(LAST, null, entireLastName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE))
                         );
 
-        return new CandidateName(firstName.name(), entireLastName, derivation);
+        return new CandidateName(firstName.name(), entireLastName, candidateDerivation);
     }
 }
