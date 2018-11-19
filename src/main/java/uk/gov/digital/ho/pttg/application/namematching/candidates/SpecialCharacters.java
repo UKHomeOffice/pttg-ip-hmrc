@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REMOVED;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REPLACED;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.SPECIAL_CHARACTERS_GENERATOR_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
 
@@ -75,11 +77,21 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     private List<CandidateName> candidatesWithSpacesReplacingSplitters(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNameSpacesNotSplitters) {
-        return candidateGenerator.generateCandidates(inputNameSpacesNotSplitters);
+        List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNameSpacesNotSplitters);
+
+        candidateNames.stream()
+                .forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REPLACED));
+
+        return candidateNames;
     }
 
     private List<CandidateName> candidatesWithSplittersRemoved(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNameSplittersRemoved) {
-        return candidateGenerator.generateCandidates(inputNameSplittersRemoved);
+        List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNameSplittersRemoved);
+
+        candidateNames.stream()
+                .forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REMOVED));
+
+        return candidateNames;
     }
 
     private static boolean namesContainSplitters(InputNames inputNames) {

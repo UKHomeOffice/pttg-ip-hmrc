@@ -7,6 +7,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @AllArgsConstructor
@@ -26,4 +28,11 @@ public class CandidateDerivation {
 
     @JsonProperty(value = "lastName")
     private Derivation lastName;
+
+    public void addGenerator(Generator generator) {
+        List<Generator> enlargedGenerators = new ArrayList<>();
+        enlargedGenerators.add(generator);
+        enlargedGenerators.addAll(generators);
+        generators = Collections.unmodifiableList(enlargedGenerators);
+    }
 }

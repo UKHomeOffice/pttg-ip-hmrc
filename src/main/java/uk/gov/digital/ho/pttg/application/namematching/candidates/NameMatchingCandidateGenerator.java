@@ -22,7 +22,8 @@ public interface NameMatchingCandidateGenerator {
         NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS,
         ALIAS_COMBINATIONS,
         NAME_MATCHING,
-        SPECIAL_CHARACTERS
+        SPLITTERS_REMOVED,
+        SPLITTERS_REPLACED
     }
 
     List<CandidateName> generateCandidates(InputNames inputNames);
