@@ -84,8 +84,8 @@ final class AliasCombinationsFunctions {
     }
 
     private static CandidateName createCandidateName(Name first, Name last, InputNames inputNames) {
-        Derivation firstNameDerivation = new Derivation(first, ORIGINAL);
-        Derivation lastNameDerivation = new Derivation(last, ORIGINAL);
+        Derivation firstNameDerivation = new Derivation(first, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced());
+        Derivation lastNameDerivation = new Derivation(last, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced());
 
         return new CandidateName(
                 first.name(),

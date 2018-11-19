@@ -10,8 +10,9 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_GENERATOR_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME;
 
@@ -35,8 +36,8 @@ public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGene
                 new CandidateDerivation(
                         inputNames,
                         singletonList(ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME),
-                        new Derivation(firstName, ORIGINAL),
-                        ALL_LAST_NAMES
+                        new Derivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
+                        new Derivation(LAST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE))
                         );
 
         return new CandidateName(firstName.name(), entireLastName, derivation);

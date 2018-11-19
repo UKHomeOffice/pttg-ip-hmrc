@@ -11,22 +11,33 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
+import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_FIRST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.COMBINATION;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 
 class MultipleLastNamesFunctions {
 
+    // TODO: Remove - only used in tests
     static List<CandidateName> generateAllLastNameCombinations(List<String> firstNames, List<String> lastNameCombinations) {
         List<CandidateName> combinations =
                 firstNames.stream()
                         .flatMap(firstName -> lastNameCombinations.stream()
-                                .map(lastNameCombination -> new CandidateName(firstName, lastNameCombination)))
+                                                      .map(lastNameCombination -> new CandidateName(
+                                                              firstName,
+                                                              lastNameCombination,
+                                                              new CandidateDerivation(
+                                                                      null,
+                                                                      singletonList(null),
+                                                                      ALL_FIRST_NAMES,
+                                                                      ALL_LAST_NAMES))))
                         .collect(toList());
 
         return Collections.unmodifiableList(combinations);
     }
 
+    // TODO: Remove - only used in tests
     static List<String> generateLastNameCombinations(List<String> lastNames) {
         final int HMRC_SURNAME_LENGTH = 3;
 
@@ -57,7 +68,7 @@ class MultipleLastNamesFunctions {
                 new CandidateDerivation(
                         inputNames,
                         lastNameCandidate.derivation().generators(),
-                        new Derivation(firstName, ORIGINAL),
+                        new Derivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
                         lastNameCandidate.derivation().lastName()));
     }
 
@@ -85,10 +96,8 @@ class MultipleLastNamesFunctions {
                                 LAST,
                                 asList(lastName1.index(), lastname2.index()),
                                 lastName1.name().length() + lastname2.name().length(),
-                                lastName1.containsDiacritics() || lastname2.containsDiacritics(),
-                                lastName1.containsUmlauts() || lastname2.containsUmlauts(),
-                                lastName1.containsFullStopSpace() || lastname2.containsFullStopSpace(),
-                                lastName1.containsNameSplitter() || lastname2.containsNameSplitter(),
+                                false,
+                                false,
                                 singletonList(COMBINATION))));
     }
 

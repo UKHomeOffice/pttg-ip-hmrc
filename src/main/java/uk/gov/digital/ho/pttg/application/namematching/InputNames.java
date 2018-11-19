@@ -2,7 +2,10 @@ package uk.gov.digital.ho.pttg.application.namematching;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import uk.gov.digital.ho.pttg.application.namematching.Name.End;
 
@@ -20,7 +23,6 @@ import static uk.gov.digital.ho.pttg.application.namematching.Name.End.LEFT;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.splitNamesIgnoringFullStopSpace;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Accessors(fluent = true)
 @EqualsAndHashCode
@@ -35,6 +37,18 @@ public class InputNames {
 
     @JsonProperty(value = "aliasSurnames")
     private List<Name> aliasSurnames;
+
+    @Setter
+    private boolean splittersRemoved;
+
+    @Setter
+    private boolean splittersReplaced;
+
+    private InputNames(List<Name> firstNames, List<Name> lastNames, List<Name> aliasSurnames) {
+        this.firstNames = firstNames;
+        this.lastNames = lastNames;
+        this.aliasSurnames = aliasSurnames;
+    }
 
     public InputNames(String firstNames, String lastNames) {
         this(firstNames, lastNames, "");
@@ -62,10 +76,6 @@ public class InputNames {
         return unmodifiableList(nameStringsOf(lastNames));
     }
 
-    public List<String> rawAliasSurnames() {
-        return unmodifiableList(nameStringsOf(aliasSurnames));
-    }
-
     public List<String> allNames() {
         return unmodifiableList(
                 Stream.concat(
@@ -73,7 +83,7 @@ public class InputNames {
                         nameStringsOf(aliasSurnames).stream()).collect(toList()));
     }
 
-    public List<String> allNonAliasNames() {
+    List<String> allNonAliasNames() {
         return unmodifiableList(
                 Stream.concat(
                         nameStringsOf(firstNames).stream(),

@@ -6,7 +6,6 @@ import uk.gov.digital.ho.pttg.application.namematching.*;
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.COMBINATION;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
@@ -35,21 +34,17 @@ class NamePair {
                         singletonList(NAME_MATCHING),
                         new Derivation(
                                 FIRST,
-                                asList(inputNames.indexOfFirstName(firstName)),
+                                singletonList(inputNames.indexOfFirstName(firstName)),
                                 firstName.name().length(),
-                                firstName.containsDiacritics(),
-                                firstName.containsUmlauts(),
-                                firstName.containsFullStopSpace(),
-                                firstName.containsNameSplitter(),
+                                inputNames.splittersRemoved(),
+                                inputNames.splittersReplaced(),
                                 singletonList(COMBINATION)),
                         new Derivation(
                                 LAST,
-                                asList(inputNames.indexOfLastName(lastName)),
+                                singletonList(inputNames.indexOfLastName(lastName)),
                                 lastName.name().length(),
-                                lastName.containsDiacritics(),
-                                lastName.containsUmlauts(),
-                                lastName.containsFullStopSpace(),
-                                lastName.containsNameSplitter(),
+                                inputNames.splittersRemoved(),
+                                inputNames.splittersReplaced(),
                                 singletonList(COMBINATION))
                 );
 

@@ -9,16 +9,16 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
-import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class Derivation {
 
-    public static final Derivation ALL_FIRST_NAMES = new Derivation(FIRST, null, null, false, false, false, false, singletonList(ENTIRE));
-    public static final Derivation ALL_LAST_NAMES = new Derivation(LAST, null, null, false, false, false, false, singletonList(ENTIRE));
-    public static final Derivation ALL_ALIAS = new Derivation(ALIAS, null, null, false, false, false, false, singletonList(ENTIRE));
+    public static final Derivation ALL_FIRST_NAMES = new Derivation(FIRST, null, null, false, false, singletonList(ENTIRE));
+    public static final Derivation ALL_LAST_NAMES = new Derivation(LAST, null, null, false, false, singletonList(ENTIRE));
 
     @JsonProperty(value = "section")
     private NameType section;
@@ -29,33 +29,21 @@ public class Derivation {
     @JsonProperty(value = "originalLength")
     private Integer originalLength;
 
-    // TODO: Remove this property - not needed as we can refer to the InputNames data
-    @JsonProperty(value = "containsDiacritics")
-    private boolean containsDiacritics;
+    @JsonProperty(value = "splittersRemoved")
+    private boolean splittersRemoved;
 
-    // TODO: Remove this property - not needed as we can refer to the InputNames data
-    @JsonProperty(value = "containsUmlauts")
-    private boolean containsUmlauts;
-
-    // TODO: Remove this property - not needed as we can refer to the InputNames data
-    @JsonProperty(value = "containsFullStopSpace")
-    private boolean containsFullStopSpace;
-
-    // TODO: Remove this property - not needed as we can refer to the InputNames data
-    @JsonProperty(value = "containsNameSplitter")
-    private boolean containsNameSplitter;
+    @JsonProperty(value = "splittersReplaced")
+    private boolean splittersReplaced;
 
     @JsonProperty(value = "derivationActions")
     private List<DerivationAction> derivationActions;
 
-    public Derivation(Name name, DerivationAction derivationAction) {
+    public Derivation(Name name, DerivationAction derivationAction, boolean splittersRemoved, boolean splittersReplaced) {
         this(name.nameType(),
                 singletonList(name.index()),
                 name.name().length(),
-                name.containsDiacritics(),
-                name.containsUmlauts(),
-                name.containsFullStopSpace(),
-                name.containsNameSplitter(),
+                splittersRemoved,
+                splittersReplaced,
                 singletonList(derivationAction));
     }
 }

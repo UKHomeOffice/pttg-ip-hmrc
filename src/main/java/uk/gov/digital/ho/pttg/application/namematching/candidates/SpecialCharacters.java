@@ -92,10 +92,14 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
     private static InputNames nameWithSplittersRemoved(InputNames inputNames) {
 
-        return new InputNames(
+        InputNames modifiedInputNames = new InputNames(
                 nameWithSplittersRemoved(inputNames.fullFirstName()),
                 nameWithSplittersRemoved(inputNames.fullLastName()),
                 nameWithSplittersRemoved(inputNames.fullAliasNames()));
+
+        modifiedInputNames.splittersRemoved(true);
+
+        return modifiedInputNames;
     }
 
     private static String nameWithSplittersReplacedBySpaces(String name) {
@@ -106,9 +110,13 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
         String aliasSurnames = inputNames.fullAliasNames();
 
-        return new InputNames(
+        InputNames modifiedInputNames = new InputNames(
                 nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()),
                 nameWithSplittersReplacedBySpaces(inputNames.fullLastName()),
                 nameWithSplittersReplacedBySpaces(aliasSurnames));
+
+        modifiedInputNames.splittersReplaced(true);
+
+        return modifiedInputNames;
     }
 }

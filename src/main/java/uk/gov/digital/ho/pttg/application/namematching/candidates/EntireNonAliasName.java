@@ -11,8 +11,9 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_FIRST_NAMES;
-import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_NON_ALIAS_NAME_GENERATOR_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_NON_ALIAS_NAME;
 
@@ -31,16 +32,16 @@ public class EntireNonAliasName implements NameMatchingCandidateGenerator {
 
         if (StringUtils.isBlank(firstName)) {
             firstName = lastName;
-            firstNameDerivation = ALL_LAST_NAMES;
+            firstNameDerivation = new Derivation(LAST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         } else {
-            firstNameDerivation = ALL_FIRST_NAMES;
+            firstNameDerivation = new Derivation(FIRST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         }
 
         if (StringUtils.isBlank(lastName)) {
             lastName = firstName;
-            lastNameDerivation = ALL_FIRST_NAMES;
+            lastNameDerivation = new Derivation(FIRST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         } else {
-            lastNameDerivation = ALL_LAST_NAMES;
+            lastNameDerivation = new Derivation(LAST, null, null, inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
         }
 
         return singletonList(

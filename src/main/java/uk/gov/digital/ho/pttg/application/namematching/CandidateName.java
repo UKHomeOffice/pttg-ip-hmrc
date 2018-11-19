@@ -8,6 +8,8 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
 import static java.util.Collections.singletonList;
+import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_FIRST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.Derivation.ALL_LAST_NAMES;
 
 @AllArgsConstructor
 @Getter
@@ -20,15 +22,15 @@ public class CandidateName {
     private String lastName;
     private CandidateDerivation derivation;
 
-    // TODO: This constructor is a temporary measure to facilitate this refactor!
+    // TODO: This constructor is a temporary measure to facilitate this refactor! It is only used in tests
     public CandidateName(String firstName, String lastName) {
         this(firstName,
                 lastName,
                 new CandidateDerivation(
                         null,
                         singletonList(null),
-                        Derivation.ALL_FIRST_NAMES,
-                        Derivation.ALL_LAST_NAMES));
+                        ALL_FIRST_NAMES,
+                        ALL_LAST_NAMES));
     }
 
     CandidateName hmrcNameMatchingEquivalent() {

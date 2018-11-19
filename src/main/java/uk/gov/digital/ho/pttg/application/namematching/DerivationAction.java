@@ -6,7 +6,5 @@ public enum DerivationAction {
     LEFT_OF_SPLIT,
     RIGHT_OF_SPLIT,
     NO_SPLIT,
-    COMBINATION,
-    SUBSTITUTE_DIACRITIC,
-    SUBSTITUTE_UMLAUT
+    COMBINATION
 }
