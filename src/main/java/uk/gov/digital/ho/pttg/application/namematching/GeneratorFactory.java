@@ -8,13 +8,13 @@ import java.util.List;
 @Component
 public class GeneratorFactory {
 
-    private List<NameMatchingCandidateGenerator> candidateGenerators;
+    private List<NameMatchingCandidateGenerator> defaultCandidateGenerators;
 
-    public GeneratorFactory(List<NameMatchingCandidateGenerator> candidateGenerators) {
-        this.candidateGenerators = candidateGenerators;
+    public GeneratorFactory(List<NameMatchingCandidateGenerator> defaultCandidateGenerators) {
+        this.defaultCandidateGenerators = defaultCandidateGenerators;
     }
 
     List<NameMatchingCandidateGenerator> createGenerators(InputNames inputNames) {
-        return candidateGenerators;
+        return defaultCandidateGenerators;
     }
 }
