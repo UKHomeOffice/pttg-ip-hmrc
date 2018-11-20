@@ -28,7 +28,7 @@ public class NameMatchingCandidateGeneratorIT {
     @MockBean EntireNonAliasName mockEntireNonAliasName;
     @MockBean EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
     @MockBean MultipleLastNames mockMultipleLastNames;
-    @MockBean NamesWithFullStopSpaceCombinations mockNamesWithFullStopSpaceCombinations;
+    @MockBean AbbreviatedNames mockNamesWithFullStopSpaceCombinations;
     @MockBean AliasCombinations mockAliasCombinations;
     @MockBean NameCombinations mockNameCombinations;
     @MockBean SpecialCharacters mockSpecialCharacters;

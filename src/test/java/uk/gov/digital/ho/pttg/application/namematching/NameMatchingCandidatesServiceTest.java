@@ -25,7 +25,7 @@ public class NameMatchingCandidatesServiceTest {
     @Mock private EntireNonAliasName mockEntireNonAliasName;
     @Mock private EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
     @Mock private MultipleLastNames mockMultipleLastNames;
-    @Mock private NamesWithFullStopSpaceCombinations mockNamesWithFullStopSpaceCombinations;
+    @Mock private AbbreviatedNames mockNamesWithFullStopSpaceCombinations;
     @Mock private AliasCombinations mockAliasCombinations;
     @Mock private NameCombinations mockNameCombinations;
     @Mock private SpecialCharacters mockSpecialCharacters;

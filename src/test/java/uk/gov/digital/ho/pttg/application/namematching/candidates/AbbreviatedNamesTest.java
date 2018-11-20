@@ -11,12 +11,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class NamesWithFullStopSpaceCombinationsTest {
+public class AbbreviatedNamesTest {
 
     private final AliasCombinations aliasCombinations = new AliasCombinations();
     private final NameCombinations nameCombinations = new NameCombinations();
 
-    private final NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(nameCombinations, aliasCombinations);
+    private final AbbreviatedNames namesWithFullStopSpaceCombinations = new AbbreviatedNames(nameCombinations, aliasCombinations);
 
     @Test
     public void shouldReturnEmptyListWhenNoFullStopsInInputNames() {
@@ -75,7 +75,7 @@ public class NamesWithFullStopSpaceCombinationsTest {
         NameCombinations mockedNameCombinations = mock(NameCombinations.class);
         AliasCombinations mockedAliasCombinations = mock(AliasCombinations.class);
 
-        NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(mockedNameCombinations, mockedAliasCombinations);
+        AbbreviatedNames namesWithFullStopSpaceCombinations = new AbbreviatedNames(mockedNameCombinations, mockedAliasCombinations);
 
         namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
 
@@ -91,7 +91,7 @@ public class NamesWithFullStopSpaceCombinationsTest {
         NameCombinations mockedNameCombinations = mock(NameCombinations.class);
         AliasCombinations mockedAliasCombinations = mock(AliasCombinations.class);
 
-        NamesWithFullStopSpaceCombinations namesWithFullStopSpaceCombinations = new NamesWithFullStopSpaceCombinations(mockedNameCombinations, mockedAliasCombinations);
+        AbbreviatedNames namesWithFullStopSpaceCombinations = new AbbreviatedNames(mockedNameCombinations, mockedAliasCombinations);
 
         namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
 

@@ -21,7 +21,7 @@ import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.splitIntoDistinctNames;
 import static uk.gov.digital.ho.pttg.application.namematching.Name.End.LEFT;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.splitNamesIgnoringFullStopSpace;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.splitAroundAbbreviatedNames;
 
 @Getter
 @Accessors(fluent = true)
@@ -111,9 +111,9 @@ public class InputNames {
     }
 
     public InputNames groupByAbbreviatedNames() {
-        List<Name> firstNames = analyseAbbreviatedName(FIRST, splitNamesIgnoringFullStopSpace(this.fullFirstName()));
-        List<Name> lastNames = analyseAbbreviatedName(LAST, splitNamesIgnoringFullStopSpace(this.fullLastName()));
-        List<Name> aliasNames = analyseAbbreviatedName(ALIAS, splitNamesIgnoringFullStopSpace(this.fullAliasNames()));
+        List<Name> firstNames = analyseAbbreviatedName(FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
+        List<Name> lastNames = analyseAbbreviatedName(LAST, splitAroundAbbreviatedNames(this.fullLastName()));
+        List<Name> aliasNames = analyseAbbreviatedName(ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
 
         return new InputNames(firstNames, lastNames, aliasNames);
     }

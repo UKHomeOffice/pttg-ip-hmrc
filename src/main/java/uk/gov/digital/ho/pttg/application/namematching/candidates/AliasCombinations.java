@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCombinationsFunctions.*;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ALIAS_COMBINATIONS_GENERATOR;
 
-@Component
+@Component(ALIAS_COMBINATIONS_GENERATOR)
 public class AliasCombinations implements NameMatchingCandidateGenerator {
 
     @Override

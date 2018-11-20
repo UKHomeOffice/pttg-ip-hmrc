@@ -12,9 +12,10 @@ import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_GENERATOR;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME;
 
-@Component
+@Component(ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_GENERATOR)
 public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGenerator {
 
     @Override
