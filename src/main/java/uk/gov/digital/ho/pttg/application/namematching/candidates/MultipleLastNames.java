@@ -11,9 +11,8 @@ import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateNobiliaryLastNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.MULTIPLE_NAMES;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.MULTIPLE_LAST_NAMES_GENERATOR;
 
-@Component(MULTIPLE_LAST_NAMES_GENERATOR)
+@Component
 public class MultipleLastNames implements NameMatchingCandidateGenerator {
 
     @Override

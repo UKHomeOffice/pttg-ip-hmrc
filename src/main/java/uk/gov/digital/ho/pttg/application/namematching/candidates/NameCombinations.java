@@ -11,9 +11,8 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.combine;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.CandidateFunctions.removeAdditionalNamesIfOverMax;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.NAME_COMBINATIONS_GENERATOR;
 
-@Component(NAME_COMBINATIONS_GENERATOR)
+@Component
 public class NameCombinations implements NameMatchingCandidateGenerator {
 
     @Override

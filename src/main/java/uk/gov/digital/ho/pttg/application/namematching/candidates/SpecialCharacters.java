@@ -14,10 +14,9 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REMOVED;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REPLACED;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.SPECIAL_CHARACTERS_GENERATOR;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
 
-@Component(SPECIAL_CHARACTERS_GENERATOR)
+@Component
 public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
     private static final String NAME_SPLITTERS = "-'.";
@@ -25,7 +24,11 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
     private List<NameMatchingCandidateGenerator> generators;
 
-    public SpecialCharacters(EntireNonAliasName entireNonAliasName, EntireLastNameAndEachFirstName entireLastNameAndEachFirstName, NameCombinations nameCombinations, AliasCombinations aliasCombinations, MultipleLastNames multipleLastNames) {
+    public SpecialCharacters(EntireNonAliasName entireNonAliasName,
+                             EntireLastNameAndEachFirstName entireLastNameAndEachFirstName,
+                             NameCombinations nameCombinations,
+                             AliasCombinations aliasCombinations,
+                             MultipleLastNames multipleLastNames) {
         this.generators = asList(
                 entireNonAliasName,
                 entireLastNameAndEachFirstName,

@@ -13,10 +13,9 @@ import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_NON_ALIAS_NAME_GENERATOR;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_NON_ALIAS_NAME;
 
-@Component(ENTIRE_NON_ALIAS_NAME_GENERATOR)
+@Component
 public class EntireNonAliasName implements NameMatchingCandidateGenerator {
 
     @Override

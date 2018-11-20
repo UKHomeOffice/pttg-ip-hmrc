@@ -8,9 +8,8 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.doesNotContainAbbreviatedNames;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ABBREVIATED_NAMES_GENERATOR;
 
-@Component(ABBREVIATED_NAMES_GENERATOR)
+@Component
 public class AbbreviatedNames implements NameMatchingCandidateGenerator {
 
     private final NameCombinations nameCombinations;
