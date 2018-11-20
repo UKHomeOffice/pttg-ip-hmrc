@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
@@ -12,10 +11,8 @@ import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.MultipleLastNamesFunctions.generateNobiliaryLastNameCombinations;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.MULTIPLE_NAMES;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.MULTIPLE_NAMES_GENERATOR_PRIORITY;
 
 @Component
-@Order(value = MULTIPLE_NAMES_GENERATOR_PRIORITY)
 public class MultipleLastNames implements NameMatchingCandidateGenerator {
 
     @Override

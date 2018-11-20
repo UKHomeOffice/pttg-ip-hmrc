@@ -9,9 +9,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.*;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -31,19 +32,28 @@ public class NameMatchingCandidateGeneratorIT {
     @MockBean AliasCombinations mockAliasCombinations;
     @MockBean NameCombinations mockNameCombinations;
     @MockBean SpecialCharacters mockSpecialCharacters;
+    @MockBean GeneratorFactory mockGeneratorFactory;
 
     @Autowired
     private NameMatchingCandidatesService nameMatchingCandidatesService;
 
     @Before
     public void setup() {
-        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("1", "1")));
-        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("2", "2")));
-        when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("3", "3")));
-        when(mockNamesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("4", "4")));
-        when(mockAliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("5", "5")));
-        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("6", "6")));
-        when(mockSpecialCharacters.generateCandidates(any(InputNames.class))).thenReturn(Collections.singletonList(new CandidateName("7", "7")));
+        when(mockGeneratorFactory.createGenerators(any(InputNames.class))).thenReturn(Arrays.asList(mockEntireNonAliasName,
+                mockEntireLastNameAndEachFirstName,
+                mockMultipleLastNames,
+                mockNamesWithFullStopSpaceCombinations,
+                mockAliasCombinations,
+                mockNameCombinations,
+                mockSpecialCharacters));
+
+        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("1", "1")));
+        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("2", "2")));
+        when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("3", "3")));
+        when(mockNamesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("4", "4")));
+        when(mockAliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("5", "5")));
+        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("6", "6")));
+        when(mockSpecialCharacters.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("7", "7")));
     }
 
     @Test

@@ -1,25 +1,22 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REMOVED;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REPLACED;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.SPECIAL_CHARACTERS_GENERATOR_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
 
 @Component
-@Order(value = SPECIAL_CHARACTERS_GENERATOR_PRIORITY)
 public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
     private static final String NAME_SPLITTERS = "-'.";
@@ -28,7 +25,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private List<NameMatchingCandidateGenerator> generators;
 
     public SpecialCharacters(EntireNonAliasName entireNonAliasName, EntireLastNameAndEachFirstName entireLastNameAndEachFirstName, NameCombinations nameCombinations, AliasCombinations aliasCombinations, MultipleLastNames multipleLastNames) {
-        this.generators = Arrays.asList(
+        this.generators = asList(
                 entireNonAliasName,
                 entireLastNameAndEachFirstName,
                 nameCombinations,
@@ -61,16 +58,16 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
                     generators.stream()
                             .map(generator -> candidatesWithSplittersRemoved(generator, inputNameSplittersRemoved))
                             .flatMap(Collection::stream)
-                            .collect(Collectors.toList()));
+                            .collect(toList()));
         }
 
         if (namesAreNotEmpty(inputNameSpacesReplacingSplitters)) {
 
             candidateNames.addAll(
                     generators.stream()
-                    .map(generator -> candidatesWithSpacesReplacingSplitters(generator, inputNameSpacesReplacingSplitters))
+                            .map(generator -> candidatesWithSpacesReplacingSplitters(generator, inputNameSpacesReplacingSplitters))
                             .flatMap(Collection::stream)
-                            .collect(Collectors.toList()));
+                            .collect(toList()));
         }
 
         return candidateNames;
@@ -79,8 +76,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private List<CandidateName> candidatesWithSpacesReplacingSplitters(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNameSpacesNotSplitters) {
         List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNameSpacesNotSplitters);
 
-        candidateNames.stream()
-                .forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REPLACED));
+        candidateNames.forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REPLACED));
 
         return candidateNames;
     }
@@ -88,8 +84,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     private List<CandidateName> candidatesWithSplittersRemoved(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNameSplittersRemoved) {
         List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNameSplittersRemoved);
 
-        candidateNames.stream()
-                .forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REMOVED));
+        candidateNames.forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REMOVED));
 
         return candidateNames;
     }

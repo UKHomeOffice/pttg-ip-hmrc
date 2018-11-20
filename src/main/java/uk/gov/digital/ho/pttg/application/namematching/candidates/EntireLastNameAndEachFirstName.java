@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.pttg.application.namematching.*;
 
@@ -13,11 +12,9 @@ import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_GENERATOR_PRIORITY;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME;
 
 @Component
-@Order(value = ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_GENERATOR_PRIORITY)
 public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGenerator {
 
     @Override
