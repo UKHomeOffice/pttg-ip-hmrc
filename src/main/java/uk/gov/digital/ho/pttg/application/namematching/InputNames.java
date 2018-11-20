@@ -55,9 +55,9 @@ public class InputNames {
     }
 
     public InputNames(String firstNames, String lastNames, String aliasSurnames) {
-        this.firstNames = analyse(FIRST, firstNames);
-        this.lastNames = analyse(LAST, lastNames);
-        this.aliasSurnames = analyse(ALIAS, aliasSurnames);
+        this.firstNames = analyse(FIRST, splitIntoDistinctNames(firstNames));
+        this.lastNames = analyse(LAST, splitIntoDistinctNames(lastNames));
+        this.aliasSurnames = analyse(ALIAS, splitIntoDistinctNames(aliasSurnames));
     }
 
     public int size() {
@@ -111,9 +111,9 @@ public class InputNames {
     }
 
     public InputNames groupByAbbreviatedNames() {
-        List<Name> firstNames = analyseAbbreviatedName(FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
-        List<Name> lastNames = analyseAbbreviatedName(LAST, splitAroundAbbreviatedNames(this.fullLastName()));
-        List<Name> aliasNames = analyseAbbreviatedName(ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
+        List<Name> firstNames = analyse(FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
+        List<Name> lastNames = analyse(LAST, splitAroundAbbreviatedNames(this.fullLastName()));
+        List<Name> aliasNames = analyse(ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
 
         return new InputNames(firstNames, lastNames, aliasNames);
     }
@@ -143,15 +143,7 @@ public class InputNames {
         return reducedNames;
     }
 
-    private List<Name> analyseAbbreviatedName(NameType nameType, List<String> names) {
-        return produceNames(nameType, names);
-    }
-
-    private List<Name> analyse(NameType nameType, String names) {
-        return produceNames(nameType, splitIntoDistinctNames(names));
-    }
-
-    private List<Name> produceNames(NameType nameType, List<String> names) {
+    private List<Name> analyse(NameType nameType, List<String> names) {
 
         if (names.isEmpty()) {
             return unmodifiableList(emptyList());
