@@ -14,7 +14,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REMOVED;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.SPLITTERS_REPLACED;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreNotEmpty;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.namesAreEmpty;
 
 @Component
 public class SpecialCharacters implements NameMatchingCandidateGenerator {
@@ -38,55 +38,67 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
     }
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
 
         //Set<CandidateName> candidateNames = new LinkedHashSet<>(); // TODO: why LinkedHashSet?
 
-        if (!namesContainSplitters(inputNames)) {
+        if (!namesContainSplitters(originalNames)) {
             return emptyList();
         }
 
-        return getNameCandidates(inputNames);
+        return getNameCandidates(originalNames);
     }
 
     private List<CandidateName> getNameCandidates(InputNames inputNames) {
 
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        InputNames inputNameSplittersRemoved = nameWithSplittersRemoved(inputNames);
-        InputNames inputNameSpacesReplacingSplitters = nameWithSplittersReplacedBySpaces(inputNames);
-
-        if (namesAreNotEmpty(inputNameSplittersRemoved)) {
-
-            candidateNames.addAll(
-                    generators.stream()
-                            .map(generator -> candidatesWithSplittersRemoved(generator, inputNameSplittersRemoved))
-                            .flatMap(Collection::stream)
-                            .collect(toList()));
-        }
-
-        if (namesAreNotEmpty(inputNameSpacesReplacingSplitters)) {
-
-            candidateNames.addAll(
-                    generators.stream()
-                            .map(generator -> candidatesWithSpacesReplacingSplitters(generator, inputNameSpacesReplacingSplitters))
-                            .flatMap(Collection::stream)
-                            .collect(toList()));
-        }
+        candidateNames.addAll(candidateNamesAfterSplittersIgnored(inputNames));
+        candidateNames.addAll(candidateNamesAfterSplitting(inputNames));
 
         return candidateNames;
     }
 
-    private List<CandidateName> candidatesWithSpacesReplacingSplitters(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNameSpacesNotSplitters) {
-        List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNameSpacesNotSplitters);
+    private List<CandidateName> candidateNamesAfterSplittersIgnored(InputNames inputNames) {
+
+        InputNames inputNameSplittersRemoved = nameWithSplittersRemoved(inputNames);
+
+        if (namesAreEmpty(inputNameSplittersRemoved)) {
+            return emptyList();
+        }
+
+        return generators.stream()
+                       .map(generator -> candidatesWithSplittersRemoved(generator, inputNames, inputNameSplittersRemoved))
+                       .flatMap(Collection::stream)
+                       .collect(toList());
+    }
+
+    private List<CandidateName> candidateNamesAfterSplitting(InputNames inputNames) {
+
+        InputNames inputNameSpacesReplacingSplitters = nameWithSplittersReplacedBySpaces(inputNames);
+
+        if (namesAreEmpty(inputNameSpacesReplacingSplitters)) {
+            return emptyList();
+        }
+
+        List<CandidateName> candidateNames = generators.stream()
+                                                     .map(generator -> candidatesWithSpacesReplacingSplitters(generator, inputNames, inputNameSpacesReplacingSplitters))
+                                                     .flatMap(Collection::stream)
+                                                     .collect(toList());
+
+        return candidateNames;
+    }
+
+    private List<CandidateName> candidatesWithSpacesReplacingSplitters(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNames, InputNames inputNameSpacesNotSplitters) {
+        List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNames, inputNameSpacesNotSplitters);
 
         candidateNames.forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REPLACED));
 
         return candidateNames;
     }
 
-    private List<CandidateName> candidatesWithSplittersRemoved(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNameSplittersRemoved) {
-        List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNameSplittersRemoved);
+    private List<CandidateName> candidatesWithSplittersRemoved(NameMatchingCandidateGenerator candidateGenerator, InputNames inputNames, InputNames inputNameSplittersRemoved) {
+        List<CandidateName> candidateNames = candidateGenerator.generateCandidates(inputNames, inputNameSplittersRemoved);
 
         candidateNames.forEach(candidateName -> candidateName.derivation().addGenerator(SPLITTERS_REMOVED));
 
@@ -97,6 +109,7 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
         return StringUtils.containsAny(inputNames.fullName(), NAME_SPLITTERS) || StringUtils.containsAny(inputNames.fullAliasNames(), NAME_SPLITTERS);
     }
 
+    // TODO: Move to Functions class
     private static String nameWithSplittersRemoved(String name) {
         return name.replaceAll(NAME_SPLITTER_REGEX, "");
     }
@@ -113,7 +126,8 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
         return modifiedInputNames;
     }
 
-    private static String nameWithSplittersReplacedBySpaces(String name) {
+    // TODO: Move to Functions class
+    public static String nameWithSplittersReplacedBySpaces(String name) {
         return name.replaceAll(NAME_SPLITTER_REGEX, " ");
     }
 

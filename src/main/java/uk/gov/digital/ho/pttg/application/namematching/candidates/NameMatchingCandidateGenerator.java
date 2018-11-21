@@ -18,6 +18,6 @@ public interface NameMatchingCandidateGenerator {
         SPLITTERS_REPLACED
     }
 
-    List<CandidateName> generateCandidates(InputNames inputNames);
+    List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess);
 
 }

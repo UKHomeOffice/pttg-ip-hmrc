@@ -16,14 +16,14 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMat
 public class MultipleLastNames implements NameMatchingCandidateGenerator {
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
 
-        if (!inputNames.multiPartLastName()) {
+        if (!namesToProcess.multiPartLastName()) {
             return emptyList();
         }
 
-        List<CandidateName> lastNameCombinations = generateNobiliaryLastNameCombinations(inputNames, singletonList(MULTIPLE_NAMES), inputNames.lastNames());
+        List<CandidateName> lastNameCombinations = generateNobiliaryLastNameCombinations(namesToProcess, singletonList(MULTIPLE_NAMES), namesToProcess.lastNames());
 
-        return generateNameCombinations(inputNames, lastNameCombinations);
+        return generateNameCombinations(namesToProcess, lastNameCombinations);
     }
 }

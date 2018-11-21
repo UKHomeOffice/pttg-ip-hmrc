@@ -21,29 +21,29 @@ public class AbbreviatedNamesTest {
     @Test
     public void shouldReturnEmptyListWhenNoFullStopsInInputNames() {
         InputNames inputNames = new InputNames("John", "Smith");
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(inputNames)).isEmpty();
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(inputNames, inputNames)).isEmpty();
     }
 
     @Test
     public void shouldReturnEmptyListWhenNamesAreOnlyFullStops() {
         InputNames inputNames = new InputNames(".", ".");
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(inputNames)).isEmpty();
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(inputNames, inputNames)).isEmpty();
     }
 
     @Test
     public void shouldReturnEmptyListWhenFullStopAtVeryEndOfName() {
         InputNames fullStopEndOfFirstName = new InputNames("John.", "Smith");
         InputNames fullStopEndOfLastName = new InputNames("John", "Smith.");
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopEndOfFirstName)).isEmpty();
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopEndOfLastName)).isEmpty();
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopEndOfFirstName, fullStopEndOfFirstName)).isEmpty();
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopEndOfLastName, fullStopEndOfLastName)).isEmpty();
     }
 
     @Test
     public void shouldReturnEmptyListWhenFullStopNotFollowedBySpace() {
         InputNames fullStopInFirstName = new InputNames("St.John", "Smith");
         InputNames fullStopInLastName = new InputNames("David", "St.John");
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopInFirstName)).isEmpty();
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopInLastName)).isEmpty();
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopInFirstName, fullStopInFirstName)).isEmpty();
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopInLastName, fullStopInLastName)).isEmpty();
     }
 
     @Test
@@ -54,7 +54,7 @@ public class AbbreviatedNamesTest {
                 new CandidateName("Smith", "St. John")
         );
 
-        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopInFirstName)).isEqualTo(expected);
+        assertThat(namesWithFullStopSpaceCombinations.generateCandidates(fullStopInFirstName, fullStopInFirstName)).isEqualTo(expected);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class AbbreviatedNamesTest {
         String lastNames = "Ms. Smith Mr. Jones Sgt. Price Dme. Bassey";
         InputNames inputNames = new InputNames(firstNames, lastNames);
 
-        List<CandidateName> candidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
+        List<CandidateName> candidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNames, inputNames);
         assertNamePresentInCandidateNames(candidateNames, "St. John", "Dr. Pepper", "Mr. Mister", "An. Other", "Mr. Jones", "Sgt. Price", "Dme. Bassey");
         assertNameNotPresentInCandidateNames(candidateNames, "Dr. No", "Ms. Smith");
     }
@@ -77,9 +77,9 @@ public class AbbreviatedNamesTest {
 
         AbbreviatedNames namesWithFullStopSpaceCombinations = new AbbreviatedNames(mockedNameCombinations, mockedAliasCombinations);
 
-        namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
+        namesWithFullStopSpaceCombinations.generateCandidates(inputNames, inputNames);
 
-        verify(mockedNameCombinations).generateCandidates(any(InputNames.class));
+        verify(mockedNameCombinations).generateCandidates(any(InputNames.class), any(InputNames.class));
         verifyNoMoreInteractions(mockedAliasCombinations);
 
     }
@@ -93,9 +93,9 @@ public class AbbreviatedNamesTest {
 
         AbbreviatedNames namesWithFullStopSpaceCombinations = new AbbreviatedNames(mockedNameCombinations, mockedAliasCombinations);
 
-        namesWithFullStopSpaceCombinations.generateCandidates(inputNames);
+        namesWithFullStopSpaceCombinations.generateCandidates(inputNames, inputNames);
 
-        verify(mockedAliasCombinations).generateCandidates(any(InputNames.class));
+        verify(mockedAliasCombinations).generateCandidates(any(InputNames.class), any(InputNames.class));
         verifyNoMoreInteractions(mockedNameCombinations);
 
     }
@@ -113,7 +113,7 @@ public class AbbreviatedNamesTest {
                 new CandidateName("Jones", "St. John")
         );
 
-        List<CandidateName> actualCandidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNamesWithAlias);
+        List<CandidateName> actualCandidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNamesWithAlias, inputNamesWithAlias);
 
         assertThat(actualCandidateNames).isEqualTo(expectedCandidateNames);
     }
@@ -131,7 +131,7 @@ public class AbbreviatedNamesTest {
                 new CandidateName("St. John", "Smith")
         );
 
-        List<CandidateName> actualCandidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNamesWithAlias);
+        List<CandidateName> actualCandidateNames = namesWithFullStopSpaceCombinations.generateCandidates(inputNamesWithAlias, inputNamesWithAlias);
 
         assertThat(actualCandidateNames).isEqualTo(expectedCandidateNames);
     }

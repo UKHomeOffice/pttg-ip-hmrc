@@ -15,20 +15,23 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.Candida
 @Component
 public class NameCombinations implements NameMatchingCandidateGenerator {
 
-    @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
+    static final int MAX_NAMES = 7;
+    static final int MAX_LAST_NAMES = 3;
 
-        if (inputNames.hasAliasSurnames()) {
+    @Override
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
+
+        if (namesToProcess.hasAliasSurnames()) {
             return emptyList();
         }
 
-        InputNames largestAllowedName = removeAdditionalNamesIfOverMax(inputNames);
+        InputNames largestAllowedName = removeAdditionalNamesIfOverMax(namesToProcess, MAX_NAMES, MAX_LAST_NAMES);
 
         List<Name> namesToUse = combine(largestAllowedName.firstNames(), largestAllowedName.lastNames());
 
         return NamePairRules.forNameCount(namesToUse.size())
                 .stream()
-                .map(namePair -> namePair.calculateName(inputNames, namesToUse))
+                .map(namePair -> namePair.calculateName(originalNames, namesToUse))
                 .collect(toList());
     }
 }

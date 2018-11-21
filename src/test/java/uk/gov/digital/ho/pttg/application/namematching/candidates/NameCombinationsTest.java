@@ -20,17 +20,17 @@ public class NameCombinationsTest {
     public void shouldReturnEmptyListWhenAliasSurnames() {
         InputNames inputNamesWithAlias = new InputNames("A B", "C", "Alias");
 
-        assertThat(nameCombinations.generateCandidates(inputNamesWithAlias)).isEqualTo(emptyList());
+        assertThat(nameCombinations.generateCandidates(inputNamesWithAlias, inputNamesWithAlias)).isEqualTo(emptyList());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldErrorIfNoName() {
-        nameCombinations.generateCandidates(new InputNames("", ""));
+        nameCombinations.generateCandidates(new InputNames("", ""), new InputNames("", ""));
     }
 
     @Test
     public void shouldDuplicateSingleFirstName() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Mono", ""));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Mono", ""), new InputNames("Mono", ""));
 
         assertThat(names.size()).isEqualTo(1);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Mono", "Mono"));
@@ -38,7 +38,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldDuplicateSingleLastName() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("", "Mono"));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("", "Mono"), new InputNames("", "Mono"));
 
         assertThat(names.size()).isEqualTo(1);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Mono", "Mono"));
@@ -46,7 +46,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldSwitchSingleFirstAndLastName() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur", "Bobbins"));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur", "Bobbins"), new InputNames("Arthur", "Bobbins"));
 
         assertThat(names.size()).isEqualTo(2);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Arthur", "Bobbins"));
@@ -55,7 +55,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldTryAllCombinationsOfTwoFirstNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian", "Coates"));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian", "Coates"), new InputNames("Arthur Brian", "Coates"));
 
         assertThat(names.size()).isEqualTo(6);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Arthur", "Coates"));
@@ -68,7 +68,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldTryAllCombinationsOfThreeFirstNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian Chris", "Doom"));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian Chris", "Doom"), new InputNames("Arthur Brian Chris", "Doom"));
 
         assertThat(names.size()).isEqualTo(12);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Arthur", "Doom"));
@@ -87,7 +87,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldTryAllCombinationsOfFourFirstNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian Chris Daniel", "Eccles"));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur Brian Chris Daniel", "Eccles"), new InputNames("Arthur Brian Chris Daniel", "Eccles"));
 
         assertThat(names.size()).isEqualTo(20);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Arthur", "Eccles"));
@@ -114,7 +114,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldHandleExtraWhitespace() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames(" Arthur   Brian   ", " Coates "));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames(" Arthur   Brian   ", " Coates "), new InputNames(" Arthur   Brian   ", " Coates "));
 
         assertThat(names.size()).isEqualTo(6);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Arthur", "Coates"));
@@ -127,7 +127,7 @@ public class NameCombinationsTest {
 
     @Test
     public void shouldHandleMultipleLastNames() {
-        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur", "Brian Coates"));
+        List<CandidateName> names = nameCombinations.generateCandidates(new InputNames("Arthur", "Brian Coates"), new InputNames("Arthur", "Brian Coates"));
 
         assertThat(names.size()).isEqualTo(6);
         assertThat(names.get(0)).isEqualTo(new CandidateName("Arthur", "Coates"));

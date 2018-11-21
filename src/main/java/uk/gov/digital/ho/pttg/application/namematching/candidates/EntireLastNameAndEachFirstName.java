@@ -18,12 +18,12 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMat
 public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGenerator {
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
 
-        String entireLastName = inputNames.fullLastName();
+        String entireLastName = namesToProcess.fullLastName();
 
-        return inputNames.firstNames().stream()
-                .map(firstName -> combine(inputNames, firstName, entireLastName))
+        return namesToProcess.firstNames().stream()
+                .map(firstName -> combine(namesToProcess, firstName, entireLastName))
                 .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
@@ -33,8 +33,8 @@ public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGene
                 new CandidateDerivation(
                         inputNames,
                         singletonList(ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME),
-                        new NameDerivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
-                        new NameDerivation(LAST, null, entireLastName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE))
+                        new NameDerivation(firstName, ORIGINAL),
+                        new NameDerivation(LAST, null, entireLastName.length(), singletonList(ENTIRE))
                         );
 
         return new CandidateName(firstName.name(), entireLastName, candidateDerivation);

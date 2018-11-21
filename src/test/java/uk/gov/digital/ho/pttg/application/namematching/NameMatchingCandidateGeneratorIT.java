@@ -47,26 +47,26 @@ public class NameMatchingCandidateGeneratorIT {
                 mockNameCombinations,
                 mockSpecialCharacters));
 
-        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("1", "1")));
-        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("2", "2")));
-        when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("3", "3")));
-        when(mockNamesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("4", "4")));
-        when(mockAliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("5", "5")));
-        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("6", "6")));
-        when(mockSpecialCharacters.generateCandidates(any(InputNames.class))).thenReturn(singletonList(new CandidateName("7", "7")));
+        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("1", "1")));
+        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("2", "2")));
+        when(mockMultipleLastNames.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("3", "3")));
+        when(mockNamesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("4", "4")));
+        when(mockAliasCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("5", "5")));
+        when(mockNameCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("6", "6")));
+        when(mockSpecialCharacters.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(singletonList(new CandidateName("7", "7")));
     }
 
     @Test
     public void shouldUseCollaborators() {
         nameMatchingCandidatesService.generateCandidateNames("Some First Names", "Some Last Names", "Some Alias");
 
-        verify(mockEntireNonAliasName).generateCandidates(any(InputNames.class));
-        verify(mockEntireLastNameAndEachFirstName).generateCandidates(any(InputNames.class));
-        verify(mockMultipleLastNames).generateCandidates(any(InputNames.class));
-        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(any(InputNames.class));
-        verify(mockAliasCombinations).generateCandidates(any(InputNames.class));
-        verify(mockNameCombinations).generateCandidates(any(InputNames.class));
-        verify(mockSpecialCharacters).generateCandidates(any(InputNames.class));
+        verify(mockEntireNonAliasName).generateCandidates(any(InputNames.class), any(InputNames.class));
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(any(InputNames.class), any(InputNames.class));
+        verify(mockMultipleLastNames).generateCandidates(any(InputNames.class), any(InputNames.class));
+        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(any(InputNames.class), any(InputNames.class));
+        verify(mockAliasCombinations).generateCandidates(any(InputNames.class), any(InputNames.class));
+        verify(mockNameCombinations).generateCandidates(any(InputNames.class), any(InputNames.class));
+        verify(mockSpecialCharacters).generateCandidates(any(InputNames.class), any(InputNames.class));
     }
 
     @Test

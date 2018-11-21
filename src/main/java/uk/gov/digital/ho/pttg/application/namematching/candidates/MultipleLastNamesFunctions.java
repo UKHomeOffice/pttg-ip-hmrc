@@ -68,7 +68,7 @@ class MultipleLastNamesFunctions {
                 new CandidateDerivation(
                         inputNames,
                         lastNameCandidate.derivation().generators(),
-                        new NameDerivation(firstName, ORIGINAL, inputNames.splittersRemoved(), inputNames.splittersReplaced()),
+                        new NameDerivation(firstName, ORIGINAL),
                         lastNameCandidate.derivation().lastName()));
     }
 
@@ -96,8 +96,6 @@ class MultipleLastNamesFunctions {
                                 LAST,
                                 asList(lastName1.index(), lastName2.index()),
                                 lastName1.name().length() + lastName2.name().length(),
-                                false,
-                                false,
                                 singletonList(COMBINATION))));
     }
 

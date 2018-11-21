@@ -7,10 +7,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.javatuples.Triplet;
 import uk.gov.digital.ho.pttg.application.namematching.Name.End;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -18,6 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
+import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.locate;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.splitIntoDistinctNames;
 import static uk.gov.digital.ho.pttg.application.namematching.Name.End.LEFT;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
@@ -38,9 +41,13 @@ public class InputNames {
     @JsonProperty(value = "aliasSurnames")
     private List<Name> aliasSurnames;
 
+
+    // TODO: Probably redundant - remove
     @Setter
     private boolean splittersRemoved;
 
+
+    // TODO: Probably redundant - remove
     @Setter
     private boolean splittersReplaced;
 
@@ -163,11 +170,29 @@ public class InputNames {
                        .collect(toList());
     }
 
-    public int indexOfFirstName(Name name) {
-        return firstNames().indexOf(name);
+    public Triplet<NameType, Integer, DerivationAction> locateName(String rawName) {
+
+        Optional<Triplet<NameType, Integer, DerivationAction>> optionalTuple;
+
+        optionalTuple = locate(rawName, firstNames);
+
+        if (optionalTuple.isPresent()) {
+            return optionalTuple.get();
+        }
+
+        optionalTuple = locate(rawName, lastNames);
+
+        if (optionalTuple.isPresent()) {
+            return optionalTuple.get();
+        }
+
+        optionalTuple = locate(rawName, aliasSurnames);
+
+        return optionalTuple.orElse(Triplet.with(null, -1, null));
+
+//        return optionalTuple.orElseThrow(() -> new IllegalArgumentException(String.format("The name %s cannot be located in the input names %s",
+//                                                                                            rawName,
+//                                                                                            String.join(" ", fullName(), fullAliasNames()))));
     }
 
-    public int indexOfLastName(Name name) {
-        return lastNames().indexOf(name);
-    }
 }

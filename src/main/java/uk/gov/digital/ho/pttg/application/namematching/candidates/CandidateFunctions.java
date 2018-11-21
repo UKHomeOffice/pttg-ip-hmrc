@@ -7,10 +7,7 @@ import static uk.gov.digital.ho.pttg.application.namematching.Name.End.RIGHT;
 
 class CandidateFunctions {
 
-    private static final int MAX_NAMES = 7;
-    private static final int MAX_LAST_NAMES = 3;
-
-    static InputNames removeAdditionalNamesIfOverMax(InputNames inputNames) {
+    static InputNames removeAdditionalNamesIfOverMax(InputNames inputNames, final int MAX_NAMES, final int MAX_LAST_NAMES) {
 
         if (inputNames.size() <= MAX_NAMES) {
             return inputNames;

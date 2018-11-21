@@ -13,22 +13,22 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.AliasCo
 public class AliasCombinations implements NameMatchingCandidateGenerator {
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        if (!inputNames.hasAliasSurnames()) {
+        if (!namesToProcess.hasAliasSurnames()) {
             return candidateNames;
         }
 
-        candidateNames.addAll(nonAliasFirstNamesAndLastNameCombinations(inputNames));
+        candidateNames.addAll(nonAliasFirstNamesAndLastNameCombinations(namesToProcess));
 
-        candidateNames.addAll(nonAliasFirstAliasLastCombinations(inputNames));
+        candidateNames.addAll(nonAliasFirstAliasLastCombinations(namesToProcess));
 
-        candidateNames.addAll(firstNameCombinations(inputNames));
+        candidateNames.addAll(firstNameCombinations(namesToProcess));
 
-        candidateNames.addAll(nonAliasSurnameAsFirstNameCombinations(inputNames));
+        candidateNames.addAll(nonAliasSurnameAsFirstNameCombinations(namesToProcess));
 
-        candidateNames.addAll(aliasSurnameAsFirstNameCombinations(inputNames));
+        candidateNames.addAll(aliasSurnameAsFirstNameCombinations(namesToProcess));
 
         return candidateNames;
     }

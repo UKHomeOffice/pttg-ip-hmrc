@@ -21,18 +21,18 @@ public class AbbreviatedNames implements NameMatchingCandidateGenerator {
     }
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
-        if (doesNotContainAbbreviatedNames(inputNames)) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
+        if (doesNotContainAbbreviatedNames(namesToProcess)) {
             return emptyList();
         }
 
-        InputNames abbreviatedNames = inputNames.groupByAbbreviatedNames();
+        InputNames abbreviatedNames = namesToProcess.groupByAbbreviatedNames();
 
         if (abbreviatedNames.hasAliasSurnames()) {
-            return aliasCombinations.generateCandidates(abbreviatedNames);
+            return aliasCombinations.generateCandidates(originalNames, abbreviatedNames);
         }
 
-        return nameCombinations.generateCandidates(abbreviatedNames);
+        return nameCombinations.generateCandidates(originalNames, abbreviatedNames);
     }
 
 }

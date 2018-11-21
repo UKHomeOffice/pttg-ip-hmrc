@@ -47,13 +47,13 @@ public class NameMatchingCandidatesServiceTest {
         nameMatchingCandidatesService = new NameMatchingCandidatesService(mockGeneratorFactory);
 
         when(mockGeneratorFactory.createGenerators(any(InputNames.class))).thenReturn(nameMatchingCandidateGenerators);
-        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
-        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
-        when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
-        when(mockNamesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
-        when(mockAliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
-        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
-        when(mockSpecialCharacters.generateCandidates(any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockMultipleLastNames.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockNamesWithFullStopSpaceCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockAliasCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockNameCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
+        when(mockSpecialCharacters.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(Collections.emptyList());
     }
 
     @Test
@@ -71,13 +71,13 @@ public class NameMatchingCandidatesServiceTest {
 
         nameMatchingCandidatesService.generateCandidateNames("firstname1 firstname2", "lastname1 lastname2", "");
 
-        verify(mockEntireNonAliasName).generateCandidates(expectedInputNames);
-        verify(mockEntireLastNameAndEachFirstName).generateCandidates(expectedInputNames);
-        verify(mockMultipleLastNames).generateCandidates(expectedInputNames);
-        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames);
-        verify(mockAliasCombinations).generateCandidates(expectedInputNames);
-        verify(mockNameCombinations).generateCandidates(expectedInputNames);
-        verify(mockSpecialCharacters).generateCandidates(expectedInputNames);
+        verify(mockEntireNonAliasName).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockMultipleLastNames).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockAliasCombinations).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockNameCombinations).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockSpecialCharacters).generateCandidates(expectedInputNames, expectedInputNames);
     }
 
     @Test
@@ -87,13 +87,13 @@ public class NameMatchingCandidatesServiceTest {
 
         nameMatchingCandidatesService.generateCandidateNames("firstname1 firstname2", "lastname1 lastname2", "aliasSurname1 aliasSurname2");
 
-        verify(mockEntireNonAliasName).generateCandidates(expectedInputNames);
-        verify(mockEntireLastNameAndEachFirstName).generateCandidates(expectedInputNames);
-        verify(mockMultipleLastNames).generateCandidates(expectedInputNames);
-        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames);
-        verify(mockAliasCombinations).generateCandidates(expectedInputNames);
-        verify(mockNameCombinations).generateCandidates(expectedInputNames);
-        verify(mockSpecialCharacters).generateCandidates(expectedInputNames);
+        verify(mockEntireNonAliasName).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockMultipleLastNames).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockNamesWithFullStopSpaceCombinations).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockAliasCombinations).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockNameCombinations).generateCandidates(expectedInputNames, expectedInputNames);
+        verify(mockSpecialCharacters).generateCandidates(expectedInputNames, expectedInputNames);
     }
 
     @Test
@@ -105,7 +105,7 @@ public class NameMatchingCandidatesServiceTest {
                         new CandidateName("firstname1", "lastname2"),
                         new CandidateName("firstname2", "lastname2")
                 );
-        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(nameCombinationCandidateNames);
+        when(mockNameCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(nameCombinationCandidateNames);
 
         List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames("ignored", "ignored", "");
 

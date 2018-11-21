@@ -1,17 +1,17 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.apache.commons.lang3.StringUtils;
+import org.javatuples.Triplet;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.*;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharacters.nameWithSplittersReplacedBySpaces;
 
 public final class InputNamesFunctions {
 
@@ -23,14 +23,12 @@ public final class InputNamesFunctions {
     private static final String FULL_STOP_SPACE_MATCHER = "\\.\\s+";
     private static final String FULL_STOP_SPACE_BETWEEN_NAMES_PATTERN = ANY_LETTER_INCLUDING_UNICODE_MATCHER + FULL_STOP_SPACE_MATCHER + ANY_LETTER_INCLUDING_UNICODE_MATCHER;
 
-    private static final String FULL_STOP_SPACE_NEGATIVE_LOOK_BEHIND = "(?<!(\\.|\\s))";
-
     private InputNamesFunctions() {
         // Don't allow instantiation (even using reflection)
         throw new UnsupportedOperationException("Companion class for InputNames - do not instantiate");
     }
 
-    static List<String> splitIntoDistinctNames(String combinedNames) {
+    public static List<String> splitIntoDistinctNames(String combinedNames) {
 
         if (isBlank(combinedNames)) {
             return Collections.emptyList();
@@ -61,5 +59,39 @@ public final class InputNamesFunctions {
         return Stream.of(namesToCombine)
                        .flatMap(Collection::stream)
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
+    }
+
+
+    static Optional<Triplet<NameType, Integer, DerivationAction>> locate(String rawName, List<Name> names) {
+
+        Optional<Triplet<NameType, Integer, DerivationAction>> optionalTuple = names.stream()
+                                                                                       .filter(name -> name.name().equals(rawName))
+                                                                                       .map(name -> Triplet.with(name.nameType(), name.index(), ORIGINAL))
+                                                                                       .findFirst();
+
+        if (optionalTuple.isPresent()) {
+            return optionalTuple;
+        }
+
+        return names.stream()
+                       .filter(name -> name.containsNameSplitter())
+                       .filter(name -> {
+                           List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
+                           return originalNameParts.indexOf(rawName) >= 0;
+                       })
+                       .map(name -> {
+                           List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
+
+                           if (originalNameParts.get(0).equals(rawName)) {
+                               return Triplet.with(name.nameType(), name.index(), LEFT_OF_SPLIT);
+                           }
+
+                           if (originalNameParts.get(originalNameParts.size() - 1).equals(rawName)) {
+                               return Triplet.with(name.nameType(), name.index(), RIGHT_OF_SPLIT);
+                           }
+
+                           return Triplet.with(name.nameType(), name.index(), MIDDLE_OF_SPLIT);
+                       })
+                       .findFirst();
     }
 }

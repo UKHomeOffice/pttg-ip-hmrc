@@ -2,18 +2,17 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import org.javatuples.Triplet;
 import uk.gov.digital.ho.pttg.application.namematching.*;
 
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.COMBINATION;
-import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
-import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.NAME_MATCHING;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class NamePair {
+
     private final int firstNameIndex;
     private final int lastNameIndex;
 
@@ -21,31 +20,30 @@ class NamePair {
         return new NamePair(firstNameIndex, lastNameIndex);
     }
 
-    CandidateName calculateName(InputNames inputNames, List<Name> names) {
+    CandidateName calculateName(InputNames originalNames, List<Name> names) {
 
         validateNamePair(names.size());
 
         Name firstName = names.get(firstNameIndex);
+        Triplet<NameType, Integer, DerivationAction> firstNameOrigin = originalNames.locateName(firstName.name());
+
         Name lastName = names.get(lastNameIndex);
+        Triplet<NameType, Integer, DerivationAction> lastNameOrigin = originalNames.locateName(lastName.name());
 
         CandidateDerivation derivation =
                 new CandidateDerivation(
-                        inputNames,
+                        originalNames,
                         singletonList(NAME_MATCHING),
                         new NameDerivation(
-                                FIRST,
-                                singletonList(inputNames.indexOfFirstName(firstName)),
+                                firstNameOrigin.getValue0(),
+                                singletonList(firstNameOrigin.getValue1()),
                                 firstName.name().length(),
-                                inputNames.splittersRemoved(),
-                                inputNames.splittersReplaced(),
-                                singletonList(COMBINATION)),
+                                singletonList(firstNameOrigin.getValue2())),
                         new NameDerivation(
-                                LAST,
-                                singletonList(inputNames.indexOfLastName(lastName)),
+                                lastNameOrigin.getValue0(),
+                                singletonList(lastNameOrigin.getValue1()),
                                 lastName.name().length(),
-                                inputNames.splittersRemoved(),
-                                inputNames.splittersReplaced(),
-                                singletonList(COMBINATION))
+                                singletonList(lastNameOrigin.getValue2()))
                 );
 
         return new CandidateName(firstName.name(), lastName.name(), derivation);

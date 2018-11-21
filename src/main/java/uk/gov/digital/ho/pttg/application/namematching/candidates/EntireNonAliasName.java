@@ -19,26 +19,26 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMat
 public class EntireNonAliasName implements NameMatchingCandidateGenerator {
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames inputNames) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
 
-        String firstName = inputNames.fullFirstName();
-        String lastName = inputNames.fullLastName();
+        String firstName = namesToProcess.fullFirstName();
+        String lastName = namesToProcess.fullLastName();
 
         NameDerivation firstNameDerivation;
         NameDerivation lastNameDerivation;
 
         if (StringUtils.isBlank(firstName)) {
             firstName = lastName;
-            firstNameDerivation = new NameDerivation(LAST, null, firstName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            firstNameDerivation = new NameDerivation(LAST, null, firstName.length(), singletonList(ENTIRE));
         } else {
-            firstNameDerivation = new NameDerivation(FIRST, null, firstName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            firstNameDerivation = new NameDerivation(FIRST, null, firstName.length(), singletonList(ENTIRE));
         }
 
         if (StringUtils.isBlank(lastName)) {
             lastName = firstName;
-            lastNameDerivation = new NameDerivation(FIRST, null, lastName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            lastNameDerivation = new NameDerivation(FIRST, null, lastName.length(), singletonList(ENTIRE));
         } else {
-            lastNameDerivation = new NameDerivation(LAST, null, lastName.length(), inputNames.splittersRemoved(), inputNames.splittersReplaced(), singletonList(ENTIRE));
+            lastNameDerivation = new NameDerivation(LAST, null, lastName.length(), singletonList(ENTIRE));
         }
 
         return singletonList(
@@ -46,7 +46,7 @@ public class EntireNonAliasName implements NameMatchingCandidateGenerator {
                         firstName,
                         lastName,
                         new CandidateDerivation(
-                                inputNames,
+                                namesToProcess,
                                 singletonList(ENTIRE_NON_ALIAS_NAME),
                                 firstNameDerivation,
                                 lastNameDerivation)));

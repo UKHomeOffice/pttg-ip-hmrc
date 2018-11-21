@@ -27,7 +27,7 @@ public class NameMatchingCandidatesService {
 
         List<CandidateName> candidates = candidateGenerators
                                                  .stream()
-                                                 .map(cs -> cs.generateCandidates(inputNames))
+                                                 .map(cs -> cs.generateCandidates(inputNames, inputNames))
                                                  .flatMap(Collection::stream)
                                                  .collect(toList());
 

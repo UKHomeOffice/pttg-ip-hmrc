@@ -36,8 +36,6 @@ public class Name {
     @JsonProperty(value = "nameSplitter")
     private boolean containsNameSplitter;
 
-    private boolean containsSplitters;
-
     Name(NameType nameType, int index, String name) {
         this.nameType = nameType;
         this.index = index;
@@ -46,7 +44,6 @@ public class Name {
         this.containsUmlauts = hasUmnlauts(name);
         this.containsFullStopSpace = hasFullStopSpace(name);
         this.containsNameSplitter = hasNameSplitter(name);
-        this.containsSplitters = containsFullStopSpace || containsNameSplitter;
     }
 
     @JsonProperty(value = "length")

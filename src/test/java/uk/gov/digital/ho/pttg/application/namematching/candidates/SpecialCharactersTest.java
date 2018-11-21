@@ -29,11 +29,11 @@ public class SpecialCharactersTest {
     public void setUp() {
         specialCharacters = new SpecialCharacters(mockEntireNonAliasName, mockEntireLastNameAndEachFirstName, mockNameCombinations, mockAliasCombinations, mockMultipleLastNames);
 
-        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockAliasCombinations.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
+        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockNameCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockAliasCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockMultipleLastNames.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
     }
 
     @Test
@@ -42,9 +42,9 @@ public class SpecialCharactersTest {
         InputNames inputWithHyphensRemoved = new InputNames("ab", SOME_NAME);
         inputWithHyphensRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithHyphensRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithHyphensRemoved);
     }
 
     @Test
@@ -53,9 +53,9 @@ public class SpecialCharactersTest {
         InputNames inputWithApostrophesRemoved = new InputNames("ab", SOME_NAME);
         inputWithApostrophesRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithApostrophesRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithApostrophesRemoved);
     }
 
     @Test
@@ -64,9 +64,9 @@ public class SpecialCharactersTest {
         InputNames inputWithSpaces = new InputNames(" a b ", SOME_NAME);
         inputWithSpaces.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
     @Test
@@ -75,9 +75,9 @@ public class SpecialCharactersTest {
         InputNames inputWithSpaces = new InputNames(" a b ", SOME_NAME);
         inputWithSpaces.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
     @Test
@@ -86,9 +86,9 @@ public class SpecialCharactersTest {
         InputNames inputWithHyphensRemoved = new InputNames(SOME_NAME, "ab");
         inputWithHyphensRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithHyphensRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithHyphensRemoved);
     }
 
     @Test
@@ -97,9 +97,9 @@ public class SpecialCharactersTest {
         InputNames inputWithApostrophesRemoved = new InputNames(SOME_NAME, "ab", "");
         inputWithApostrophesRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithApostrophesRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithApostrophesRemoved);
     }
 
     @Test
@@ -108,17 +108,17 @@ public class SpecialCharactersTest {
         InputNames inputWithSpaces = new InputNames(SOME_NAME, " a b ", "");
         inputWithSpaces.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
-    private void verifyMandatoryGenerators(InputNames inputNames) {
-        verify(mockEntireNonAliasName).generateCandidates(inputNames);
-        verify(mockEntireLastNameAndEachFirstName).generateCandidates(inputNames);
-        verify(mockNameCombinations).generateCandidates(inputNames);
-        verify(mockAliasCombinations).generateCandidates(inputNames);
-        verify(mockMultipleLastNames).generateCandidates(inputNames);
+    private void verifyMandatoryGenerators(InputNames originalInputNames, InputNames inputNames) {
+        verify(mockEntireNonAliasName).generateCandidates(originalInputNames, inputNames);
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(originalInputNames, inputNames);
+        verify(mockNameCombinations).generateCandidates(originalInputNames, inputNames);
+        verify(mockAliasCombinations).generateCandidates(originalInputNames, inputNames);
+        verify(mockMultipleLastNames).generateCandidates(originalInputNames, inputNames);
     }
 
     @Test
@@ -127,9 +127,9 @@ public class SpecialCharactersTest {
         InputNames inputWithSpaces = new InputNames(SOME_NAME, " a b ", "");
         inputWithSpaces.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
     @Test
@@ -138,9 +138,9 @@ public class SpecialCharactersTest {
         InputNames inputWithFullStopsRemoved = new InputNames("ab", SOME_NAME, "");
         inputWithFullStopsRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -149,9 +149,9 @@ public class SpecialCharactersTest {
         InputNames inputWithFullStopsRemoved = new InputNames("ab", SOME_NAME, "");
         inputWithFullStopsRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -160,9 +160,9 @@ public class SpecialCharactersTest {
         InputNames inputWithFullStopsRemoved = new InputNames( SOME_NAME,"ab", "");
         inputWithFullStopsRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -171,9 +171,9 @@ public class SpecialCharactersTest {
         InputNames inputWithFullStopsRemoved = new InputNames( SOME_NAME,"ab", "");
         inputWithFullStopsRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -184,19 +184,19 @@ public class SpecialCharactersTest {
         InputNames inputWithSpecialCharsAsSpaces = new InputNames("a b ", "c  d", "");
         inputWithSpecialCharsAsSpaces.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNamesWithManySpecialChars);
+        specialCharacters.generateCandidates(inputNamesWithManySpecialChars, inputNamesWithManySpecialChars);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsRemoved);
-        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsAsSpaces);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpecialCharsRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpecialCharsAsSpaces);
+        verify(mockNameCombinations).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsRemoved);
+        verify(mockNameCombinations).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsAsSpaces);
+        verify(mockMultipleLastNames).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsRemoved);
+        verify(mockMultipleLastNames).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsAsSpaces);
     }
 
     @Test
     public void shouldNotCallCollaboratorsWithEmptyNames() {
         InputNames inputNames = new InputNames(".", ".");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
         verifyNoMoreInteractions(mockNameCombinations);
         verifyNoMoreInteractions(mockMultipleLastNames);
@@ -208,9 +208,9 @@ public class SpecialCharactersTest {
         InputNames inputWithSpecialCharsReplaced = new InputNames("John Bob", SOME_NAME, SOME_ALIAS_SURNAME);
         inputWithSpecialCharsReplaced.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNameWithAliases);
+        specialCharacters.generateCandidates(inputNameWithAliases, inputNameWithAliases);
 
-        verify(mockAliasCombinations).generateCandidates(inputWithSpecialCharsReplaced);
+        verify(mockAliasCombinations).generateCandidates(inputNameWithAliases, inputWithSpecialCharsReplaced);
     }
 
     @Test
@@ -219,9 +219,9 @@ public class SpecialCharactersTest {
         InputNames inputWithSpecialCharsReplaced = new InputNames("John Bob", SOME_NAME);
         inputWithSpecialCharsReplaced.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNamesWithoutAliases);
+        specialCharacters.generateCandidates(inputNamesWithoutAliases, inputNamesWithoutAliases);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsReplaced);
+        verify(mockNameCombinations).generateCandidates(inputNamesWithoutAliases, inputWithSpecialCharsReplaced);
     }
 
     @Test
@@ -230,9 +230,9 @@ public class SpecialCharactersTest {
         InputNames inputWithSpecialCharsReplaced = new InputNames(SOME_NAME, SOME_NAME, "O Neill Jones");
         inputWithSpecialCharsReplaced.splittersReplaced(true);
 
-        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias);
+        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias, inputNamesWithSpecialCharAlias);
 
-        verify(mockAliasCombinations).generateCandidates(inputWithSpecialCharsReplaced);
+        verify(mockAliasCombinations).generateCandidates(inputNamesWithSpecialCharAlias, inputWithSpecialCharsReplaced);
     }
 
     @Test
@@ -241,8 +241,8 @@ public class SpecialCharactersTest {
         InputNames inputWithSpecialCharsRemoved = new InputNames(SOME_NAME, SOME_NAME, "ONeillJones");
         inputWithSpecialCharsRemoved.splittersRemoved(true);
 
-        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias);
+        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias, inputNamesWithSpecialCharAlias);
 
-        verify(mockAliasCombinations).generateCandidates(inputWithSpecialCharsRemoved);
+        verify(mockAliasCombinations).generateCandidates(inputNamesWithSpecialCharAlias, inputWithSpecialCharsRemoved);
     }
 }

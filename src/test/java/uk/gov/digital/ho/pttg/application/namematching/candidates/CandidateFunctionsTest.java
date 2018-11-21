@@ -13,7 +13,7 @@ public class CandidateFunctionsTest {
 
     @Test
     public void removeAdditionalNamesOverMax_belowMax() {
-        InputNames afterRemoved = removeAdditionalNamesIfOverMax(new InputNames("one two three four", "five six seven"));
+        InputNames afterRemoved = removeAdditionalNamesIfOverMax(new InputNames("one two three four", "five six seven"), 7, 3);
 
         assertThat(afterRemoved.size()).isEqualTo(7);
         assertThat(afterRemoved.allNames().get(0)).isEqualTo("one");
@@ -24,7 +24,7 @@ public class CandidateFunctionsTest {
 
     @Test
     public void removeAdditionalNamesOverMax_overMax() {
-        InputNames afterRemoved = removeAdditionalNamesIfOverMax(new InputNames("one two three four extra-one", "extra-two five six seven"));
+        InputNames afterRemoved = removeAdditionalNamesIfOverMax(new InputNames("one two three four extra-one", "extra-two five six seven"), 7, 3);
 
         assertThat(afterRemoved.size()).isEqualTo(7);
         assertThat(afterRemoved.allNames().get(0)).isEqualTo("one");
