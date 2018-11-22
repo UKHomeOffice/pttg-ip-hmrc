@@ -29,6 +29,7 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 import java.net.ConnectException;
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -328,6 +329,31 @@ public class HmrcAccessCodeClientTest {
 
         verify(mockRestTemplate).postForLocation(uriCaptor.capture(), any(HttpEntity.class));
         assertThat(uriCaptor.getValue().getPath()).contains("123");
+    }
+
+    @Test
+    public void accessCodeUri_noPathOnBaseUri_shouldResolve() {
+        String baseAccessCodeUrl = "https://eue-api-hmrc-access-code.dev-i-cust-pt.svc.cluster.local";
+
+        HmrcAccessCodeClient client = new HmrcAccessCodeClient(mockRestTemplate, mockRequestHeaderData, baseAccessCodeUrl, MAX_RETRY_ATTEMPTS, RETRY_DELAY_IN_MILLIS);
+
+        URI accessUri = (URI) ReflectionTestUtils.getField(client, "accessUri");
+        assertThat(accessUri).isNotNull();
+
+        assertThat(accessUri.toString()).isEqualTo("https://eue-api-hmrc-access-code.dev-i-cust-pt.svc.cluster.local/access");
+    }
+
+    @Test
+    public void accessCodeUri_pathOnBaseUri_shouldResolve() {
+        String baseAccessCodeUrl = "http://localhost:10080/hmrcaccesscode";
+
+        HmrcAccessCodeClient client = new HmrcAccessCodeClient(mockRestTemplate, mockRequestHeaderData, baseAccessCodeUrl, MAX_RETRY_ATTEMPTS, RETRY_DELAY_IN_MILLIS);
+
+        URI accessUri = (URI) ReflectionTestUtils.getField(client, "accessUri");
+        assertThat(accessUri).isNotNull();
+
+
+        assertThat(accessUri.toString()).isEqualTo("http://localhost:10080/hmrcaccesscode/access");
     }
 
     private ResourceAccessException connectionRefusedException(final String exceptionMessage) {
