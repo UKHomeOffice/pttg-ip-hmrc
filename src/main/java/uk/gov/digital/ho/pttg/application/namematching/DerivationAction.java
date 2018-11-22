@@ -7,5 +7,6 @@ public enum DerivationAction {
     RIGHT_OF_SPLIT,
     MIDDLE_OF_SPLIT,
     SPLITTER_IGNORED,
-    COMBINATION
+    COMBINATION,
+    ABBREVIATED_PAIR
 }

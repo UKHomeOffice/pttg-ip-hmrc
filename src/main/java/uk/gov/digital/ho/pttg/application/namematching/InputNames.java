@@ -87,7 +87,7 @@ public class InputNames {
     }
 
     public String fullName() {
-        return String.join( " ", fullFirstName(), fullLastName());
+        return String.join(" ", fullFirstName(), fullLastName());
     }
 
     public String fullFirstName() {
@@ -177,11 +177,9 @@ public class InputNames {
 
         optionalTuple = locate(rawName, aliasSurnames);
 
-        return optionalTuple.orElse(Triplet.with(null, -1, null));
-
-//        return optionalTuple.orElseThrow(() -> new IllegalArgumentException(String.format("The name %s cannot be located in the input names %s",
-//                rawName,
-//                String.join(" ", fullName(), fullAliasNames()))));
+        return optionalTuple.orElseThrow(() -> new IllegalArgumentException(String.format("The name %s cannot be located in the input names %s",
+                rawName,
+                String.join(" ", fullName(), fullAliasNames()))));
     }
 
 }

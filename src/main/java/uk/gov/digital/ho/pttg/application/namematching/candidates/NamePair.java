@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import org.javatuples.Triplet;
 import uk.gov.digital.ho.pttg.application.namematching.*;
@@ -8,9 +7,10 @@ import uk.gov.digital.ho.pttg.application.namematching.*;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static lombok.AccessLevel.PRIVATE;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.NAME_MATCHING;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = PRIVATE)
 class NamePair {
 
     private final int firstNameIndex;

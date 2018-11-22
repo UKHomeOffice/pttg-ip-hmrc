@@ -3,10 +3,15 @@ package uk.gov.digital.ho.pttg.application.namematching;
 import org.apache.commons.lang3.StringUtils;
 import org.javatuples.Triplet;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -32,12 +37,12 @@ public final class InputNamesFunctions {
     public static List<String> splitIntoDistinctNames(String combinedNames) {
 
         if (isBlank(combinedNames)) {
-            return Collections.emptyList();
+            return emptyList();
         }
 
         String[] splitNames = combinedNames.trim().split("\\s+");
 
-        return Arrays.asList(splitNames);
+        return asList(splitNames);
     }
 
     static boolean hasFullStopSpace(String name) {
@@ -86,6 +91,12 @@ public final class InputNamesFunctions {
             return optionalTuple;
         }
 
+        optionalTuple = locateAsAbbreviatedPair(rawName, names);
+
+        if (optionalTuple.isPresent()) {
+            return optionalTuple;
+        }
+
         return Optional.empty();
     }
 
@@ -122,13 +133,25 @@ public final class InputNamesFunctions {
     private static Optional<Triplet<NameType, Integer, DerivationAction>> locateAsNameWithSplitterRemoved(String rawName, List<Name> names) {
 
         return names.stream()
-                       .filter(name -> name.containsNameSplitter())
+                       .filter(Name::containsNameSplitter)
                        .filter(name -> {
                            String splitterlessName = nameWithSplittersRemoved(name.name());
                            return splitterlessName.equals(rawName);
                        })
-                       .map(matchingName -> Triplet.with(matchingName.nameType(), matchingName.index(), DerivationAction.SPLITTER_IGNORED))
+                       .map(matchingName -> Triplet.with(matchingName.nameType(), matchingName.index(), SPLITTER_IGNORED))
                        .findFirst();
 
+    }
+
+    private static Optional<Triplet<NameType, Integer, DerivationAction>> locateAsAbbreviatedPair(String rawName, List<Name> names) {
+
+        for (int i = 0; i < names.size() - 1; i++) {
+            String namePair = String.join(" ", names.get(i).name(), names.get(i+1).name());
+            if (namePair.equals(rawName)) {
+                return Optional.of(Triplet.with(names.get(i).nameType(), i, ABBREVIATED_PAIR));
+            }
+        }
+
+        return Optional.empty();
     }
 }
