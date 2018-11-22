@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.Set;
+
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.*;
 
 @Getter
@@ -30,20 +32,24 @@ public class Name {
     @JsonProperty(value = "umlauts")
     private boolean containsUmlauts;
 
-    @JsonProperty(value = "fullStopSpace")
-    private boolean containsFullStopSpace;
+    @JsonProperty(value = "abbreviation")
+    private boolean abbreviation;
 
     @JsonProperty(value = "nameSplitter")
     private boolean containsNameSplitter;
+
+    @JsonProperty(value = "unicodeBlocks")
+    private Set<String> unicodeBlocks;
 
     Name(NameType nameType, int index, String name) {
         this.nameType = nameType;
         this.index = index;
         this.name = name;
         this.containsDiacritics = hasDiacritics(name);
-        this.containsUmlauts = hasUmnlauts(name);
-        this.containsFullStopSpace = hasFullStopSpace(name);
+        this.containsUmlauts = hasUmlauts(name);
+        this.abbreviation = hasFullStopSpace(name);
         this.containsNameSplitter = hasNameSplitter(name);
+        this.unicodeBlocks = calculateUnicodeBlocks(name);
     }
 
     @JsonProperty(value = "length")

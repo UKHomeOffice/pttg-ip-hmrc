@@ -29,8 +29,8 @@ public final class AbbreviatedNamesFunctions {
         return !nameContainsFullStopSpaceBetweenNames(inputNames.fullAliasNames());
     }
 
-    private static boolean nameContainsFullStopSpaceBetweenNames(String s) {
-        return FULL_STOP_SPACE_PATTERN_REGEX.matcher(s).find();
+    private static boolean nameContainsFullStopSpaceBetweenNames(String name) {
+        return FULL_STOP_SPACE_PATTERN_REGEX.matcher(name).find();
     }
 
     public static List<String> splitAroundAbbreviatedNames(String names) {
