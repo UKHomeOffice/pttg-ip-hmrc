@@ -28,8 +28,8 @@ public class NameDerivation {
     @Setter
     private List<Integer> index;
 
-    @JsonProperty(value = "originalLength")
-    private Integer originalLength;
+    @JsonProperty(value = "length")
+    private Integer length;
 
     @JsonProperty(value = "derivationActions")
     private List<DerivationAction> derivationActions;

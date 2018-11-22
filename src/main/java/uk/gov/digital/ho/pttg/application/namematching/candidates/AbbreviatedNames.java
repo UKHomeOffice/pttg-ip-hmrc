@@ -8,6 +8,7 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.doesNotContainAbbreviatedNames;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ABBREVIATED_NAMES;
 
 @Component
 public class AbbreviatedNames implements NameMatchingCandidateGenerator {
@@ -28,11 +29,17 @@ public class AbbreviatedNames implements NameMatchingCandidateGenerator {
 
         InputNames abbreviatedNames = namesToProcess.groupByAbbreviatedNames();
 
+        List<CandidateName> candidateNames;
+
         if (abbreviatedNames.hasAliasSurnames()) {
-            return aliasCombinations.generateCandidates(originalNames, abbreviatedNames);
+            candidateNames = aliasCombinations.generateCandidates(originalNames, abbreviatedNames);
+        } else {
+            candidateNames = nameCombinations.generateCandidates(originalNames, abbreviatedNames);
         }
 
-        return nameCombinations.generateCandidates(originalNames, abbreviatedNames);
+        candidateNames.forEach(candidateName -> candidateName.derivation().addGenerator(ABBREVIATED_NAMES));
+
+        return candidateNames;
     }
 
 }

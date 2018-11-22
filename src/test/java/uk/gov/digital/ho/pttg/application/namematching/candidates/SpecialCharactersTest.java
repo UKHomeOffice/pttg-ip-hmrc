@@ -40,7 +40,6 @@ public class SpecialCharactersTest {
     public void shouldStripOutHyphensFromFirstName() {
         InputNames inputNames = new InputNames("-a-b-", SOME_NAME);
         InputNames inputWithHyphensRemoved = new InputNames("ab", SOME_NAME);
-        inputWithHyphensRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -51,7 +50,6 @@ public class SpecialCharactersTest {
     public void shouldStripOutApostrophesFromFirstName() {
         InputNames inputNames = new InputNames("'a'b'", SOME_NAME);
         InputNames inputWithApostrophesRemoved = new InputNames("ab", SOME_NAME);
-        inputWithApostrophesRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -62,7 +60,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceHyphensWithSpacesInFirstName() {
         InputNames inputNames = new InputNames("-a-b-", SOME_NAME);
         InputNames inputWithSpaces = new InputNames(" a b ", SOME_NAME);
-        inputWithSpaces.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -73,7 +70,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceApostrophesWithSpacesInFirstName() {
         InputNames inputNames = new InputNames("'a'b'", SOME_NAME);
         InputNames inputWithSpaces = new InputNames(" a b ", SOME_NAME);
-        inputWithSpaces.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -84,7 +80,6 @@ public class SpecialCharactersTest {
     public void shouldStripOutHyphensFromLastName() {
         InputNames inputNames = new InputNames(SOME_NAME, "-a-b-");
         InputNames inputWithHyphensRemoved = new InputNames(SOME_NAME, "ab");
-        inputWithHyphensRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -95,7 +90,6 @@ public class SpecialCharactersTest {
     public void shouldStripOutApostrophesFromLastName() {
         InputNames inputNames = new InputNames(SOME_NAME, "'a'b'");
         InputNames inputWithApostrophesRemoved = new InputNames(SOME_NAME, "ab", "");
-        inputWithApostrophesRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -106,7 +100,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceHyphensWithSpacesInLastName() {
         InputNames inputNames = new InputNames(SOME_NAME, "-a-b-");
         InputNames inputWithSpaces = new InputNames(SOME_NAME, " a b ", "");
-        inputWithSpaces.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -125,7 +118,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceApostrophesWithSpacesInLastName() {
         InputNames inputNames = new InputNames(SOME_NAME, "'a'b'");
         InputNames inputWithSpaces = new InputNames(SOME_NAME, " a b ", "");
-        inputWithSpaces.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -136,7 +128,6 @@ public class SpecialCharactersTest {
     public void shouldStripOutFullStopsFromFirstName() {
         InputNames inputNames = new InputNames(".a.b.", SOME_NAME);
         InputNames inputWithFullStopsRemoved = new InputNames("ab", SOME_NAME, "");
-        inputWithFullStopsRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -147,7 +138,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceOutFullStopsWithSpacesFirstName() {
         InputNames inputNames = new InputNames(".a.b.", SOME_NAME);
         InputNames inputWithFullStopsRemoved = new InputNames("ab", SOME_NAME, "");
-        inputWithFullStopsRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -158,7 +148,6 @@ public class SpecialCharactersTest {
     public void shouldStripOutFullStopsFromLastName() {
         InputNames inputNames = new InputNames(SOME_NAME, ".a.b.");
         InputNames inputWithFullStopsRemoved = new InputNames( SOME_NAME,"ab", "");
-        inputWithFullStopsRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -169,7 +158,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceOutFullStopsWithSpacesLastName() {
         InputNames inputNames = new InputNames(SOME_NAME, ".a.b.");
         InputNames inputWithFullStopsRemoved = new InputNames( SOME_NAME,"ab", "");
-        inputWithFullStopsRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNames, inputNames);
 
@@ -180,9 +168,7 @@ public class SpecialCharactersTest {
     public void shouldStripOutAndReplaceAllSpecialCharactersAtSameTime() {
         InputNames inputNamesWithManySpecialChars = new InputNames("a.b'", "c-.d");
         InputNames inputWithSpecialCharsRemoved = new InputNames("ab", "cd", "");
-        inputWithSpecialCharsRemoved.splittersRemoved(true);
         InputNames inputWithSpecialCharsAsSpaces = new InputNames("a b ", "c  d", "");
-        inputWithSpecialCharsAsSpaces.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNamesWithManySpecialChars, inputNamesWithManySpecialChars);
 
@@ -206,7 +192,6 @@ public class SpecialCharactersTest {
     public void shouldCallAliasCombinationsWhenAliasIsPresent() {
         InputNames inputNameWithAliases = new InputNames("John-Bob", SOME_NAME, SOME_ALIAS_SURNAME);
         InputNames inputWithSpecialCharsReplaced = new InputNames("John Bob", SOME_NAME, SOME_ALIAS_SURNAME);
-        inputWithSpecialCharsReplaced.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNameWithAliases, inputNameWithAliases);
 
@@ -217,7 +202,6 @@ public class SpecialCharactersTest {
     public void shouldCallNameCombinationsWhenNoAlias() {
         InputNames inputNamesWithoutAliases = new InputNames("John-Bob", SOME_NAME);
         InputNames inputWithSpecialCharsReplaced = new InputNames("John Bob", SOME_NAME);
-        inputWithSpecialCharsReplaced.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNamesWithoutAliases, inputNamesWithoutAliases);
 
@@ -228,7 +212,6 @@ public class SpecialCharactersTest {
     public void shouldSplitAliasSurnameOnSpecialCharacters() {
         InputNames inputNamesWithSpecialCharAlias = new InputNames(SOME_NAME, SOME_NAME, "O'Neill-Jones");
         InputNames inputWithSpecialCharsReplaced = new InputNames(SOME_NAME, SOME_NAME, "O Neill Jones");
-        inputWithSpecialCharsReplaced.splittersReplaced(true);
 
         specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias, inputNamesWithSpecialCharAlias);
 
@@ -239,7 +222,6 @@ public class SpecialCharactersTest {
     public void shouldReplaceSpecialCharactersWithSpacesForAliasSurnames() {
         InputNames inputNamesWithSpecialCharAlias = new InputNames(SOME_NAME, SOME_NAME, "O'Neill-Jones");
         InputNames inputWithSpecialCharsRemoved = new InputNames(SOME_NAME, SOME_NAME, "ONeillJones");
-        inputWithSpecialCharsRemoved.splittersRemoved(true);
 
         specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias, inputNamesWithSpecialCharAlias);
 

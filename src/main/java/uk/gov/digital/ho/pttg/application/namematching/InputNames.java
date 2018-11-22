@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.javatuples.Triplet;
@@ -40,16 +39,6 @@ public class InputNames {
 
     @JsonProperty(value = "aliasSurnames")
     private List<Name> aliasSurnames;
-
-
-    // TODO: Probably redundant - remove
-    @Setter
-    private boolean splittersRemoved;
-
-
-    // TODO: Probably redundant - remove
-    @Setter
-    private boolean splittersReplaced;
 
     private InputNames(List<Name> firstNames, List<Name> lastNames, List<Name> aliasSurnames) {
         this.firstNames = firstNames;
@@ -191,8 +180,8 @@ public class InputNames {
         return optionalTuple.orElse(Triplet.with(null, -1, null));
 
 //        return optionalTuple.orElseThrow(() -> new IllegalArgumentException(String.format("The name %s cannot be located in the input names %s",
-//                                                                                            rawName,
-//                                                                                            String.join(" ", fullName(), fullAliasNames()))));
+//                rawName,
+//                String.join(" ", fullName(), fullAliasNames()))));
     }
 
 }
