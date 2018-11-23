@@ -222,7 +222,7 @@ public class HmrcHateoasClient {
                 log.info("Successfully matched individual {}",
                         individual.getNino(),
                         value("combination", String.format("%d of %d", retries + 1, candidateNames.size())),
-                        value("meta-data", candidateNames.get(retries).derivation()),
+                        value("name-matching-analysis", candidateNames.get(retries).derivation()),
                         value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
 
                 return matchedIndividual;
