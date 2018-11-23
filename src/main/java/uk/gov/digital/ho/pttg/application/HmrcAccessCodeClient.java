@@ -51,7 +51,7 @@ public class HmrcAccessCodeClient {
                                 @Value("${hmrc.access.service.retry.delay}") long retryDelayInMillis) {
         this.restTemplate = restTemplate;
         this.baseAccessCodeUrl = baseAccessCodeUrl;
-        this.accessUri = URI.create(baseAccessCodeUrl).resolve(ACCESS_ENDPOINT_PATH);
+        this.accessUri = URI.create(baseAccessCodeUrl + ACCESS_ENDPOINT_PATH);
         this.requestHeaderData = requestHeaderData;
 
         this.maxRetryAttempts = maxRetryAttempts;
