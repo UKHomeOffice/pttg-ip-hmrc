@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import lombok.AllArgsConstructor;
-import org.javatuples.Triplet;
 import uk.gov.digital.ho.pttg.application.namematching.*;
 
 import java.util.List;
@@ -25,25 +24,25 @@ class NamePair {
         validateNamePair(names.size());
 
         Name firstName = names.get(firstNameIndex);
-        Triplet<NameType, Integer, DerivationAction> firstNameOrigin = originalNames.locateName(firstName.name());
+        NameOrigin firstNameOrigin = originalNames.locateName(firstName.name());
 
         Name lastName = names.get(lastNameIndex);
-        Triplet<NameType, Integer, DerivationAction> lastNameOrigin = originalNames.locateName(lastName.name());
+        NameOrigin lastNameOrigin = originalNames.locateName(lastName.name());
 
         CandidateDerivation derivation =
                 new CandidateDerivation(
                         originalNames,
                         singletonList(NAME_MATCHING),
                         new NameDerivation(
-                                firstNameOrigin.getValue0(),
-                                singletonList(firstNameOrigin.getValue1()),
+                                firstNameOrigin.nameType(),
+                                singletonList(firstNameOrigin.position()),
                                 firstName.name().length(),
-                                singletonList(firstNameOrigin.getValue2())),
+                                singletonList(firstNameOrigin.derivationAction())),
                         new NameDerivation(
-                                lastNameOrigin.getValue0(),
-                                singletonList(lastNameOrigin.getValue1()),
+                                lastNameOrigin.nameType(),
+                                singletonList(lastNameOrigin.position()),
                                 lastName.name().length(),
-                                singletonList(lastNameOrigin.getValue2()))
+                                singletonList(lastNameOrigin.derivationAction()))
                 );
 
         return new CandidateName(firstName.name(), lastName.name(), derivation);

@@ -6,8 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.javatuples.Triplet;
 import uk.gov.digital.ho.pttg.application.namematching.Name.End;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameOrigin;
 
 import java.util.Collections;
 import java.util.List;
@@ -159,25 +159,25 @@ public class InputNames {
                        .collect(toList());
     }
 
-    public Triplet<NameType, Integer, DerivationAction> locateName(String rawName) {
+    public NameOrigin locateName(String rawName) {
 
-        Optional<Triplet<NameType, Integer, DerivationAction>> optionalTuple;
+        Optional<NameOrigin> optionalNameOrigin;
 
-        optionalTuple = locate(rawName, firstNames);
+        optionalNameOrigin = locate(rawName, firstNames);
 
-        if (optionalTuple.isPresent()) {
-            return optionalTuple.get();
+        if (optionalNameOrigin.isPresent()) {
+            return optionalNameOrigin.get();
         }
 
-        optionalTuple = locate(rawName, lastNames);
+        optionalNameOrigin = locate(rawName, lastNames);
 
-        if (optionalTuple.isPresent()) {
-            return optionalTuple.get();
+        if (optionalNameOrigin.isPresent()) {
+            return optionalNameOrigin.get();
         }
 
-        optionalTuple = locate(rawName, aliasSurnames);
+        optionalNameOrigin = locate(rawName, aliasSurnames);
 
-        return optionalTuple.orElseThrow(() -> new IllegalArgumentException(String.format("The name %s cannot be located in the input names %s",
+        return optionalNameOrigin.orElseThrow(() -> new IllegalArgumentException(String.format("The name %s cannot be located in the input names %s",
                 rawName,
                 String.join(" ", fullName(), fullAliasNames()))));
     }

@@ -1,7 +1,7 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.apache.commons.lang3.StringUtils;
-import org.javatuples.Triplet;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameOrigin;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -74,47 +74,44 @@ public final class InputNamesFunctions {
     }
 
 
-    static Optional<Triplet<NameType, Integer, DerivationAction>> locate(String rawName, List<Name> names) {
+    static Optional<NameOrigin> locate(String rawName, List<Name> names) {
 
-        Optional<Triplet<NameType, Integer, DerivationAction>> optionalTuple;
+        Optional<NameOrigin> optionalNameOrigin;
 
-        optionalTuple = locateAsWholeName(rawName, names);
+        optionalNameOrigin = locateAsWholeName(rawName, names);
 
-        if (optionalTuple.isPresent()) {
-            return optionalTuple;
+        if (optionalNameOrigin.isPresent()) {
+            return optionalNameOrigin;
         }
 
-        optionalTuple = locateAsSplitName(rawName, names);
+        optionalNameOrigin = locateAsSplitName(rawName, names);
 
-        if (optionalTuple.isPresent()) {
-            return optionalTuple;
+        if (optionalNameOrigin.isPresent()) {
+            return optionalNameOrigin;
         }
 
-        optionalTuple = locateAsNameWithSplitterRemoved(rawName, names);
+        optionalNameOrigin = locateAsNameWithSplitterRemoved(rawName, names);
 
-        if (optionalTuple.isPresent()) {
-            return optionalTuple;
+        if (optionalNameOrigin.isPresent()) {
+            return optionalNameOrigin;
         }
 
-        optionalTuple = locateAsAbbreviatedPair(rawName, names);
+        optionalNameOrigin = locateAsAbbreviatedPair(rawName, names);
 
-        if (optionalTuple.isPresent()) {
-            return optionalTuple;
-        }
+        return optionalNameOrigin;
 
-        return Optional.empty();
     }
 
-    static Optional<Triplet<NameType, Integer, DerivationAction>> locateAsWholeName(String rawName, List<Name> names) {
+    static Optional<NameOrigin> locateAsWholeName(String rawName, List<Name> names) {
         return names.stream()
                        .filter(name -> name.name().equals(rawName))
-                       .map(name -> Triplet.with(name.nameType(), name.index(), ORIGINAL))
+                       .map(name -> new NameOrigin(name.nameType(), name.index(), ORIGINAL))
                        .findFirst();
     }
 
-    static Optional<Triplet<NameType, Integer, DerivationAction>> locateAsSplitName(String rawName, List<Name> names) {
+    static Optional<NameOrigin> locateAsSplitName(String rawName, List<Name> names) {
         return names.stream()
-                       .filter(name -> name.containsNameSplitter())
+                       .filter(Name::containsNameSplitter)
                        .filter(name -> {
                            List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
                            return originalNameParts.indexOf(rawName) >= 0;
@@ -123,19 +120,19 @@ public final class InputNamesFunctions {
                            List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
 
                            if (originalNameParts.get(0).equals(rawName)) {
-                               return Triplet.with(name.nameType(), name.index(), LEFT_OF_SPLIT);
+                               return new NameOrigin(name.nameType(), name.index(), LEFT_OF_SPLIT);
                            }
 
                            if (originalNameParts.get(originalNameParts.size() - 1).equals(rawName)) {
-                               return Triplet.with(name.nameType(), name.index(), RIGHT_OF_SPLIT);
+                               return new NameOrigin(name.nameType(), name.index(), RIGHT_OF_SPLIT);
                            }
 
-                           return Triplet.with(name.nameType(), name.index(), MIDDLE_OF_SPLIT);
+                           return new NameOrigin(name.nameType(), name.index(), MIDDLE_OF_SPLIT);
                        })
                        .findFirst();
     }
 
-    private static Optional<Triplet<NameType, Integer, DerivationAction>> locateAsNameWithSplitterRemoved(String rawName, List<Name> names) {
+    private static Optional<NameOrigin> locateAsNameWithSplitterRemoved(String rawName, List<Name> names) {
 
         return names.stream()
                        .filter(Name::containsNameSplitter)
@@ -143,17 +140,17 @@ public final class InputNamesFunctions {
                            String splitterlessName = nameWithSplittersRemoved(name.name());
                            return splitterlessName.equals(rawName);
                        })
-                       .map(matchingName -> Triplet.with(matchingName.nameType(), matchingName.index(), SPLITTER_IGNORED))
+                       .map(matchingName -> new NameOrigin(matchingName.nameType(), matchingName.index(), SPLITTER_IGNORED))
                        .findFirst();
 
     }
 
-    private static Optional<Triplet<NameType, Integer, DerivationAction>> locateAsAbbreviatedPair(String rawName, List<Name> names) {
+    private static Optional<NameOrigin> locateAsAbbreviatedPair(String rawName, List<Name> names) {
 
         for (int i = 0; i < names.size() - 1; i++) {
             String namePair = String.join(" ", names.get(i).name(), names.get(i + 1).name());
             if (namePair.equals(rawName)) {
-                return Optional.of(Triplet.with(names.get(i).nameType(), i, ABBREVIATED_PAIR));
+                return Optional.of(new NameOrigin(names.get(i).nameType(), i, ABBREVIATED_PAIR));
             }
         }
 
