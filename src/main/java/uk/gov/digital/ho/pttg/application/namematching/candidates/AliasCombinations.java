@@ -20,15 +20,15 @@ public class AliasCombinations implements NameMatchingCandidateGenerator {
             return candidateNames;
         }
 
-        candidateNames.addAll(nonAliasFirstNamesAndLastNameCombinations(namesToProcess));
+        candidateNames.addAll(nonAliasFirstNamesAndLastNameCombinations(originalNames, namesToProcess));
 
-        candidateNames.addAll(nonAliasFirstAliasLastCombinations(namesToProcess));
+        candidateNames.addAll(nonAliasFirstAliasLastCombinations(originalNames, namesToProcess));
 
-        candidateNames.addAll(firstNameCombinations(namesToProcess));
+        candidateNames.addAll(firstNameCombinations(originalNames, namesToProcess));
 
-        candidateNames.addAll(nonAliasSurnameAsFirstNameCombinations(namesToProcess));
+        candidateNames.addAll(nonAliasSurnameAsFirstNameCombinations(originalNames, namesToProcess));
 
-        candidateNames.addAll(aliasSurnameAsFirstNameCombinations(namesToProcess));
+        candidateNames.addAll(aliasSurnameAsFirstNameCombinations(originalNames, namesToProcess));
 
         return candidateNames;
     }

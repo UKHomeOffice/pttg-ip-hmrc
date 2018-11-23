@@ -16,14 +16,14 @@ public class AliasCombinationsFunctionsFirstNameTest {
     @Test
     public void shouldReturnEmptyListForEmptyFirstName() {
         InputNames emptyFirstName = new InputNames("", "somename", "somename");
-        assertThat(firstNameCombinations(emptyFirstName)).isEqualTo(emptyList());
+        assertThat(firstNameCombinations(emptyFirstName, emptyFirstName)).isEqualTo(emptyList());
     }
 
     @Test
     public void shouldReturnEmptyListForOneName() {
         InputNames oneFirstName = new InputNames("John", "somename", "somename");
 
-        assertThat(firstNameCombinations(oneFirstName)).isEqualTo(emptyList());
+        assertThat(firstNameCombinations(oneFirstName, oneFirstName)).isEqualTo(emptyList());
     }
 
     @Test
@@ -35,7 +35,7 @@ public class AliasCombinationsFunctionsFirstNameTest {
                 new CandidateName("David", "John")
         );
 
-        assertThat(firstNameCombinations(inputNames)).isEqualTo(expected);
+        assertThat(firstNameCombinations(inputNames, inputNames)).isEqualTo(expected);
     }
 
     @Test
@@ -51,6 +51,6 @@ public class AliasCombinationsFunctionsFirstNameTest {
                 new CandidateName("Greg", "David")
         );
 
-        assertThat(firstNameCombinations(inputNames)).isEqualTo(expected);
+        assertThat(firstNameCombinations(inputNames, inputNames)).isEqualTo(expected);
     }
 }

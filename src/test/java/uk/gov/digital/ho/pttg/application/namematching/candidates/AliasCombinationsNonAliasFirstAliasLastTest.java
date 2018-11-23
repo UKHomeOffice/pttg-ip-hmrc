@@ -19,8 +19,8 @@ public class AliasCombinationsNonAliasFirstAliasLastTest {
         InputNames emptyNonAliasInputNames = new InputNames("", "", "somename");
         InputNames emptyAliasInputNames = new InputNames("somename", "somename", "");
 
-        assertThat(nonAliasFirstAliasLastCombinations(emptyNonAliasInputNames)).isEqualTo(emptyList());
-        assertThat(nonAliasFirstAliasLastCombinations(emptyAliasInputNames)).isEqualTo(emptyList());
+        assertThat(nonAliasFirstAliasLastCombinations(emptyNonAliasInputNames, emptyNonAliasInputNames)).isEqualTo(emptyList());
+        assertThat(nonAliasFirstAliasLastCombinations(emptyAliasInputNames, emptyAliasInputNames)).isEqualTo(emptyList());
     }
 
     @Test
@@ -28,7 +28,7 @@ public class AliasCombinationsNonAliasFirstAliasLastTest {
         InputNames inputNames = new InputNames("", "nonalias", "aliasname");
 
         List<CandidateName> expectedCandidateName = singletonList(new CandidateName("nonalias", "aliasname"));
-        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames);
+        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames, inputNames);
 
         assertThat(actualCandidateName).isEqualTo(expectedCandidateName);
     }
@@ -42,7 +42,7 @@ public class AliasCombinationsNonAliasFirstAliasLastTest {
                 new CandidateName("nonalias2", "aliasname")
         );
 
-        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames);
+        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames, inputNames);
         assertThat(actualCandidateName).isEqualTo(expectedCandidateName);
     }
 
@@ -56,7 +56,7 @@ public class AliasCombinationsNonAliasFirstAliasLastTest {
                 new CandidateName("nonalias", "aliasname1")
         );
 
-        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames);
+        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames, inputNames);
         assertThat(actualCandidateName).isEqualTo(expectedCandidateName);
     }
 
@@ -72,7 +72,7 @@ public class AliasCombinationsNonAliasFirstAliasLastTest {
                 new CandidateName("nonalias2", "aliasname1")
         );
 
-        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames);
+        List<CandidateName> actualCandidateName = nonAliasFirstAliasLastCombinations(inputNames, inputNames);
         assertThat(actualCandidateName).isEqualTo(expectedCandidateName);
     }
 }

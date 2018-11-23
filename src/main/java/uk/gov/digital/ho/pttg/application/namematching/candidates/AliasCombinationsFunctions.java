@@ -30,7 +30,7 @@ final class AliasCombinationsFunctions {
         return filteredNames;
     }
 
-    static List<CandidateName> nonAliasFirstAliasLastCombinations(InputNames inputNames) {
+    static List<CandidateName> nonAliasFirstAliasLastCombinations(InputNames originalNames, InputNames inputNames) {
 
         List<Name> reversedAliasSurnames = new ArrayList<>(inputNames.aliasSurnames());
         reverse(reversedAliasSurnames);
@@ -39,38 +39,38 @@ final class AliasCombinationsFunctions {
 
         return reversedAliasSurnames.stream()
                        .flatMap(last -> nonAliasNames.stream()
-                                                        .map(first -> createCandidateName(first, last, inputNames)))
+                                                        .map(first -> createCandidateName(originalNames, first, last)))
                        .collect(toList());
     }
 
-    static List<CandidateName> firstNameCombinations(InputNames inputNames) {
+    static List<CandidateName> firstNameCombinations(InputNames originalNames, InputNames inputNames) {
 
         return inputNames.firstNames().stream()
                        .flatMap(first -> removeName(first, inputNames.firstNames()).stream()
-                                                     .map(last -> createCandidateName(first, last, inputNames)))
+                                                     .map(last -> createCandidateName(originalNames, first, last)))
                        .collect(toList());
     }
 
-    static List<CandidateName> nonAliasSurnameAsFirstNameCombinations(InputNames inputNames) {
+    static List<CandidateName> nonAliasSurnameAsFirstNameCombinations(InputNames originalNames, InputNames inputNames) {
 
         return inputNames.lastNames().stream()
                        .flatMap(first -> inputNames.firstNames().stream()
-                                                     .map(last -> createCandidateName(first, last, inputNames)))
+                                                     .map(last -> createCandidateName(originalNames, first, last)))
                        .collect(toList());
 
     }
 
-    static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames inputNames) {
+    static List<CandidateName> aliasSurnameAsFirstNameCombinations(InputNames originalNames, InputNames inputNames) {
 
         List<Name> allNames = combine(inputNames.firstNames(), inputNames.lastNames(), inputNames.aliasSurnames());
 
         return inputNames.aliasSurnames().stream()
                        .flatMap(first -> removeName(first, allNames).stream()
-                                                     .map(last -> createCandidateName(first, last, inputNames)))
+                                                     .map(last -> createCandidateName(originalNames, first, last)))
                        .collect(toList());
     }
 
-    static List<CandidateName> nonAliasFirstNamesAndLastNameCombinations(InputNames inputNames) {
+    static List<CandidateName> nonAliasFirstNamesAndLastNameCombinations(InputNames originalNames, InputNames inputNames) {
 
         List<Name> reversedLastNames = new ArrayList<>(inputNames.lastNames());
         reverse(reversedLastNames);
@@ -79,11 +79,11 @@ final class AliasCombinationsFunctions {
 
         return reversedLastNames.stream()
                        .flatMap(last -> removeName(last, nonAliasNames).stream()
-                                                        .map(first -> createCandidateName(first, last, inputNames)))
+                                                        .map(first -> createCandidateName(originalNames, first, last)))
                        .collect(toList());
     }
 
-    private static CandidateName createCandidateName(Name first, Name last, InputNames inputNames) {
+    private static CandidateName createCandidateName(InputNames originalNames, Name first, Name last) {
         NameDerivation firstNameDerivation = new NameDerivation(first, ORIGINAL);
         NameDerivation lastNameDerivation = new NameDerivation(last, ORIGINAL);
 
@@ -91,7 +91,7 @@ final class AliasCombinationsFunctions {
                 first.name(),
                 last.name(),
                 new CandidateDerivation(
-                        inputNames,
+                        originalNames,
                         singletonList(ALIAS_COMBINATIONS),
                         firstNameDerivation,
                         lastNameDerivation));

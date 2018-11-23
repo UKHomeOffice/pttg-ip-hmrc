@@ -50,29 +50,29 @@ class MultipleLastNamesFunctions {
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    static List<CandidateName> generateNameCombinations(InputNames inputNames, List<CandidateName> lastNameCandidates) {
+    static List<CandidateName> generateNameCombinations(InputNames originalNames, InputNames namesToProcess, List<CandidateName> lastNameCandidates) {
 
         List<CandidateName> combinations =
-                inputNames.firstNames().stream()
+                namesToProcess.firstNames().stream()
                         .flatMap(firstName -> lastNameCandidates.stream()
-                                                      .map(lastNameCandidate -> generateCandidate(inputNames, firstName, lastNameCandidate)))
+                                                      .map(lastNameCandidate -> generateCandidate(originalNames, firstName, lastNameCandidate)))
                         .collect(toList());
 
         return Collections.unmodifiableList(combinations);
     }
 
-    private static CandidateName generateCandidate(InputNames inputNames, Name firstName, CandidateName lastNameCandidate) {
+    private static CandidateName generateCandidate(InputNames originalNames, Name firstName, CandidateName lastNameCandidate) {
         return new CandidateName(
                 firstName.name(),
                 lastNameCandidate.lastName(),
                 new CandidateDerivation(
-                        inputNames,
+                        originalNames,
                         lastNameCandidate.derivation().generators(),
                         new NameDerivation(firstName, ORIGINAL),
                         lastNameCandidate.derivation().lastName()));
     }
 
-    static List<CandidateName> generateNobiliaryLastNameCombinations(InputNames inputNames, List<Generator> generators, List<Name> lastNames) {
+    static List<CandidateName> generateNobiliaryLastNameCombinations(InputNames namesToProcess, List<Generator> generators, List<Name> lastNames) {
         final int HMRC_SURNAME_LENGTH = 3;
 
         return lastNames.stream()
@@ -80,7 +80,7 @@ class MultipleLastNamesFunctions {
                        .distinct()
                        .flatMap(lastName1 -> lastNames.stream()
                                                      .filter(lastName2 -> !lastName1.equals(lastName2))
-                                                     .map(lastname2 -> generateCandidateLastName(inputNames, generators, lastName1, lastname2)))
+                                                     .map(lastname2 -> generateCandidateLastName(namesToProcess, generators, lastName1, lastname2)))
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 

@@ -46,7 +46,7 @@ public class EntireNonAliasName implements NameMatchingCandidateGenerator {
                         firstName,
                         lastName,
                         new CandidateDerivation(
-                                namesToProcess,
+                                originalNames,
                                 singletonList(ENTIRE_NON_ALIAS_NAME),
                                 firstNameDerivation,
                                 lastNameDerivation)));

@@ -18,7 +18,6 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.Special
 public final class InputNamesFunctions {
 
     private static final String NAME_SPLITTERS = "-'.";
-    private static final String UMLAUT = "";
 
     private static final String ANY_LETTER_INCLUDING_UNICODE_MATCHER = "\\p{L}\\p{M}*+";
     private static final String FULL_STOP_SPACE_MATCHER = "\\.\\s+";

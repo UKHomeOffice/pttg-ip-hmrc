@@ -38,47 +38,47 @@ public class SpecialCharacters implements NameMatchingCandidateGenerator {
 
         //Set<CandidateName> candidateNames = new LinkedHashSet<>(); // TODO: why LinkedHashSet?
 
-        if (!SpecialCharactersFunctions.namesContainSplitters(originalNames)) {
+        if (!SpecialCharactersFunctions.namesContainSplitters(namesToProcess)) {
             return emptyList();
         }
 
-        return getNameCandidates(originalNames);
+        return getNameCandidates(originalNames, namesToProcess);
     }
 
-    private List<CandidateName> getNameCandidates(InputNames inputNames) {
+    private List<CandidateName> getNameCandidates(InputNames originalNames, InputNames namesToProcess) {
 
         List<CandidateName> candidateNames = new ArrayList<>();
 
-        candidateNames.addAll(candidateNamesAfterSplittersIgnored(inputNames));
-        candidateNames.addAll(candidateNamesAfterSplitting(inputNames));
+        candidateNames.addAll(candidateNamesAfterSplittersIgnored(originalNames, namesToProcess));
+        candidateNames.addAll(candidateNamesAfterSplitting(originalNames, namesToProcess));
 
         return candidateNames;
     }
 
-    private List<CandidateName> candidateNamesAfterSplittersIgnored(InputNames inputNames) {
+    private List<CandidateName> candidateNamesAfterSplittersIgnored(InputNames originalNames, InputNames namesToProcess) {
 
-        InputNames inputNameSplittersRemoved = SpecialCharactersFunctions.nameWithSplittersRemoved(inputNames);
+        InputNames inputNameSplittersRemoved = SpecialCharactersFunctions.nameWithSplittersRemoved(namesToProcess);
 
         if (namesAreEmpty(inputNameSplittersRemoved)) {
             return emptyList();
         }
 
         return generators.stream()
-                       .map(generator -> candidatesWithSplittersRemoved(generator, inputNames, inputNameSplittersRemoved))
+                       .map(generator -> candidatesWithSplittersRemoved(generator, originalNames, inputNameSplittersRemoved))
                        .flatMap(Collection::stream)
                        .collect(toList());
     }
 
-    private List<CandidateName> candidateNamesAfterSplitting(InputNames inputNames) {
+    private List<CandidateName> candidateNamesAfterSplitting(InputNames originalNames, InputNames namesToProcess) {
 
-        InputNames inputNameSpacesReplacingSplitters = SpecialCharactersFunctions.nameWithSplittersReplacedBySpaces(inputNames);
+        InputNames inputNameSpacesReplacingSplitters = SpecialCharactersFunctions.nameWithSplittersReplacedBySpaces(namesToProcess);
 
         if (namesAreEmpty(inputNameSpacesReplacingSplitters)) {
             return emptyList();
         }
 
         return generators.stream()
-                       .map(generator -> candidatesWithSpacesReplacingSplitters(generator, inputNames, inputNameSpacesReplacingSplitters))
+                       .map(generator -> candidatesWithSpacesReplacingSplitters(generator, originalNames, inputNameSpacesReplacingSplitters))
                        .flatMap(Collection::stream)
                        .collect(toList());
     }

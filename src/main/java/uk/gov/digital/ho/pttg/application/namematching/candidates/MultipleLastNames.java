@@ -24,6 +24,6 @@ public class MultipleLastNames implements NameMatchingCandidateGenerator {
 
         List<CandidateName> lastNameCombinations = generateNobiliaryLastNameCombinations(namesToProcess, singletonList(MULTIPLE_NAMES), namesToProcess.lastNames());
 
-        return generateNameCombinations(namesToProcess, lastNameCombinations);
+        return generateNameCombinations(originalNames, namesToProcess, lastNameCombinations);
     }
 }
