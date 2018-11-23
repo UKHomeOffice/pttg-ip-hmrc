@@ -1,7 +1,10 @@
 package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import lombok.AllArgsConstructor;
-import uk.gov.digital.ho.pttg.application.namematching.*;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateDerivation;
+import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
+import uk.gov.digital.ho.pttg.application.namematching.Name;
 
 import java.util.List;
 
@@ -24,25 +27,14 @@ class NamePair {
         validateNamePair(names.size());
 
         Name firstName = names.get(firstNameIndex);
-        NameOrigin firstNameOrigin = originalNames.locateName(firstName.name());
-
         Name lastName = names.get(lastNameIndex);
-        NameOrigin lastNameOrigin = originalNames.locateName(lastName.name());
 
         CandidateDerivation derivation =
                 new CandidateDerivation(
                         originalNames,
                         singletonList(NAME_MATCHING),
-                        new NameDerivation(
-                                firstNameOrigin.nameType(),
-                                singletonList(firstNameOrigin.position()),
-                                firstName.name().length(),
-                                singletonList(firstNameOrigin.derivationAction())),
-                        new NameDerivation(
-                                lastNameOrigin.nameType(),
-                                singletonList(lastNameOrigin.position()),
-                                lastName.name().length(),
-                                singletonList(lastNameOrigin.derivationAction()))
+                        firstName.derivation(),
+                        lastName.derivation()
                 );
 
         return new CandidateName(firstName.name(), lastName.name(), derivation);

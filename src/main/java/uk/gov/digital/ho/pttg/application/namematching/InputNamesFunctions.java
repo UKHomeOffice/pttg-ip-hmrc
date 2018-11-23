@@ -1,9 +1,12 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import uk.gov.digital.ho.pttg.application.namematching.candidates.NameOrigin;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -11,9 +14,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.*;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.nameWithSplittersRemoved;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.SpecialCharactersFunctions.nameWithSplittersReplacedBySpaces;
+import static uk.gov.digital.ho.pttg.application.namematching.Name.End.LEFT;
 
 public final class InputNamesFunctions {
 
@@ -73,87 +74,26 @@ public final class InputNamesFunctions {
                        .collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
+    static List<Name> reduceNames(List<Name> names, Name.End end, int amount) {
 
-    static Optional<NameOrigin> locate(String rawName, List<Name> names) {
-
-        Optional<NameOrigin> optionalNameOrigin;
-
-        optionalNameOrigin = locateAsWholeName(rawName, names);
-
-        if (optionalNameOrigin.isPresent()) {
-            return optionalNameOrigin;
+        if (end == LEFT) {
+            names = Lists.reverse(names);
         }
 
-        optionalNameOrigin = locateAsSplitName(rawName, names);
+        List<Name> reducedNames = names.stream()
+                                          .limit(amount)
+                                          .collect(collectingAndThen(toList(), Collections::unmodifiableList));
 
-        if (optionalNameOrigin.isPresent()) {
-            return optionalNameOrigin;
+        if (end == LEFT) {
+            return Lists.reverse(reducedNames);
         }
 
-        optionalNameOrigin = locateAsNameWithSplitterRemoved(rawName, names);
-
-        if (optionalNameOrigin.isPresent()) {
-            return optionalNameOrigin;
-        }
-
-        optionalNameOrigin = locateAsAbbreviatedPair(rawName, names);
-
-        return optionalNameOrigin;
-
+        return reducedNames;
     }
 
-    static Optional<NameOrigin> locateAsWholeName(String rawName, List<Name> names) {
+    static List<String> nameStringsOf(List<Name> names) {
         return names.stream()
-                       .filter(name -> name.name().equals(rawName))
-                       .map(name -> new NameOrigin(name.nameType(), name.index(), ORIGINAL))
-                       .findFirst();
-    }
-
-    static Optional<NameOrigin> locateAsSplitName(String rawName, List<Name> names) {
-        return names.stream()
-                       .filter(Name::containsNameSplitter)
-                       .filter(name -> {
-                           List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
-                           return originalNameParts.indexOf(rawName) >= 0;
-                       })
-                       .map(name -> {
-                           List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
-
-                           if (originalNameParts.get(0).equals(rawName)) {
-                               return new NameOrigin(name.nameType(), name.index(), LEFT_OF_SPLIT);
-                           }
-
-                           if (originalNameParts.get(originalNameParts.size() - 1).equals(rawName)) {
-                               return new NameOrigin(name.nameType(), name.index(), RIGHT_OF_SPLIT);
-                           }
-
-                           return new NameOrigin(name.nameType(), name.index(), MIDDLE_OF_SPLIT);
-                       })
-                       .findFirst();
-    }
-
-    private static Optional<NameOrigin> locateAsNameWithSplitterRemoved(String rawName, List<Name> names) {
-
-        return names.stream()
-                       .filter(Name::containsNameSplitter)
-                       .filter(name -> {
-                           String splitterlessName = nameWithSplittersRemoved(name.name());
-                           return splitterlessName.equals(rawName);
-                       })
-                       .map(matchingName -> new NameOrigin(matchingName.nameType(), matchingName.index(), SPLITTER_IGNORED))
-                       .findFirst();
-
-    }
-
-    private static Optional<NameOrigin> locateAsAbbreviatedPair(String rawName, List<Name> names) {
-
-        for (int i = 0; i < names.size() - 1; i++) {
-            String namePair = String.join(" ", names.get(i).name(), names.get(i + 1).name());
-            if (namePair.equals(rawName)) {
-                return Optional.of(new NameOrigin(names.get(i).nameType(), i, ABBREVIATED_PAIR));
-            }
-        }
-
-        return Optional.empty();
+                       .map(Name::name)
+                       .collect(toList());
     }
 }

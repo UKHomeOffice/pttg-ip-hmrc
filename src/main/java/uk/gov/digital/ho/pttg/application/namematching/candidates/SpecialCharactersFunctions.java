@@ -2,6 +2,13 @@ package uk.gov.digital.ho.pttg.application.namematching.candidates;
 
 import org.apache.commons.lang3.StringUtils;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
+import uk.gov.digital.ho.pttg.application.namematching.Name;
+
+import java.util.List;
+
+import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.splitIntoDistinctNames;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.GeneratorFunctions.analyse;
 
 public final class SpecialCharactersFunctions {
 
@@ -27,10 +34,12 @@ public final class SpecialCharactersFunctions {
 
     static InputNames nameWithSplittersRemoved(InputNames inputNames) {
 
-        return new InputNames(
-                nameWithSplittersRemoved(inputNames.fullFirstName()),
-                nameWithSplittersRemoved(inputNames.fullLastName()),
-                nameWithSplittersRemoved(inputNames.fullAliasNames()));
+        List<Name> splitterlessFirstNames = analyse(inputNames.firstNames(), FIRST, splitIntoDistinctNames(nameWithSplittersRemoved(inputNames.fullFirstName())));
+        List<Name> splitterlessLastNames = analyse(inputNames.lastNames(), LAST, splitIntoDistinctNames(nameWithSplittersRemoved(inputNames.fullLastName())));
+        List<Name> splitterlessAliasNames = analyse(inputNames.aliasSurnames(), ALIAS, splitIntoDistinctNames(nameWithSplittersRemoved(inputNames.fullAliasNames())));
+
+        return new InputNames(splitterlessFirstNames, splitterlessLastNames, splitterlessAliasNames);
+
     }
 
     public static String nameWithSplittersReplacedBySpaces(String name) {
@@ -39,10 +48,11 @@ public final class SpecialCharactersFunctions {
 
     static InputNames nameWithSplittersReplacedBySpaces(InputNames inputNames) {
 
-        return new InputNames(
-                nameWithSplittersReplacedBySpaces(inputNames.fullFirstName()),
-                nameWithSplittersReplacedBySpaces(inputNames.fullLastName()),
-                nameWithSplittersReplacedBySpaces(inputNames.fullAliasNames()));
+        List<Name> splitFirstNames = analyse(inputNames.firstNames(), FIRST, splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(inputNames.fullFirstName())));
+        List<Name> splitLastNames = analyse(inputNames.lastNames(), LAST, splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(inputNames.fullLastName())));
+        List<Name> splitAliasNames = analyse(inputNames.aliasSurnames(), ALIAS, splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(inputNames.fullAliasNames())));
+
+        return new InputNames(splitFirstNames, splitLastNames, splitAliasNames);
     }
 
     static boolean namesContainSplitters(InputNames inputNames) {

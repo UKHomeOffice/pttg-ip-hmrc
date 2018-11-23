@@ -6,8 +6,11 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Collections.singletonList;
+import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.*;
 
 @Getter
@@ -19,6 +22,8 @@ public class Name {
     public enum End {LEFT, RIGHT}
 
     private String name;
+
+    private NameDerivation derivation;
 
     @JsonProperty(value = "nameType")
     private NameType nameType;
@@ -41,10 +46,11 @@ public class Name {
     @JsonProperty(value = "unicodeBlocks")
     private Set<String> unicodeBlocks;
 
-    Name(NameType nameType, int index, String name) {
+    public Name(Optional<NameDerivation> optionalNameDerivation, NameType nameType, int index, String name) {
+        this.name = name;
+        this.derivation = optionalNameDerivation.orElseGet(() -> new NameDerivation(nameType, singletonList(index), name.length(), singletonList(ORIGINAL)));
         this.nameType = nameType;
         this.index = index;
-        this.name = name;
         this.containsDiacritics = hasDiacritics(name);
         this.containsUmlauts = hasUmlauts(name);
         this.abbreviation = hasFullStopSpace(name);
