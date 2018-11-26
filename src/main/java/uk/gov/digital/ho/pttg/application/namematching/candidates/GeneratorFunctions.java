@@ -59,10 +59,7 @@ public final class GeneratorFunctions {
             return optionalNameOrigin;
         }
 
-        optionalNameOrigin = locateAsAbbreviatedPair(rawName, names);
-
-        return optionalNameOrigin;
-
+        return locateAsAbbreviatedPair(rawName, names);
     }
 
     static Optional<NameDerivation> locateAsWholeName(String rawName, List<Name> names) {
