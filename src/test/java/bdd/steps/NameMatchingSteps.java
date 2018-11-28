@@ -1,5 +1,10 @@
 package bdd.steps;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -17,10 +22,14 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.marker.ObjectAppendingMarker;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.core.SessionMap;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
+import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -28,8 +37,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
+import uk.gov.digital.ho.pttg.application.HmrcHateoasClient;
 import uk.gov.digital.ho.pttg.application.SpringConfiguration;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
+import uk.gov.digital.ho.pttg.application.namematching.*;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator;
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
 
 import java.io.IOException;
@@ -53,7 +65,12 @@ import static java.time.format.DateTimeFormatter.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.http.HttpStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_SUCCESS_RECEIVED;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
 
+@Slf4j
 @SuppressFBWarnings({
         "SE_NO_SERIALVERSIONID",
         "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"})
@@ -85,6 +102,8 @@ public class NameMatchingSteps {
     @LocalServerPort
     private int port;
 
+    private Appender<ILoggingEvent> mockAppender;
+
     @Before
     public void setup() throws Exception {
         if (!isSetup) {
@@ -101,6 +120,16 @@ public class NameMatchingSteps {
         }
 
         setupStubsForOtherHmrcCalls();
+
+        setupLogCapture();
+    }
+
+    private void setupLogCapture() {
+        mockAppender = Mockito.mock(Appender.class);
+
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        rootLogger.setLevel(Level.INFO);
+        rootLogger.addAppender(mockAppender);
     }
 
     @After
@@ -555,4 +584,147 @@ public class NameMatchingSteps {
         SpringConfiguration.initialiseObjectMapper(objectMapper);
         return objectMapper;
     }
+
+    @Then("^meta-data was logged following a successful match$")
+    public void metaDataWasLoggedFollowingASuccessfulMatch() {
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return matchAchieved(loggingEvent) &&
+                           metaDataWasLogged(loggingEvent);
+        }));
+    }
+
+    @Then("^the meta-data contains the following input name information$")
+    public void theMetaDataContainsTheFollowingInputNameInformation(DataTable dataTable) {
+
+        List<MetaDataInputName> names = dataTable.asList(MetaDataInputName.class);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return matchAchieved(loggingEvent) &&
+                           metaDataWasLogged(loggingEvent) &&
+                           metaDataHasExpectedNumberOfInputNames(names, loggingEvent) &&
+                           metaDataHasInputNames(names, loggingEvent);
+        }));
+    }
+
+    private boolean matchAchieved(LoggingEvent loggingEvent) {
+        return loggingEvent.getArgumentArray().length == 4 &&
+                        loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_SUCCESS_RECEIVED, "any"));
+    }
+
+    private boolean metaDataWasLogged(LoggingEvent loggingEvent) {
+        ObjectAppendingMarker objectAppendingMarker = (ObjectAppendingMarker) loggingEvent.getArgumentArray()[2];
+        return objectAppendingMarker.getFieldName().equals("name-matching-analysis");
+    }
+
+    private boolean metaDataHasExpectedNumberOfInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+
+        CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
+
+        return names.size() == candidateDerivation.inputNames().firstNames().size() +
+                                       candidateDerivation.inputNames().lastNames().size() +
+                                       candidateDerivation.inputNames().aliasSurnames().size();
+    }
+
+    private boolean metaDataHasInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+
+        CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
+
+        return metaDataHasInputName(names, FIRST, candidateDerivation.inputNames().firstNames()) &&
+                       metaDataHasInputName(names, LAST, candidateDerivation.inputNames().lastNames()) &&
+                       metaDataHasInputName(names, ALIAS, candidateDerivation.inputNames().aliasSurnames());
+    }
+
+    private boolean metaDataHasInputName(List<MetaDataInputName> names, NameType nameType, List<Name> inputNames) {
+        return names.stream()
+                       .filter(n -> n.nameType() == nameType)
+                       .allMatch(n -> inputNames.stream()
+                                              .anyMatch(inputName -> inputNameInMetaData(n, inputName)));
+    }
+
+    private boolean inputNameInMetaData(MetaDataInputName n, Name inputName) {
+        return n.nameType().equals(inputName.nameType()) &&
+                       n.index() == inputName.index() &&
+                       n.diacritics() == inputName.containsDiacritics() &&
+                       n.umlauts() == inputName.containsUmlauts() &&
+                       n.abbreviation() == inputName.abbreviation() &&
+                       n.nameSplitter() == inputName.containsNameSplitter() &&
+                       n.uniCodeBlocks().containsAll(inputName.unicodeBlocks()) &&
+                       inputName.unicodeBlocks().containsAll(n.uniCodeBlocks()) &&
+                       n.length() == inputName.getLength();
+    }
+
+    @And("^the meta-data indicates that the following generators were used$")
+    public void theMetaDataIndicatesThatTheFollowingGeneratorsWereUsed(DataTable dataTable) {
+
+        List<Generator> generators = dataTable.asList(Generator.class);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return matchAchieved(loggingEvent) &&
+                           metaDataWasLogged(loggingEvent) &&
+                           (metaDataHasExpectedNumberOfGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent)) &&
+                           (metaDataHasGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent));
+        }));
+    }
+
+    private boolean diagnoseWrongGenerator(List<Generator> expected, LoggingEvent loggingEvent) {
+        CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
+        log.error("Expected: {} Actual: {}", expected, candidateDerivation.generators());
+        return false;
+    }
+
+    private boolean metaDataHasExpectedNumberOfGenerators(List<Generator> generators, LoggingEvent loggingEvent) {
+        CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
+        return generators.size() == candidateDerivation.generators().size();
+    }
+
+    private boolean metaDataHasGenerators(List<Generator> generators, LoggingEvent loggingEvent) {
+        CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
+        return generators.equals(candidateDerivation.generators());
+    }
+
+    private CandidateDerivation getCandidateDerivation(LoggingEvent loggingEvent) {
+        return (CandidateDerivation) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[2], "object");
+    }
+
+    @And("^the meta-data contains the following name derivation information$")
+    public void theMetaDataContainsTheFollowingNameDerivationInformation(DataTable dataTable) {
+
+        List<MetaDataNameDerivation> names = dataTable.asList(MetaDataNameDerivation.class);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return matchAchieved(loggingEvent) &&
+                           metaDataWasLogged(loggingEvent) &&
+                           metaDataHasExpectedNameDerivations(names, loggingEvent);
+        }));
+    }
+
+    private boolean metaDataHasExpectedNameDerivations(List<MetaDataNameDerivation> names, LoggingEvent loggingEvent) {
+
+        CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
+
+        return metaDataHasNameDerivation(names.get(0), candidateDerivation.firstName()) &&
+                       metaDataHasNameDerivation(names.get(1), candidateDerivation.lastName());
+    }
+
+    private boolean metaDataHasNameDerivation(MetaDataNameDerivation metaDataNameDerivation, NameDerivation nameDerivation) {
+        return metaDataNameDerivation.section() == nameDerivation.section() &&
+                       metaDataNameDerivation.index().equals(nameDerivation.index()) &&
+                       metaDataNameDerivation.length() == nameDerivation.length() &&
+                       (metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions()) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions()));
+    }
+
+    private boolean diagnoseWrongDerivation(List<DerivationAction> expected, List<DerivationAction> actual) {
+        log.error("Expected: {} Actual: {}", expected, actual);
+        return false;
+    }
+
 }

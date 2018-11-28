@@ -13,6 +13,7 @@ import static java.util.Collections.singletonList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.GeneratorFunctions.nameIndexes;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_NON_ALIAS_NAME;
 
 @Component
@@ -29,16 +30,16 @@ public class EntireNonAliasName implements NameMatchingCandidateGenerator {
 
         if (StringUtils.isBlank(firstName)) {
             firstName = lastName;
-            firstNameDerivation = new NameDerivation(LAST, null, firstName.length(), singletonList(ENTIRE));
+            firstNameDerivation = new NameDerivation(LAST, nameIndexes(originalNames.lastNames().size()), firstName.length(), singletonList(ENTIRE));
         } else {
-            firstNameDerivation = new NameDerivation(FIRST, null, firstName.length(), singletonList(ENTIRE));
+            firstNameDerivation = new NameDerivation(FIRST, nameIndexes(originalNames.firstNames().size()), firstName.length(), singletonList(ENTIRE));
         }
 
         if (StringUtils.isBlank(lastName)) {
             lastName = firstName;
-            lastNameDerivation = new NameDerivation(FIRST, null, lastName.length(), singletonList(ENTIRE));
+            lastNameDerivation = new NameDerivation(FIRST, nameIndexes(originalNames.firstNames().size()), lastName.length(), singletonList(ENTIRE));
         } else {
-            lastNameDerivation = new NameDerivation(LAST, null, lastName.length(), singletonList(ENTIRE));
+            lastNameDerivation = new NameDerivation(LAST, nameIndexes(originalNames.lastNames().size()), lastName.length(), singletonList(ENTIRE));
         }
 
         return singletonList(

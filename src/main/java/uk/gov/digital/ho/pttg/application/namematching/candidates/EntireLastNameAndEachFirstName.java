@@ -12,6 +12,7 @@ import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ENTIRE;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.GeneratorFunctions.nameIndexes;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME;
 
 @Component
@@ -34,9 +35,10 @@ public class EntireLastNameAndEachFirstName implements NameMatchingCandidateGene
                         originalNames,
                         singletonList(ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME),
                         new NameDerivation(firstName, ORIGINAL),
-                        new NameDerivation(LAST, null, entireLastName.length(), singletonList(ENTIRE))
+                        new NameDerivation(LAST, nameIndexes(originalNames.lastNames().size()), entireLastName.length(), singletonList(ENTIRE))
                         );
 
         return new CandidateName(firstName.name(), entireLastName, candidateDerivation);
     }
+
 }

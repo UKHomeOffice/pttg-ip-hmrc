@@ -14,7 +14,7 @@ Feature: name sequence when making calls
       | Last name     | Ccc         |
       | Alias Surname | Ddd         |
       | Date of Birth | 1987-12-10  |
-      | nino          | SE123456B  |
+      | nino          | SE123456B   |
     Then a Matched response will be returned from the service
     And HMRC was called 3 times
 

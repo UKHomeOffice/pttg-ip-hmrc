@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.collectingAndThen;
@@ -137,5 +138,11 @@ public final class GeneratorFunctions {
         }
 
         return Optional.empty();
+    }
+
+    static List<Integer> nameIndexes(int size) {
+        return IntStream.range(0, size)
+                       .boxed()
+                       .collect(toList());
     }
 }

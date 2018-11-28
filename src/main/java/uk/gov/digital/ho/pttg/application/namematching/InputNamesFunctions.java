@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.lang.Character.UnicodeBlock;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -60,10 +61,10 @@ public final class InputNamesFunctions {
         return UMLAUT_REGEX.matcher(name).find();
     }
 
-    static Set<String> calculateUnicodeBlocks(String name) {
+    static Set<UnicodeBlock> calculateUnicodeBlocks(String name) {
 
         return name.chars()
-                       .mapToObj(codePoint -> Character.UnicodeBlock.of(codePoint).toString())
+                       .mapToObj(codePoint -> UnicodeBlock.of(codePoint))
                        .collect(toSet());
     }
 

@@ -1,15 +1,19 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.lang.Character.UnicodeBlock;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.*;
 
@@ -43,8 +47,7 @@ public class Name {
     @JsonProperty(value = "nameSplitter")
     private boolean containsNameSplitter;
 
-    @JsonProperty(value = "unicodeBlocks")
-    private Set<String> unicodeBlocks;
+    private Set<UnicodeBlock> unicodeBlocks;
 
     public Name(Optional<NameDerivation> optionalNameDerivation, NameType nameType, int index, String name) {
         this.name = name;
@@ -61,5 +64,12 @@ public class Name {
     @JsonProperty(value = "length")
     public int getLength() {
         return name.length();
+    }
+
+    @JsonGetter("unicodeBlocks")
+    public List<String> getUnicodeBlocks() {
+        return unicodeBlocks.stream()
+                .map(o -> o.toString())
+                .collect(toList());
     }
 }
