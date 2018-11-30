@@ -677,7 +677,7 @@ public class NameMatchingSteps {
         return rawGenerators.stream()
                        .map(s -> asList(s.split("\\s+")))
                        .flatMap(Collection::stream)
-                       .map(s -> Generator.valueOf(s))
+                       .map(Generator::valueOf)
                        .collect(toList());
     }
 
