@@ -755,4 +755,28 @@ public class NameMatchingSteps {
         return false;
     }
 
+    @And("^the meta-data indicates the following number of attempts to match$")
+    public void theMetaDataIndicatesTheFollowingNumberOfAttemptsToMatch(DataTable dataTable) {
+
+        List<Integer> attempts = dataTable.asList(Integer.class);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return matchAchieved(loggingEvent) &&
+                           metaDataWasLogged(loggingEvent) &&
+                           (metaDataRecordsMatchingAttempts(attempts.get(0), loggingEvent) || diagnoseWrongNumberOfMatchingAttempts(attempts.get(0), loggingEvent));
+        }));
+    }
+
+    private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, LoggingEvent loggingEvent) {
+        String actual = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
+        log.error("Expected: {} Actual: {}", String.format("%d of %d", expected, expected), actual);
+        return false;
+    }
+
+    private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
+        String attemptsString = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
+        return attemptsString.equals(String.format("%d of %d", combination, combination));
+    }
 }
