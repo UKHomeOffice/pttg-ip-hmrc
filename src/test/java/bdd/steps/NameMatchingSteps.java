@@ -777,6 +777,6 @@ public class NameMatchingSteps {
 
     private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
         String attemptsString = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
-        return attemptsString.equals(String.format("%d of %d", combination, combination));
+        return attemptsString == null || attemptsString.equals(String.format("%d of %d", combination, combination));
     }
 }
