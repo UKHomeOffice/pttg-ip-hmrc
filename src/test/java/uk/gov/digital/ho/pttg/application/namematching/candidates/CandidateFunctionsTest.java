@@ -16,10 +16,10 @@ public class CandidateFunctionsTest {
         InputNames afterRemoved = removeAdditionalNamesIfOverMax(new InputNames("one two three four", "five six seven"), 7, 3);
 
         assertThat(afterRemoved.size()).isEqualTo(7);
-        assertThat(afterRemoved.allNames().get(0)).isEqualTo("one");
-        assertThat(afterRemoved.allNames().get(3)).isEqualTo("four");
-        assertThat(afterRemoved.allNames().get(4)).isEqualTo("five");
-        assertThat(afterRemoved.allNames().get(6)).isEqualTo("seven");
+        assertThat(afterRemoved.rawAllNames().get(0)).isEqualTo("one");
+        assertThat(afterRemoved.rawAllNames().get(3)).isEqualTo("four");
+        assertThat(afterRemoved.rawAllNames().get(4)).isEqualTo("five");
+        assertThat(afterRemoved.rawAllNames().get(6)).isEqualTo("seven");
     }
 
     @Test
@@ -27,9 +27,9 @@ public class CandidateFunctionsTest {
         InputNames afterRemoved = removeAdditionalNamesIfOverMax(new InputNames("one two three four extra-one", "extra-two five six seven"), 7, 3);
 
         assertThat(afterRemoved.size()).isEqualTo(7);
-        assertThat(afterRemoved.allNames().get(0)).isEqualTo("one");
-        assertThat(afterRemoved.allNames().get(3)).isEqualTo("four");
-        assertThat(afterRemoved.allNames().get(4)).isEqualTo("five");
-        assertThat(afterRemoved.allNames().get(6)).isEqualTo("seven");
+        assertThat(afterRemoved.rawAllNames().get(0)).isEqualTo("one");
+        assertThat(afterRemoved.rawAllNames().get(3)).isEqualTo("four");
+        assertThat(afterRemoved.rawAllNames().get(4)).isEqualTo("five");
+        assertThat(afterRemoved.rawAllNames().get(6)).isEqualTo("seven");
     }
 }

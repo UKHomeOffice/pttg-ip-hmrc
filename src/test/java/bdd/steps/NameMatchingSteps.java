@@ -49,10 +49,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -62,6 +59,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.jayway.restassured.RestAssured.given;
 import static java.time.format.DateTimeFormatter.*;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.http.HttpStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -643,7 +641,8 @@ public class NameMatchingSteps {
         return names.stream()
                        .filter(n -> n.nameType() == nameType)
                        .allMatch(n -> inputNames.stream()
-                                              .anyMatch(inputName -> inputNameInMetaData(n, inputName)));
+                                              .anyMatch(inputName -> inputNameInMetaData(n, inputName)) ||
+                                        diagnoseWrongInputName(n) );
     }
 
     private boolean inputNameInMetaData(MetaDataInputName n, Name inputName) {
@@ -661,7 +660,8 @@ public class NameMatchingSteps {
     @And("^the meta-data indicates that the following generators were used$")
     public void theMetaDataIndicatesThatTheFollowingGeneratorsWereUsed(DataTable dataTable) {
 
-        List<Generator> generators = dataTable.asList(Generator.class);
+        List<String> rawGenerators = dataTable.asList(String.class);
+        List<Generator> generators = asGenerators(rawGenerators);
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
@@ -671,6 +671,14 @@ public class NameMatchingSteps {
                            (metaDataHasExpectedNumberOfGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent)) &&
                            (metaDataHasGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent));
         }));
+    }
+
+    private List<Generator> asGenerators(List<String> rawGenerators) {
+        return rawGenerators.stream()
+                       .map(s -> asList(s.split("\\s+")))
+                       .flatMap(Collection::stream)
+                       .map(s -> Generator.valueOf(s))
+                       .collect(toList());
     }
 
     private boolean diagnoseWrongGenerator(List<Generator> expected, LoggingEvent loggingEvent) {
@@ -724,6 +732,11 @@ public class NameMatchingSteps {
 
     private boolean diagnoseWrongDerivation(List<DerivationAction> expected, List<DerivationAction> actual) {
         log.error("Expected: {} Actual: {}", expected, actual);
+        return false;
+    }
+
+    private boolean diagnoseWrongInputName(MetaDataInputName expected) {
+        log.error("Expected: {} - not found", expected);
         return false;
     }
 

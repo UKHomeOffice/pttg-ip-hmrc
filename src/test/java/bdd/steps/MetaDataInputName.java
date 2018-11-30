@@ -3,6 +3,7 @@ package bdd.steps;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import uk.gov.digital.ho.pttg.application.namematching.NameType;
 
@@ -15,6 +16,7 @@ import static java.util.stream.Collectors.toSet;
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
+@ToString
 class MetaDataInputName {
 
     private NameType nameType;
@@ -31,7 +33,7 @@ class MetaDataInputName {
 
     Set<UnicodeBlock> uniCodeBlocks() {
 
-        return Arrays.stream(uniCodeBlocks.split(" "))
+        return Arrays.stream(uniCodeBlocks.split("\\s+"))
                 .map(UnicodeBlock::forName)
                 .collect(toSet());
     }

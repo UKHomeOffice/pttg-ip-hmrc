@@ -8,7 +8,6 @@ import java.util.List;
 import static java.util.Collections.reverse;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.InputNamesFunctions.combine;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.ALIAS_COMBINATIONS;
 
@@ -84,8 +83,8 @@ final class AliasCombinationsFunctions {
     }
 
     private static CandidateName createCandidateName(InputNames originalNames, Name first, Name last) {
-        NameDerivation firstNameDerivation = new NameDerivation(first, ORIGINAL);
-        NameDerivation lastNameDerivation = new NameDerivation(last, ORIGINAL);
+        NameDerivation firstNameDerivation = new NameDerivation(first);
+        NameDerivation lastNameDerivation = new NameDerivation(last);
 
         return new CandidateName(
                 first.name(),

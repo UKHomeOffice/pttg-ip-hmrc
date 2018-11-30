@@ -32,13 +32,13 @@ class MetaDataNameDerivation {
             return null;
         }
 
-        return Arrays.stream(index.split(" "))
+        return Arrays.stream(index.split("\\s+"))
                 .map(s -> Integer.valueOf(s))
                 .collect(toList());
     }
 
     List<DerivationAction> derivationActions() {
-        return Arrays.stream(derivationActions.split(" "))
+        return Arrays.stream(derivationActions.split("\\s+"))
                        .map(DerivationAction::valueOf)
                        .collect(toList());
     }

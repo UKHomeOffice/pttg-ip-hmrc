@@ -12,7 +12,6 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.COMBINATION;
-import static uk.gov.digital.ho.pttg.application.namematching.DerivationAction.ORIGINAL;
 import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
 import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_LAST_NAMES;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
@@ -68,7 +67,7 @@ class MultipleLastNamesFunctions {
                 new CandidateDerivation(
                         originalNames,
                         lastNameCandidate.derivation().generators(),
-                        new NameDerivation(firstName, ORIGINAL),
+                        new NameDerivation(firstName),
                         lastNameCandidate.derivation().lastName()));
     }
 

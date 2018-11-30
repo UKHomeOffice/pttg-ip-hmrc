@@ -34,10 +34,10 @@ public class NameDerivation {
     @JsonProperty(value = "derivationActions")
     private List<DerivationAction> derivationActions;
 
-    public NameDerivation(Name name, DerivationAction derivationAction) {
+    public NameDerivation(Name name) {
         this(name.nameType(),
                 singletonList(name.index()),
                 name.name().length(),
-                singletonList(derivationAction));
+                name.derivation().derivationActions());
     }
 }

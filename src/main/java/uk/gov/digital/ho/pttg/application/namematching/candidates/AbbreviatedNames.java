@@ -22,12 +22,12 @@ public class AbbreviatedNames implements NameMatchingCandidateGenerator {
     }
 
     @Override
-    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess) {
-        if (doesNotContainAbbreviatedNames(namesToProcess)) {
+    public List<CandidateName> generateCandidates(InputNames originalNames, InputNames requiredByInterface) {
+        if (doesNotContainAbbreviatedNames(originalNames)) {
             return emptyList();
         }
 
-        InputNames abbreviatedNames = namesToProcess.groupByAbbreviatedNames();
+        InputNames abbreviatedNames = originalNames.groupByAbbreviatedNames();
 
         List<CandidateName> candidateNames;
 

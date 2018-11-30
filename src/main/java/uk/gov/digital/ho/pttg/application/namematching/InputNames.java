@@ -65,14 +65,14 @@ public class InputNames {
         return unmodifiableList(nameStringsOf(lastNames));
     }
 
-    public List<String> allNames() {
+    public List<String> rawAllNames() {
         return unmodifiableList(
                 Stream.concat(
-                        allNonAliasNames().stream(),
+                        rawAllNonAliasNames().stream(),
                         nameStringsOf(aliasSurnames).stream()).collect(toList()));
     }
 
-    List<String> allNonAliasNames() {
+    List<String> rawAllNonAliasNames() {
         return unmodifiableList(
                 Stream.concat(
                         nameStringsOf(firstNames).stream(),
@@ -100,11 +100,16 @@ public class InputNames {
     }
 
     public InputNames groupByAbbreviatedNames() {
-        List<Name> firstNames = analyse(emptyList(), FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
-        List<Name> lastNames = analyse(emptyList(), LAST, splitAroundAbbreviatedNames(this.fullLastName()));
-        List<Name> aliasNames = analyse(emptyList(), ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
+        List<Name> allNames = allNames();
+        List<Name> firstNames = analyse(allNames, FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
+        List<Name> lastNames = analyse(allNames, LAST, splitAroundAbbreviatedNames(this.fullLastName()));
+        List<Name> aliasNames = analyse(allNames, ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
 
         return new InputNames(firstNames, lastNames, aliasNames);
+    }
+
+    private List<Name> allNames() {
+        return Stream.concat(Stream.concat(firstNames.stream(), lastNames.stream()), aliasSurnames.stream()).collect(toList());
     }
 
     public InputNames reduceFirstNames(End end, int amount) {

@@ -80,26 +80,28 @@ public final class GeneratorFunctions {
                        .map(name -> {
                            List<String> originalNameParts = splitIntoDistinctNames(nameWithSplittersReplacedBySpaces(name.name()));
 
-                           if (originalNameParts.get(0).equals(rawName)) {
+                           String lhsOfSplit = originalNameParts.get(0);
+                           if (lhsOfSplit.equals(rawName)) {
                                return new NameDerivation(
                                        name.nameType(),
                                        singletonList(name.index()),
-                                       name.getLength(),
+                                       lhsOfSplit.length(),
                                        singletonList(LEFT_OF_SPLIT));
                            }
 
-                           if (originalNameParts.get(originalNameParts.size() - 1).equals(rawName)) {
+                           String rhsOfSplit = originalNameParts.get(originalNameParts.size() - 1);
+                           if (rhsOfSplit.equals(rawName)) {
                                return new NameDerivation(
                                        name.nameType(),
                                        singletonList(name.index()),
-                                       name.getLength(),
+                                       rhsOfSplit.length(),
                                        singletonList(RIGHT_OF_SPLIT));
                            }
 
                            return new NameDerivation(
                                    name.nameType(),
                                    singletonList(name.index()),
-                                   name.getLength(),
+                                   name.getLength() - (2 + lhsOfSplit.length() + rhsOfSplit.length()),
                                    singletonList(MIDDLE_OF_SPLIT));
                        })
                        .findFirst();
@@ -116,7 +118,7 @@ public final class GeneratorFunctions {
                        .map(matchingName -> new NameDerivation(
                                matchingName.nameType(),
                                singletonList(matchingName.index()),
-                               matchingName.getLength(),
+                               rawName.length(),
                                singletonList(SPLITTER_IGNORED)))
                        .findFirst();
 

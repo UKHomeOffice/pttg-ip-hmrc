@@ -45,8 +45,8 @@ public final class InputNamesFunctions {
         return asList(splitNames);
     }
 
-    static boolean hasFullStopSpace(String name) {
-        return FULL_STOP_SPACE_REGEX.matcher(name).find();
+    static boolean isAbbreviation(String name) {
+        return name.contains(".") || FULL_STOP_SPACE_REGEX.matcher(name).find();
     }
 
     static boolean hasNameSplitter(String name) {

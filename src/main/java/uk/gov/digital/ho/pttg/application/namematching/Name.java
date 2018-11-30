@@ -56,7 +56,7 @@ public class Name {
         this.index = index;
         this.containsDiacritics = hasDiacritics(name);
         this.containsUmlauts = hasUmlauts(name);
-        this.abbreviation = hasFullStopSpace(name);
+        this.abbreviation = isAbbreviation(name);
         this.containsNameSplitter = hasNameSplitter(name);
         this.unicodeBlocks = calculateUnicodeBlocks(name);
     }
