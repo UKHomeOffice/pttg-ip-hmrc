@@ -271,7 +271,7 @@ Feature: Analysis logging
       | ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
-      | FIRST     | 1       | 5       | RIGHT_OF_SPLIT    |
+      | FIRST     | 0       | 5       | RIGHT_OF_SPLIT    |
       | LAST      | 0       | 8       | ENTIRE            |
 
 
@@ -363,7 +363,7 @@ Feature: Analysis logging
       | ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME  |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
-      | FIRST     | 1       | 5       | RIGHT_OF_SPLIT    |
+      | FIRST     | 0       | 5       | RIGHT_OF_SPLIT    |
       | LAST      | 0       | 8       | ENTIRE            |
 
 

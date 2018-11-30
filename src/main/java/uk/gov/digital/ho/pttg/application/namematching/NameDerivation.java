@@ -35,8 +35,8 @@ public class NameDerivation {
     private List<DerivationAction> derivationActions;
 
     public NameDerivation(Name name) {
-        this(name.nameType(),
-                singletonList(name.index()),
+        this(name.derivation().section(),
+                name.derivation().index(),
                 name.name().length(),
                 name.derivation().derivationActions());
     }

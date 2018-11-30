@@ -724,10 +724,25 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataHasNameDerivation(MetaDataNameDerivation metaDataNameDerivation, NameDerivation nameDerivation) {
-        return metaDataNameDerivation.section() == nameDerivation.section() &&
-                       metaDataNameDerivation.index().equals(nameDerivation.index()) &&
-                       metaDataNameDerivation.length() == nameDerivation.length() &&
+        return (metaDataNameDerivation.section() == nameDerivation.section() || diagnoseWrongSection(metaDataNameDerivation.section(), nameDerivation.section())) &&
+                       (metaDataNameDerivation.index().equals(nameDerivation.index()) || diagnoseWrongIndex(metaDataNameDerivation.index(), (nameDerivation.index())) &&
+                       (metaDataNameDerivation.length() == nameDerivation.length() || diagnoseWrongLength(metaDataNameDerivation.length(), nameDerivation.length()))) &&
                        (metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions()) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions()));
+    }
+
+    private boolean diagnoseWrongLength(int expected, Integer actual) {
+        log.error("Expected: {} Actual: {}", expected, actual);
+        return false;
+    }
+
+    private boolean diagnoseWrongIndex(List<Integer> expected, List<Integer> actual) {
+        log.error("Expected: {} Actual: {}", expected, actual);
+        return false;
+    }
+
+    private boolean diagnoseWrongSection(NameType expected, NameType actual) {
+        log.error("Expected: {} Actual: {}", expected, actual);
+        return false;
     }
 
     private boolean diagnoseWrongDerivation(List<DerivationAction> expected, List<DerivationAction> actual) {

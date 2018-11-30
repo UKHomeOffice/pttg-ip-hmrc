@@ -100,10 +100,9 @@ public class InputNames {
     }
 
     public InputNames groupByAbbreviatedNames() {
-        List<Name> allNames = allNames();
-        List<Name> firstNames = analyse(allNames, FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
-        List<Name> lastNames = analyse(allNames, LAST, splitAroundAbbreviatedNames(this.fullLastName()));
-        List<Name> aliasNames = analyse(allNames, ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
+        List<Name> firstNames = analyse(firstNames(), FIRST, splitAroundAbbreviatedNames(this.fullFirstName()));
+        List<Name> lastNames = analyse(lastNames(), LAST, splitAroundAbbreviatedNames(this.fullLastName()));
+        List<Name> aliasNames = analyse(aliasSurnames, ALIAS, splitAroundAbbreviatedNames(this.fullAliasNames()));
 
         return new InputNames(firstNames, lastNames, aliasNames);
     }

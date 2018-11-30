@@ -118,7 +118,7 @@ Feature: Analysis logging
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 3       | ORIGINAL          |
-      | ALIAS     | 1       | 3       | RIGHT_OF_SPLIT    |
+      | ALIAS     | 0       | 3       | RIGHT_OF_SPLIT    |
 
 
   Scenario: Meta-Data for Alias name with a full stop and a space is matched
