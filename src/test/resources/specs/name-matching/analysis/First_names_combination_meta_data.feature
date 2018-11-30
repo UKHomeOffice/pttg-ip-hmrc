@@ -90,7 +90,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | false         | BASIC_LATIN   | 3       |
       | LAST      | 1     | false       | false   | false         | false         | BASIC_LATIN   | 5       |
     And the meta-data indicates that the following generators were used
-      | NAME_MATCHING    |
+      | NAME_COMBINATIONS    |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 2       | 1       | ORIGINAL          |

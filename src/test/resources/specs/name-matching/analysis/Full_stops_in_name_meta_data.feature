@@ -89,7 +89,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | false         | BASIC_LATIN   | 3       |
     And the meta-data indicates that the following generators were used
       | ABBREVIATED_NAMES |
-      | NAME_MATCHING     |
+      | NAME_COMBINATIONS     |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | LAST      | 0       | 3       | ORIGINAL          |

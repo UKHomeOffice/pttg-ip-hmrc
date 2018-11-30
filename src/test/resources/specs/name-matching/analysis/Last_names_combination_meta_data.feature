@@ -41,7 +41,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | false         | BASIC_LATIN   | 5       |
       | LAST      | 1     | false       | false   | false         | false         | BASIC_LATIN   | 6       |
     And the meta-data indicates that the following generators were used
-      | NAME_MATCHING    |
+      | NAME_COMBINATIONS    |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 6       | ORIGINAL            |
@@ -86,7 +86,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | true          | BASIC_LATIN   | 12      |
     And the meta-data indicates that the following generators were used
       | SPLITTERS_REPLACED |
-      | NAME_MATCHING      |
+      | NAME_COMBINATIONS      |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 6       | ORIGINAL          |
@@ -178,7 +178,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | true          | BASIC_LATIN   | 9       |
     And the meta-data indicates that the following generators were used
       | SPLITTERS_REPLACED           |
-      | NAME_MATCHING                |
+      | NAME_COMBINATIONS                |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 6       | ORIGINAL          |
@@ -291,7 +291,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | true          | BASIC_LATIN   | 8       |
     And the meta-data indicates that the following generators were used
       | SPLITTERS_REPLACED  |
-      | NAME_MATCHING       |
+      | NAME_COMBINATIONS       |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 6       | LEFT_OF_SPLIT     |
@@ -315,7 +315,7 @@ Feature: Analysis logging
       | LAST      | 0     | false       | false   | false         | true          | BASIC_LATIN   | 8       |
     And the meta-data indicates that the following generators were used
       | SPLITTERS_REPLACED  |
-      | NAME_MATCHING       |
+      | NAME_COMBINATIONS       |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 5       | RIGHT_OF_SPLIT    |

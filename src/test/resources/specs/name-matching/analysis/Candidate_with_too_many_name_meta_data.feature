@@ -23,7 +23,7 @@ Feature: Analysis logging
       | LAST      | 1     | false       | false   | false         | false         | BASIC_LATIN   | 3       |
       | LAST      | 2     | false       | false   | false         | false         | BASIC_LATIN   | 3       |
     And the meta-data indicates that the following generators were used
-      | NAME_MATCHING    |
+      | NAME_COMBINATIONS    |
     And the meta-data contains the following name derivation information
       | section   | index | length  | derivationActions |
       | LAST      | 2     | 3       | ORIGINAL          |

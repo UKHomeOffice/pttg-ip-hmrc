@@ -39,7 +39,7 @@ Feature: Analysis logging
       | FIRST     | 0     | false       | false   | false         | true          | BASIC_LATIN   | 6       |
       | LAST      | 0     | false       | false   | false         | true          | BASIC_LATIN   | 6       |
     And the meta-data indicates that the following generators were used
-      | NAME_MATCHING    |
+      | NAME_COMBINATIONS    |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | LAST      | 0       | 6       | ORIGINAL          |
@@ -107,7 +107,7 @@ Feature: Analysis logging
       | FIRST     | 0     | false       | false   | false         | false         | BASIC_LATIN   | 3       |
       | LAST      | 0     | false       | false   | false         | true          | BASIC_LATIN   | 6       |
     And the meta-data indicates that the following generators were used
-      | NAME_MATCHING     |
+      | NAME_COMBINATIONS     |
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | LAST      | 0       | 6       | ORIGINAL          |

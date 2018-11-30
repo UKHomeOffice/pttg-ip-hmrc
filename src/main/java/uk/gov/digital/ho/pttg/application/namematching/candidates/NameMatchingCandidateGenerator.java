@@ -13,7 +13,7 @@ public interface NameMatchingCandidateGenerator {
         MULTIPLE_NAMES,
         ABBREVIATED_NAMES,
         ALIAS_COMBINATIONS,
-        NAME_MATCHING,
+        NAME_COMBINATIONS,
         SPLITTERS_REMOVED,
         SPLITTERS_REPLACED
     }

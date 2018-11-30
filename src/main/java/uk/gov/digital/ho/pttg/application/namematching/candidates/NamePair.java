@@ -10,7 +10,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static lombok.AccessLevel.PRIVATE;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.NAME_MATCHING;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator.NAME_COMBINATIONS;
 
 @AllArgsConstructor(access = PRIVATE)
 class NamePair {
@@ -32,7 +32,7 @@ class NamePair {
         CandidateDerivation derivation =
                 new CandidateDerivation(
                         originalNames,
-                        singletonList(NAME_MATCHING),
+                        singletonList(NAME_COMBINATIONS),
                         firstName.derivation(),
                         lastName.derivation()
                 );
