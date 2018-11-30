@@ -304,6 +304,7 @@ public class NameMatchingSteps {
         assertThat(response).isNotNull();
         JsonPath jsonPath = new JsonPath(response.asString());
         assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(10500);
+        assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(0);
         assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
@@ -315,6 +316,7 @@ public class NameMatchingSteps {
         assertThat(response).isNotNull();
         JsonPath jsonPath = new JsonPath(response.asString());
         assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(30000);
+        assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(0);
         assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
