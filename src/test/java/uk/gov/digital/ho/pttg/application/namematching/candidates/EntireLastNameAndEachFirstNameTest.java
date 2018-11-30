@@ -22,7 +22,7 @@ public class EntireLastNameAndEachFirstNameTest {
     @Test
     public void shouldGenerateCorrectSurnameCombinationsForMultipleSurnames() {
 
-        List<CandidateName> names = entireLastNameAndEachFirstName.generateCandidates(new InputNames("A B C", "D E F"));
+        List<CandidateName> names = entireLastNameAndEachFirstName.generateCandidates(new InputNames("A B C", "D E F"), new InputNames("A B C", "D E F"));
         assertThat(INCORRECT_NUMBER_OF_GENERATED_NAMES, names.size(), is(3));
 
         assertThat(INCORRECT_ORDER, names.get(0), is(new CandidateName("A", "D E F")));

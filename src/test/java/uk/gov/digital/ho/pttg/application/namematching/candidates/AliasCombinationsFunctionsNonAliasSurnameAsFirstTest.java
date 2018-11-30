@@ -16,17 +16,17 @@ public class AliasCombinationsFunctionsNonAliasSurnameAsFirstTest {
 
     @Test
     public void shouldReturnEmptyListForEmptyInput() {
-        InputNames emptyInputNames = new InputNames(emptyList(), emptyList());
-        assertThat(nonAliasSurnameAsFirstNameCombinations(emptyInputNames)).isEqualTo(emptyList());
+        InputNames emptyInputNames = new InputNames("", "");
+        assertThat(nonAliasSurnameAsFirstNameCombinations(emptyInputNames, emptyInputNames)).isEqualTo(emptyList());
     }
 
     @Test
     public void shouldReturnEmptyListForSingleInputName() {
-        InputNames oneFirstNameOnly = new InputNames(singletonList("somename"), emptyList());
-        InputNames oneLastNameOnly = new InputNames(emptyList(), singletonList("somename"));
+        InputNames oneFirstNameOnly = new InputNames("somename", "");
+        InputNames oneLastNameOnly = new InputNames("", "somename");
 
-        assertThat(nonAliasSurnameAsFirstNameCombinations(oneFirstNameOnly)).isEqualTo(emptyList());
-        assertThat(nonAliasSurnameAsFirstNameCombinations(oneLastNameOnly)).isEqualTo(emptyList());
+        assertThat(nonAliasSurnameAsFirstNameCombinations(oneFirstNameOnly, oneFirstNameOnly)).isEqualTo(emptyList());
+        assertThat(nonAliasSurnameAsFirstNameCombinations(oneLastNameOnly, oneLastNameOnly)).isEqualTo(emptyList());
     }
 
     @Test
@@ -34,7 +34,7 @@ public class AliasCombinationsFunctionsNonAliasSurnameAsFirstTest {
         InputNames inputNames = new InputNames("John", "Smith");
         List<CandidateName> expected = singletonList(new CandidateName("Smith", "John"));
 
-        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames, inputNames)).isEqualTo(expected);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class AliasCombinationsFunctionsNonAliasSurnameAsFirstTest {
                 new CandidateName("Smith", "David")
         );
 
-        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames, inputNames)).isEqualTo(expected);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class AliasCombinationsFunctionsNonAliasSurnameAsFirstTest {
                 new CandidateName("Evans", "John")
         );
 
-        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames, inputNames)).isEqualTo(expected);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class AliasCombinationsFunctionsNonAliasSurnameAsFirstTest {
                 new CandidateName("Evans", "David")
         );
 
-        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames)).isEqualTo(expected);
+        assertThat(nonAliasSurnameAsFirstNameCombinations(inputNames, inputNames)).isEqualTo(expected);
     }
 
 }

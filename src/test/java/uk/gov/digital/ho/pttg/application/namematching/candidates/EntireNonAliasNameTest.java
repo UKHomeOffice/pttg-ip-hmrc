@@ -15,8 +15,8 @@ public class EntireNonAliasNameTest {
         InputNames inputNames = new InputNames("some first name", "some last name", "some alias");
 
         CandidateName expectedCandidateName = new CandidateName("some first name", "some last name");
-        assertThat(entireNonAliasName.generateCandidates(inputNames)).hasSize(1);
-        assertThat(entireNonAliasName.generateCandidates(inputNames).get(0)).isEqualTo(expectedCandidateName);
+        assertThat(entireNonAliasName.generateCandidates(inputNames, inputNames)).hasSize(1);
+        assertThat(entireNonAliasName.generateCandidates(inputNames, inputNames).get(0)).isEqualTo(expectedCandidateName);
     }
 
     @Test
@@ -24,8 +24,8 @@ public class EntireNonAliasNameTest {
         InputNames inputNames = new InputNames("some first name", "", "some alias");
 
         CandidateName expectedCandidateName = new CandidateName("some first name", "some first name");
-        assertThat(entireNonAliasName.generateCandidates(inputNames)).hasSize(1);
-        assertThat(entireNonAliasName.generateCandidates(inputNames).get(0)).isEqualTo(expectedCandidateName);
+        assertThat(entireNonAliasName.generateCandidates(inputNames, inputNames)).hasSize(1);
+        assertThat(entireNonAliasName.generateCandidates(inputNames, inputNames).get(0)).isEqualTo(expectedCandidateName);
     }
 
     @Test
@@ -33,7 +33,7 @@ public class EntireNonAliasNameTest {
         InputNames inputNames = new InputNames("", "some last name", "some alias");
 
         CandidateName expectedCandidateName = new CandidateName("some last name", "some last name");
-        assertThat(entireNonAliasName.generateCandidates(inputNames)).hasSize(1);
-        assertThat(entireNonAliasName.generateCandidates(inputNames).get(0)).isEqualTo(expectedCandidateName);
+        assertThat(entireNonAliasName.generateCandidates(inputNames, inputNames)).hasSize(1);
+        assertThat(entireNonAliasName.generateCandidates(inputNames, inputNames).get(0)).isEqualTo(expectedCandidateName);
     }
 }

@@ -4,89 +4,89 @@ import org.junit.Test;
 import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.doesNotContainFullStopSpaceBetweenNames;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.doesNotContainAbbreviatedNames;
 
-public class NamesWithFullStopSpaceCombinationsFunctionsContainFullStopSpaceTest {
+public class AbbreviatedAbbreviatedNamesWithFullStopSpaceCombinationsFunctionsContainFullStopSpaceTest {
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_emptyString_returnTrue() {
         InputNames emptyStringNames = new InputNames("", "");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(emptyStringNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(emptyStringNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopOnly_returnTrue() {
         InputNames fullStopOnlyNames = new InputNames(".", ".");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(fullStopOnlyNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(fullStopOnlyNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_spaceOnly_returnTrue() {
         InputNames spaceOnlyNames = new InputNames(" ", " ");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(spaceOnlyNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(spaceOnlyNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopSpaceNoLetters_returnTrue() {
         InputNames fullStopSpaceOnlyNames = new InputNames(". ", ". ");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(fullStopSpaceOnlyNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(fullStopSpaceOnlyNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_noNameAfterSpace_returnTrue() {
         InputNames noNameAfterSpaceNames = new InputNames("St. ", "St. ");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(noNameAfterSpaceNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(noNameAfterSpaceNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_noNameBeforeFullStop_returnTrue() {
         InputNames noNameBeforeFullStopNames = new InputNames(". John", ". John");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(noNameBeforeFullStopNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(noNameBeforeFullStopNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopSpaceFirstName_returnFalse() {
         InputNames namesWithFullStopSpaceFirstName = new InputNames("St. John", "Smith");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(namesWithFullStopSpaceFirstName)).isFalse();
+        assertThat(doesNotContainAbbreviatedNames(namesWithFullStopSpaceFirstName)).isFalse();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopSpaceLastName_returnFalse() {
         InputNames namesWithFullStopSpaceLastName = new InputNames("David", "St. John");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(namesWithFullStopSpaceLastName)).isFalse();
+        assertThat(doesNotContainAbbreviatedNames(namesWithFullStopSpaceLastName)).isFalse();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_doubleFullStopNotName_returnTrue() {
         InputNames doubleFullStopNames = new InputNames(".. John", ".. John");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(doubleFullStopNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(doubleFullStopNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_fullStopAfterSpaceNotName_returnTrue() {
         InputNames fullStopAfterSpaceNames = new InputNames("St. .", "St. .");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(fullStopAfterSpaceNames)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(fullStopAfterSpaceNames)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_accentedCharactersAtBoundary_returnFalse() {
         InputNames accentBeforeFullStop = new InputNames("à. b", "Smith");
         InputNames accentAfterFullStop = new InputNames("David", "b. à");
-        assertThat(doesNotContainFullStopSpaceBetweenNames(accentBeforeFullStop)).isFalse();
-        assertThat(doesNotContainFullStopSpaceBetweenNames(accentAfterFullStop)).isFalse();
+        assertThat(doesNotContainAbbreviatedNames(accentBeforeFullStop)).isFalse();
+        assertThat(doesNotContainAbbreviatedNames(accentAfterFullStop)).isFalse();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_aliasWithOutFullstopSpace_returnTrue(){
         InputNames noFullStopSpace = new InputNames("John", "Smith", "Jones");
 
-        assertThat(doesNotContainFullStopSpaceBetweenNames(noFullStopSpace)).isTrue();
+        assertThat(doesNotContainAbbreviatedNames(noFullStopSpace)).isTrue();
     }
 
     @Test
     public void doesNotContainFullStopSpaceBetweenNames_aliasWithFullstopSpace_returnFalse(){
         InputNames withFullStopSpace = new InputNames("John", "Smith", "St. John");
 
-        assertThat(doesNotContainFullStopSpaceBetweenNames(withFullStopSpace)).isFalse();
+        assertThat(doesNotContainAbbreviatedNames(withFullStopSpace)).isFalse();
     }
 }

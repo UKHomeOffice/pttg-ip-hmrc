@@ -13,19 +13,21 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandid
 @Service
 public class NameMatchingCandidatesService {
 
-    private List<NameMatchingCandidateGenerator> candidateGenerators;
+    private GeneratorFactory generatorFactory;
 
-    public NameMatchingCandidatesService(List<NameMatchingCandidateGenerator> candidateGenerators) {
-        this.candidateGenerators = candidateGenerators;
+    public NameMatchingCandidatesService(GeneratorFactory generatorFactory) {
+        this.generatorFactory = generatorFactory;
     }
 
     public List<CandidateName> generateCandidateNames(String firstNames, String lastNames, String aliasSurnames) {
 
         InputNames inputNames = new InputNames(firstNames, lastNames, aliasSurnames);
 
+        List<NameMatchingCandidateGenerator> candidateGenerators = generatorFactory.createGenerators(inputNames);
+
         List<CandidateName> candidates = candidateGenerators
                                                  .stream()
-                                                 .map(cs -> cs.generateCandidates(inputNames))
+                                                 .map(cs -> cs.generateCandidates(inputNames, inputNames))
                                                  .flatMap(Collection::stream)
                                                  .collect(toList());
 

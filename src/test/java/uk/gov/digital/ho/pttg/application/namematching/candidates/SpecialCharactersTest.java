@@ -17,16 +17,11 @@ public class SpecialCharactersTest {
     private static final String SOME_NAME = "somelastname";
     private static final String SOME_ALIAS_SURNAME = "somealiassurname";
 
-    @Mock
-    private EntireNonAliasName mockEntireNonAliasName;
-    @Mock
-    private EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
-    @Mock
-    private NameCombinations mockNameCombinations;
-    @Mock
-    private AliasCombinations mockAliasCombinations;
-    @Mock
-    private MultipleLastNames mockMultipleLastNames;
+    @Mock private EntireNonAliasName mockEntireNonAliasName;
+    @Mock private EntireLastNameAndEachFirstName mockEntireLastNameAndEachFirstName;
+    @Mock private NameCombinations mockNameCombinations;
+    @Mock private AliasCombinations mockAliasCombinations;
+    @Mock private MultipleLastNames mockMultipleLastNames;
 
     private SpecialCharacters specialCharacters;
 
@@ -34,10 +29,11 @@ public class SpecialCharactersTest {
     public void setUp() {
         specialCharacters = new SpecialCharacters(mockEntireNonAliasName, mockEntireLastNameAndEachFirstName, mockNameCombinations, mockAliasCombinations, mockMultipleLastNames);
 
-        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockNameCombinations.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
-        when(mockMultipleLastNames.generateCandidates(any(InputNames.class))).thenReturn(emptyList());
+        when(mockEntireNonAliasName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockEntireLastNameAndEachFirstName.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockNameCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockAliasCombinations.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
+        when(mockMultipleLastNames.generateCandidates(any(InputNames.class), any(InputNames.class))).thenReturn(emptyList());
     }
 
     @Test
@@ -45,9 +41,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames("-a-b-", SOME_NAME);
         InputNames inputWithHyphensRemoved = new InputNames("ab", SOME_NAME);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithHyphensRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithHyphensRemoved);
     }
 
     @Test
@@ -55,9 +51,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames("'a'b'", SOME_NAME);
         InputNames inputWithApostrophesRemoved = new InputNames("ab", SOME_NAME);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithApostrophesRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithApostrophesRemoved);
     }
 
     @Test
@@ -65,9 +61,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames("-a-b-", SOME_NAME);
         InputNames inputWithSpaces = new InputNames(" a b ", SOME_NAME);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
     @Test
@@ -75,9 +71,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames("'a'b'", SOME_NAME);
         InputNames inputWithSpaces = new InputNames(" a b ", SOME_NAME);
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
     @Test
@@ -85,9 +81,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(SOME_NAME, "-a-b-");
         InputNames inputWithHyphensRemoved = new InputNames(SOME_NAME, "ab");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithHyphensRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithHyphensRemoved);
     }
 
     @Test
@@ -95,9 +91,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(SOME_NAME, "'a'b'");
         InputNames inputWithApostrophesRemoved = new InputNames(SOME_NAME, "ab", "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithApostrophesRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithApostrophesRemoved);
     }
 
     @Test
@@ -105,16 +101,17 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(SOME_NAME, "-a-b-");
         InputNames inputWithSpaces = new InputNames(SOME_NAME, " a b ", "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
-    private void verifyMandatoryGenerators(InputNames inputNames) {
-        verify(mockEntireNonAliasName).generateCandidates(inputNames);
-        verify(mockEntireLastNameAndEachFirstName).generateCandidates(inputNames);
-        verify(mockNameCombinations).generateCandidates(inputNames);
-        verify(mockMultipleLastNames).generateCandidates(inputNames);
+    private void verifyMandatoryGenerators(InputNames originalInputNames, InputNames inputNames) {
+        verify(mockEntireNonAliasName).generateCandidates(originalInputNames, inputNames);
+        verify(mockEntireLastNameAndEachFirstName).generateCandidates(originalInputNames, inputNames);
+        verify(mockNameCombinations).generateCandidates(originalInputNames, inputNames);
+        verify(mockAliasCombinations).generateCandidates(originalInputNames, inputNames);
+        verify(mockMultipleLastNames).generateCandidates(originalInputNames, inputNames);
     }
 
     @Test
@@ -122,9 +119,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(SOME_NAME, "'a'b'");
         InputNames inputWithSpaces = new InputNames(SOME_NAME, " a b ", "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithSpaces);
+        verifyMandatoryGenerators(inputNames, inputWithSpaces);
     }
 
     @Test
@@ -132,9 +129,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(".a.b.", SOME_NAME);
         InputNames inputWithFullStopsRemoved = new InputNames("ab", SOME_NAME, "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -142,9 +139,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(".a.b.", SOME_NAME);
         InputNames inputWithFullStopsRemoved = new InputNames("ab", SOME_NAME, "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -152,9 +149,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(SOME_NAME, ".a.b.");
         InputNames inputWithFullStopsRemoved = new InputNames( SOME_NAME,"ab", "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -162,9 +159,9 @@ public class SpecialCharactersTest {
         InputNames inputNames = new InputNames(SOME_NAME, ".a.b.");
         InputNames inputWithFullStopsRemoved = new InputNames( SOME_NAME,"ab", "");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
-        verifyMandatoryGenerators(inputWithFullStopsRemoved);
+        verifyMandatoryGenerators(inputNames, inputWithFullStopsRemoved);
     }
 
     @Test
@@ -173,75 +170,61 @@ public class SpecialCharactersTest {
         InputNames inputWithSpecialCharsRemoved = new InputNames("ab", "cd", "");
         InputNames inputWithSpecialCharsAsSpaces = new InputNames("a b ", "c  d", "");
 
-        specialCharacters.generateCandidates(inputNamesWithManySpecialChars);
+        specialCharacters.generateCandidates(inputNamesWithManySpecialChars, inputNamesWithManySpecialChars);
 
-        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsRemoved);
-        verify(mockNameCombinations).generateCandidates(inputWithSpecialCharsAsSpaces);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpecialCharsRemoved);
-        verify(mockMultipleLastNames).generateCandidates(inputWithSpecialCharsAsSpaces);
+        verify(mockNameCombinations).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsRemoved);
+        verify(mockNameCombinations).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsAsSpaces);
+        verify(mockMultipleLastNames).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsRemoved);
+        verify(mockMultipleLastNames).generateCandidates(inputNamesWithManySpecialChars, inputWithSpecialCharsAsSpaces);
     }
 
     @Test
     public void shouldNotCallCollaboratorsWithEmptyNames() {
         InputNames inputNames = new InputNames(".", ".");
 
-        specialCharacters.generateCandidates(inputNames);
+        specialCharacters.generateCandidates(inputNames, inputNames);
 
         verifyNoMoreInteractions(mockNameCombinations);
         verifyNoMoreInteractions(mockMultipleLastNames);
     }
 
     @Test
-    public void shouldNotCallAliasCombinationsWhenNoAlias() {
-        InputNames inputNamesWithoutAliases = new InputNames("some-name", "some-name");
-
-        specialCharacters.generateCandidates(inputNamesWithoutAliases);
-
-        verifyNoMoreInteractions(mockAliasCombinations);
-    }
-
-    @Test
     public void shouldCallAliasCombinationsWhenAliasIsPresent() {
         InputNames inputNameWithAliases = new InputNames("John-Bob", SOME_NAME, SOME_ALIAS_SURNAME);
+        InputNames inputWithSpecialCharsReplaced = new InputNames("John Bob", SOME_NAME, SOME_ALIAS_SURNAME);
 
-        specialCharacters.generateCandidates(inputNameWithAliases);
+        specialCharacters.generateCandidates(inputNameWithAliases, inputNameWithAliases);
 
-        verify(mockAliasCombinations).generateCandidates(new InputNames("John Bob", SOME_NAME, SOME_ALIAS_SURNAME));
-    }
-
-    @Test
-    public void shouldNotCallNameCombinationsWhenAliasIsPresent() {
-        InputNames inputNameWithAliases = new InputNames("some-name", SOME_NAME, SOME_ALIAS_SURNAME);
-
-        specialCharacters.generateCandidates(inputNameWithAliases);
-
-        verifyNoMoreInteractions(mockNameCombinations);
+        verify(mockAliasCombinations).generateCandidates(inputNameWithAliases, inputWithSpecialCharsReplaced);
     }
 
     @Test
     public void shouldCallNameCombinationsWhenNoAlias() {
         InputNames inputNamesWithoutAliases = new InputNames("John-Bob", SOME_NAME);
+        InputNames inputWithSpecialCharsReplaced = new InputNames("John Bob", SOME_NAME);
 
-        specialCharacters.generateCandidates(inputNamesWithoutAliases);
+        specialCharacters.generateCandidates(inputNamesWithoutAliases, inputNamesWithoutAliases);
 
-        verify(mockNameCombinations).generateCandidates(new InputNames("John Bob", SOME_NAME));
+        verify(mockNameCombinations).generateCandidates(inputNamesWithoutAliases, inputWithSpecialCharsReplaced);
     }
 
     @Test
     public void shouldSplitAliasSurnameOnSpecialCharacters() {
         InputNames inputNamesWithSpecialCharAlias = new InputNames(SOME_NAME, SOME_NAME, "O'Neill-Jones");
+        InputNames inputWithSpecialCharsReplaced = new InputNames(SOME_NAME, SOME_NAME, "O Neill Jones");
 
-        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias);
+        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias, inputNamesWithSpecialCharAlias);
 
-        verify(mockAliasCombinations).generateCandidates(new InputNames(SOME_NAME, SOME_NAME, "O Neill Jones"));
+        verify(mockAliasCombinations).generateCandidates(inputNamesWithSpecialCharAlias, inputWithSpecialCharsReplaced);
     }
 
     @Test
     public void shouldReplaceSpecialCharactersWithSpacesForAliasSurnames() {
         InputNames inputNamesWithSpecialCharAlias = new InputNames(SOME_NAME, SOME_NAME, "O'Neill-Jones");
+        InputNames inputWithSpecialCharsRemoved = new InputNames(SOME_NAME, SOME_NAME, "ONeillJones");
 
-        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias);
+        specialCharacters.generateCandidates(inputNamesWithSpecialCharAlias, inputNamesWithSpecialCharAlias);
 
-        verify(mockAliasCombinations).generateCandidates(new InputNames(SOME_NAME, SOME_NAME, "ONeillJones"));
+        verify(mockAliasCombinations).generateCandidates(inputNamesWithSpecialCharAlias, inputWithSpecialCharsRemoved);
     }
 }

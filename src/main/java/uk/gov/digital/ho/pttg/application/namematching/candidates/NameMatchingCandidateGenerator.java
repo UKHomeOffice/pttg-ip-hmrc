@@ -7,14 +7,17 @@ import java.util.List;
 
 public interface NameMatchingCandidateGenerator {
 
-    int ENTIRE_NON_ALIAS_NAME_STRATEGY_PRIORITY = 1;
-    int ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME_PRIORITY = 2;
-    int MULTIPLE_NAMES_STRATEGY_PRIORITY = 3;
-    int NAMES_WITH_FULL_STOP_SPACE_COMBINATIONS_STRATEGY_PRIORITY = 4;
-    int ALIAS_COMBINATIONS_STRATEGY_PRIORITY = 5;
-    int NAME_MATCHING_STRATEGY_PRIORITY = 6;
-    int SPECIAL_CHARACTERS_STRATEGY_PRIORITY = 7;
+    enum Generator {
+        ENTIRE_NON_ALIAS_NAME,
+        ENTIRE_LAST_NAME_AND_EACH_FIRST_NAME,
+        MULTIPLE_NAMES,
+        ABBREVIATED_NAMES,
+        ALIAS_COMBINATIONS,
+        NAME_COMBINATIONS,
+        SPLITTERS_REMOVED,
+        SPLITTERS_REPLACED
+    }
 
-    List<CandidateName> generateCandidates(InputNames inputNames);
+    List<CandidateName> generateCandidates(InputNames originalNames, InputNames namesToProcess);
 
 }

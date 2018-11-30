@@ -9,37 +9,40 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 
-final class NamesWithFullStopSpaceCombinationsFunctions {
+public final class AbbreviatedNamesFunctions {
 
     private static final String ANY_LETTER_INCLUDING_UNICODE_MATCHER = "\\p{L}\\p{M}*+";
     private static final String FULL_STOP_SPACE_MATCHER = "\\.\\s+";
     private static final String FULL_STOP_SPACE_BETWEEN_NAMES_PATTERN = ANY_LETTER_INCLUDING_UNICODE_MATCHER + FULL_STOP_SPACE_MATCHER + ANY_LETTER_INCLUDING_UNICODE_MATCHER;
+    private static final Pattern FULL_STOP_SPACE_PATTERN_REGEX = Pattern.compile(FULL_STOP_SPACE_BETWEEN_NAMES_PATTERN);
 
     private static final String FULL_STOP_SPACE_NEGATIVE_LOOK_BEHIND = "(?<!(\\.|\\s))";
     private static final String SPACE_NOT_PRECEDED_BY_FULL_STOP_OR_SPACE_PATTERN = FULL_STOP_SPACE_NEGATIVE_LOOK_BEHIND + "\\s+";
 
-    static boolean doesNotContainFullStopSpaceBetweenNames(InputNames inputNames) {
+    static boolean doesNotContainAbbreviatedNames(InputNames inputNames) {
         if (nameContainsFullStopSpaceBetweenNames(inputNames.fullFirstName())) {
             return false;
         }
         if (nameContainsFullStopSpaceBetweenNames(inputNames.fullLastName())) {
             return false;
         }
-        return !nameContainsFullStopSpaceBetweenNames(inputNames.allAliasSurnamesAsString());
+        return !nameContainsFullStopSpaceBetweenNames(inputNames.fullAliasNames());
     }
 
-    private static boolean nameContainsFullStopSpaceBetweenNames(String s) {
-        return Pattern.compile(FULL_STOP_SPACE_BETWEEN_NAMES_PATTERN).matcher(s).find();
+    private static boolean nameContainsFullStopSpaceBetweenNames(String name) {
+        return FULL_STOP_SPACE_PATTERN_REGEX.matcher(name).find();
     }
 
-    static List<String> splitNamesIgnoringFullStopSpace(String names) {
+    public static List<String> splitAroundAbbreviatedNames(String names) {
+
         if (names.isEmpty()) {
             return emptyList();
         }
+
         String[] splitNames = names.split(SPACE_NOT_PRECEDED_BY_FULL_STOP_OR_SPACE_PATTERN);
 
         return Arrays.stream(splitNames)
-                .map(NamesWithFullStopSpaceCombinationsFunctions::removeMultipleSpaces)
+                .map(AbbreviatedNamesFunctions::removeMultipleSpaces)
                 .collect(Collectors.toList());
     }
 

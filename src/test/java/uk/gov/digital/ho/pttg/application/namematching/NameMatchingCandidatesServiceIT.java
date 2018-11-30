@@ -18,13 +18,14 @@ import static org.hamcrest.Matchers.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
         NameMatchingCandidatesService.class,
+        GeneratorFactory.class,
         NameCombinations.class,
         MultipleLastNames.class,
         SpecialCharacters.class,
         AliasCombinations.class,
         EntireNonAliasName.class,
         EntireLastNameAndEachFirstName.class,
-        NamesWithFullStopSpaceCombinations.class
+        AbbreviatedNames.class
 })
 public class NameMatchingCandidatesServiceIT {
 

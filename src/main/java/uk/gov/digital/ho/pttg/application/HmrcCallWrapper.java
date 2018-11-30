@@ -28,7 +28,7 @@ public class HmrcCallWrapper {
         this.traversonFollower = traversonFollower;
     }
 
-    <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
+    public <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
         try {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
         } catch (HttpClientErrorException ex) {

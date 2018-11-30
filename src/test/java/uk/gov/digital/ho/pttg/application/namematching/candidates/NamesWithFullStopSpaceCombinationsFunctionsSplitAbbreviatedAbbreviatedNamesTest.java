@@ -7,13 +7,13 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.digital.ho.pttg.application.namematching.candidates.NamesWithFullStopSpaceCombinationsFunctions.splitNamesIgnoringFullStopSpace;
+import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.splitAroundAbbreviatedNames;
 
-public class NamesWithFullStopSpaceCombinationsFunctionsSplitNamesTest {
+public class NamesWithFullStopSpaceCombinationsFunctionsSplitAbbreviatedAbbreviatedNamesTest {
 
     @Test
     public void splitNamesIgnoringFullStopSpace_emptyName_returnEmptyList() {
-        assertThat(splitNamesIgnoringFullStopSpace("")).isEmpty();
+        assertThat(splitAroundAbbreviatedNames("")).isEmpty();
     }
 
     @Test
@@ -21,7 +21,7 @@ public class NamesWithFullStopSpaceCombinationsFunctionsSplitNamesTest {
         String twoNames = "John Smith";
         List<String> expected = asList("John", "Smith");
 
-        assertThat(splitNamesIgnoringFullStopSpace(twoNames))
+        assertThat(splitAroundAbbreviatedNames(twoNames))
                 .isEqualTo(expected);
     }
 
@@ -30,7 +30,7 @@ public class NamesWithFullStopSpaceCombinationsFunctionsSplitNamesTest {
         String nameWithFullStop = "St.John";
         List<String> expected = singletonList("St.John");
 
-        assertThat(splitNamesIgnoringFullStopSpace(nameWithFullStop))
+        assertThat(splitAroundAbbreviatedNames(nameWithFullStop))
                 .isEqualTo(expected);
     }
 
@@ -39,7 +39,7 @@ public class NamesWithFullStopSpaceCombinationsFunctionsSplitNamesTest {
         String nameWithFullStop = "St. John";
         List<String> expected = singletonList("St. John");
 
-        assertThat(splitNamesIgnoringFullStopSpace(nameWithFullStop))
+        assertThat(splitAroundAbbreviatedNames(nameWithFullStop))
                 .isEqualTo(expected);
     }
 
@@ -48,7 +48,7 @@ public class NamesWithFullStopSpaceCombinationsFunctionsSplitNamesTest {
         String nameWithTwoSpaces = "St.  John";
         List<String> expected = singletonList("St. John");
 
-        assertThat(splitNamesIgnoringFullStopSpace(nameWithTwoSpaces))
+        assertThat(splitAroundAbbreviatedNames(nameWithTwoSpaces))
                 .isEqualTo(expected);
     }
 
@@ -57,7 +57,7 @@ public class NamesWithFullStopSpaceCombinationsFunctionsSplitNamesTest {
         String nameWithTwoSpaces = "St.\tJohn";
         List<String> expected = singletonList("St. John");
 
-        assertThat(splitNamesIgnoringFullStopSpace(nameWithTwoSpaces))
+        assertThat(splitAroundAbbreviatedNames(nameWithTwoSpaces))
                 .isEqualTo(expected);
     }
 }
