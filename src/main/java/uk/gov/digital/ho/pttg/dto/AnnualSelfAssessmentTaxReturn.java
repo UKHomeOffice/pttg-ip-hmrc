@@ -1,6 +1,6 @@
 package uk.gov.digital.ho.pttg.dto;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,9 +8,14 @@ import java.math.BigDecimal;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class AnnualSelfAssessmentTaxReturn {
-    private final String taxYear;
-    private final BigDecimal selfEmploymentProfit;
-    private final BigDecimal summaryIncome;
+    @JsonProperty private String taxYear;
+    @JsonProperty private BigDecimal selfEmploymentProfit;
+    @JsonProperty private BigDecimal summaryIncome;
+
+    public AnnualSelfAssessmentTaxReturn(String taxYear, BigDecimal selfEmploymentProfit, BigDecimal summaryIncome) {
+        this.taxYear = taxYear;
+        this.selfEmploymentProfit = selfEmploymentProfit != null ? selfEmploymentProfit : new BigDecimal("0");
+        this.summaryIncome = summaryIncome != null ? summaryIncome : new BigDecimal("0");
+    }
 }

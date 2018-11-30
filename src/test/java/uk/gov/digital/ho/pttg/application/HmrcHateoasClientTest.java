@@ -18,7 +18,6 @@ import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverRateLimitException;
@@ -362,16 +361,16 @@ public class HmrcHateoasClientTest {
         assertThat(saTaxReturns.size()).isEqualTo(2);
         assertThat(saTaxReturns.get(0).getTaxYear()).isEqualTo("2015-16");
         assertThat(saTaxReturns.get(0).getSummaryIncome()).isEqualTo(new BigDecimal("3.00"));
-        assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isNull();
+        assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
         assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
         assertThat(saTaxReturns.get(1).getSummaryIncome()).isEqualTo(new BigDecimal("7.00"));
-        assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isNull();
+        assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
     }
 
     @Test
     public void groupSelfEmploymentSelfAssessments() {
-        List<SelfEmployment> summaries1 = Arrays.asList(getSelfEmployment(new BigDecimal("1.00")), getSelfEmployment(new BigDecimal("2.00")));
-        List<SelfEmployment> summaries2 = Arrays.asList(getSelfEmployment(new BigDecimal("3.00")), getSelfEmployment(new BigDecimal("4.00")));
+        List<SelfEmployment> summaries1 = Arrays.asList(new SelfEmployment(new BigDecimal("1.00")), new SelfEmployment(new BigDecimal("2.00")));
+        List<SelfEmployment> summaries2 = Arrays.asList(new SelfEmployment(new BigDecimal("3.00")), new SelfEmployment(new BigDecimal("4.00")));
         List<SelfEmploymentTaxReturn> selfEmploymentTaxReturns =
                 Arrays.asList(
                         new SelfEmploymentTaxReturn("2015-16", summaries1),
@@ -385,16 +384,10 @@ public class HmrcHateoasClientTest {
         assertThat(saTaxReturns.size()).isEqualTo(2);
         assertThat(saTaxReturns.get(0).getTaxYear()).isEqualTo("2015-16");
         assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("3.00"));
-        assertThat(saTaxReturns.get(0).getSummaryIncome()).isNull();
+        assertThat(saTaxReturns.get(0).getSummaryIncome()).isEqualTo(new BigDecimal("0"));
         assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
         assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("7.00"));
-        assertThat(saTaxReturns.get(1).getSummaryIncome()).isNull();
-    }
-
-    private SelfEmployment getSelfEmployment(BigDecimal selfEmploymentProfit) {
-        SelfEmployment selfEmployment = new SelfEmployment();
-        ReflectionTestUtils.setField(selfEmployment, "selfEmploymentProfit", selfEmploymentProfit);
-        return selfEmployment;
+        assertThat(saTaxReturns.get(1).getSummaryIncome()).isEqualTo(new BigDecimal("0"));
     }
 
     @Test
