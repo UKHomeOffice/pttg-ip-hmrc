@@ -362,10 +362,10 @@ public class HmrcHateoasClientTest {
         assertThat(saTaxReturns.size()).isEqualTo(2);
         assertThat(saTaxReturns.get(0).getTaxYear()).isEqualTo("2015-16");
         assertThat(saTaxReturns.get(0).getSummaryIncome()).isEqualTo(new BigDecimal("3.00"));
-        assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isNull();
+        assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
         assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
         assertThat(saTaxReturns.get(1).getSummaryIncome()).isEqualTo(new BigDecimal("7.00"));
-        assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isNull();
+        assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
     }
 
     @Test
@@ -385,10 +385,10 @@ public class HmrcHateoasClientTest {
         assertThat(saTaxReturns.size()).isEqualTo(2);
         assertThat(saTaxReturns.get(0).getTaxYear()).isEqualTo("2015-16");
         assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("3.00"));
-        assertThat(saTaxReturns.get(0).getSummaryIncome()).isNull();
+        assertThat(saTaxReturns.get(0).getSummaryIncome()).isEqualTo(new BigDecimal("0"));
         assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
         assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("7.00"));
-        assertThat(saTaxReturns.get(1).getSummaryIncome()).isNull();
+        assertThat(saTaxReturns.get(1).getSummaryIncome()).isEqualTo(new BigDecimal("0"));
     }
 
     private SelfEmployment getSelfEmployment(BigDecimal selfEmploymentProfit) {
