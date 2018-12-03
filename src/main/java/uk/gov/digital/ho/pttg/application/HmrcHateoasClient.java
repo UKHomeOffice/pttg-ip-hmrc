@@ -40,6 +40,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
+import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.InvalidIdentityException;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Service
@@ -227,16 +229,22 @@ public class HmrcHateoasClient {
 
                 return matchedIndividual;
 
-            } catch (ApplicationExceptions.HmrcNotFoundException ex) {
+            } catch (HmrcNotFoundException ex) {
                 log.info("Failed to match individual {}", individual.getNino(), value(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
                 retries++;
-            } catch (ApplicationExceptions.InvalidIdentityException e) {
+            } catch (InvalidIdentityException e) {
                 log.info("Skipped HMRC call due to Invalid Identity: {}", e.getMessage(), value(EVENT, HMRC_MATCHING_ATTEMPT_SKIPPED));
                 retries++;
             }
         }
 
-        throw new ApplicationExceptions.HmrcNotFoundException(String.format("Unable to match: %s", individual));
+        log.info("Unsuccessfully matched individual {}",
+                individual.getNino(),
+                value("combination", String.format("Attempted all %d", candidateNames.size())),
+                value("name-matching-analysis", candidateNames.get(0).derivation().inputNames()),
+                value(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
+
+        throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
 
 
@@ -255,7 +263,7 @@ public class HmrcHateoasClient {
 
     private void checkForEmptyNormalizedName(HmrcIndividual normalizedIndividual) {
         if (StringUtils.isBlank(normalizedIndividual.getFirstName()) || StringUtils.isBlank(normalizedIndividual.getLastName())) {
-            throw new ApplicationExceptions.InvalidIdentityException("Normalized name contains a blank name");
+            throw new InvalidIdentityException("Normalized name contains a blank name");
         }
     }
 

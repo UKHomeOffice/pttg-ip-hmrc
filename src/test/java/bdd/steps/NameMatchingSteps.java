@@ -66,6 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_SUCCESS_RECEIVED;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_UNSUCCESSFUL;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
 
 @Slf4j
@@ -596,6 +597,20 @@ public class NameMatchingSteps {
         }));
     }
 
+    @Then("^the unsuccessful match meta-data contains the following input name information$")
+    public void theUnsuccessfulMatchMetaDataContainsTheFollowingInputNameInformation(DataTable dataTable) {
+
+        List<MetaDataInputName> names = dataTable.asList(MetaDataInputName.class);
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return matchNotAchieved(loggingEvent) &&
+                           metaDataWasLogged(loggingEvent) &&
+                           metaDataIsSolelyInputNames(names, loggingEvent);
+        }));
+    }
+
     @Then("^the meta-data contains the following input name information$")
     public void theMetaDataContainsTheFollowingInputNameInformation(DataTable dataTable) {
 
@@ -613,7 +628,12 @@ public class NameMatchingSteps {
 
     private boolean matchAchieved(LoggingEvent loggingEvent) {
         return loggingEvent.getArgumentArray().length == 4 &&
-                        loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_SUCCESS_RECEIVED, "any"));
+                       loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_SUCCESS_RECEIVED, "any"));
+    }
+
+    private boolean matchNotAchieved(LoggingEvent loggingEvent) {
+        return loggingEvent.getArgumentArray().length == 4 &&
+                       loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_UNSUCCESSFUL, "any"));
     }
 
     private boolean metaDataWasLogged(LoggingEvent loggingEvent) {
@@ -637,6 +657,19 @@ public class NameMatchingSteps {
         return metaDataHasInputName(names, FIRST, candidateDerivation.inputNames().firstNames()) &&
                        metaDataHasInputName(names, LAST, candidateDerivation.inputNames().lastNames()) &&
                        metaDataHasInputName(names, ALIAS, candidateDerivation.inputNames().aliasSurnames());
+    }
+
+    private boolean metaDataIsSolelyInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+
+        InputNames inputNames = (InputNames) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[2], "object");
+
+        if (inputNames == null) {
+            return false;
+        }
+
+        return metaDataHasInputName(names, FIRST, inputNames.firstNames()) &&
+                       metaDataHasInputName(names, LAST, inputNames.lastNames()) &&
+                       metaDataHasInputName(names, ALIAS, inputNames.aliasSurnames());
     }
 
     private boolean metaDataHasInputName(List<MetaDataInputName> names, NameType nameType, List<Name> inputNames) {
