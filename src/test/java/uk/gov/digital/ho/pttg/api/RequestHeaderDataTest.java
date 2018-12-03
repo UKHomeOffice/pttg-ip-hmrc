@@ -74,7 +74,7 @@ public class RequestHeaderDataTest {
 
         verify(mockHttpServletResponse).setHeader(SESSION_ID_HEADER, "unknown");
         verify(mockHttpServletResponse).setHeader(USER_ID_HEADER, "unknown");
-        verify(mockHttpServletResponse).setHeader(CORRELATION_ID_HEADER, any(String.class));
+        verify(mockHttpServletResponse).setHeader(eq(CORRELATION_ID_HEADER), any(String.class));
     }
 
     @Test
