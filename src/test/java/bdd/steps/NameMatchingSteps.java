@@ -759,10 +759,10 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataHasNameDerivation(MetaDataNameDerivation metaDataNameDerivation, NameDerivation nameDerivation) {
-        return (metaDataNameDerivation.section() == nameDerivation.section() || diagnoseWrongSection(metaDataNameDerivation.section(), nameDerivation.section())) &&
-                       (metaDataNameDerivation.index().equals(nameDerivation.index()) || diagnoseWrongIndex(metaDataNameDerivation.index(), (nameDerivation.index())) &&
-                       (metaDataNameDerivation.length() == nameDerivation.length() || diagnoseWrongLength(metaDataNameDerivation.length(), nameDerivation.length()))) &&
-                       (metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions()) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions()));
+        return ((metaDataNameDerivation.section() == nameDerivation.section()) || diagnoseWrongSection(metaDataNameDerivation.section(), nameDerivation.section())) &&
+                       ((metaDataNameDerivation.index().equals(nameDerivation.index())) || diagnoseWrongIndex(metaDataNameDerivation.index(), (nameDerivation.index()))) &&
+                       ((metaDataNameDerivation.length() == nameDerivation.length()) || diagnoseWrongLength(metaDataNameDerivation.length(), nameDerivation.length())) &&
+                       ((metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions())) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions()));
     }
 
     private boolean diagnoseWrongLength(int expected, Integer actual) {

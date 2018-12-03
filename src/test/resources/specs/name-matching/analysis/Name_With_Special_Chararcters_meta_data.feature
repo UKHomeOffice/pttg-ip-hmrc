@@ -206,5 +206,5 @@ Feature: Analysis logging
     And the meta-data contains the following name derivation information
       | section   | index   | length  | derivationActions |
       | FIRST     | 0       | 3       | ORIGINAL          |
-      | LAST      | 1 2     | 5       | COMBINATION       |
+      | LAST      | 1 2     | 6       | COMBINATION       |
 

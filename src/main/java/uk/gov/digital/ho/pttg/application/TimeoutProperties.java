@@ -17,10 +17,9 @@ public class TimeoutProperties {
     private HmrcApi hmrcApi;
     private HmrcAccessCode hmrcAccessCode;
 
-    public static class Audit extends TimeoutPropertiesTemplate {}
-    public static class HmrcApi extends TimeoutPropertiesTemplate {}
-    public static class HmrcAccessCode extends TimeoutPropertiesTemplate {}
-
+    static class Audit extends TimeoutPropertiesTemplate {}
+    static class HmrcApi extends TimeoutPropertiesTemplate {}
+    static class HmrcAccessCode extends TimeoutPropertiesTemplate {}
 
     @NoArgsConstructor
     @Getter

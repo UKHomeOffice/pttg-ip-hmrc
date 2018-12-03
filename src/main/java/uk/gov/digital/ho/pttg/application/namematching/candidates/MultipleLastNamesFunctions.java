@@ -94,7 +94,7 @@ class MultipleLastNamesFunctions {
                         new NameDerivation(
                                 LAST,
                                 asList(lastName1.index(), lastName2.index()),
-                                lastName1.name().length() + lastName2.name().length(),
+                                lastName1.name().length() + 1 + lastName2.name().length(),
                                 singletonList(COMBINATION))));
     }
 
