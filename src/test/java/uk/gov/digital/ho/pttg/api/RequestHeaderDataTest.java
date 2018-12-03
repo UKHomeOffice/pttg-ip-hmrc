@@ -19,9 +19,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -38,6 +39,7 @@ public class RequestHeaderDataTest {
     public void setup() {
         requestData = new RequestHeaderData();
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
+        ReflectionTestUtils.setField(requestData, "auditBasicAuth", "user:password");
 
         Logger rootLogger = (Logger) LoggerFactory.getLogger(RequestHeaderData.class);
         rootLogger.setLevel(Level.INFO);
@@ -46,6 +48,11 @@ public class RequestHeaderDataTest {
 
     @Test
     public void shouldProduceBasicAuthHeaderValue() {
+        assertThat(requestData.auditBasicAuth()).isEqualTo("Basic dXNlcjpwYXNzd29yZA==");
+    }
+
+    @Test
+    public void shouldProduceAuditAuthHeaderValue() {
         assertThat(requestData.hmrcBasicAuth()).isEqualTo("Basic dXNlcjpwYXNzd29yZA==");
     }
 
@@ -55,9 +62,19 @@ public class RequestHeaderDataTest {
 
         assertThat(requestData.deploymentName()).isNull();
         assertThat(requestData.deploymentNamespace()).isNull();
+        assertThat(requestData.hmrcApiVersion()).isNull();
         assertThat(requestData.sessionId()).isEqualTo("unknown");
         assertThat(requestData.correlationId()).isNotNull();
         assertThat(requestData.userId()).isEqualTo("unknown");
+    }
+
+    @Test
+    public void shouldSetResponseData() {
+        requestData.afterCompletion(mockHttpServletRequest, mockHttpServletResponse, mockHandler, mock(Exception.class));
+
+        verify(mockHttpServletResponse).setHeader(SESSION_ID_HEADER, "unknown");
+        verify(mockHttpServletResponse).setHeader(USER_ID_HEADER, "unknown");
+        verify(mockHttpServletResponse).setHeader(CORRELATION_ID_HEADER, any(String.class));
     }
 
     @Test
