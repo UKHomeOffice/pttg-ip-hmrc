@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application;
+package uk.gov.digital.ho.pttg.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -13,14 +13,13 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
+import uk.gov.digital.ho.pttg.application.ProxyCustomizer;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.DiacriticNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.InvalidCharacterNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 

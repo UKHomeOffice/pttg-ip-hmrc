@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application.retry;
+package uk.gov.digital.ho.pttg.spring;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +14,7 @@ public class RetryProperties {
 
     @Getter
     @Setter
-    public static class Retry {
+    static class Retry {
         private int attempts;
         private int delay;
         private int unauthorizedAttempts;

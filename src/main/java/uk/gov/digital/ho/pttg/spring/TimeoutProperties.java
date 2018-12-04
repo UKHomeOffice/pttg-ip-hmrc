@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application;
+package uk.gov.digital.ho.pttg.spring;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

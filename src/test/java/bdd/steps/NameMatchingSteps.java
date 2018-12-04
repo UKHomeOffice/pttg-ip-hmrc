@@ -38,11 +38,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.ServiceRunner;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.HmrcHateoasClient;
-import uk.gov.digital.ho.pttg.application.SpringConfiguration;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.*;
 import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator.Generator;
 import uk.gov.digital.ho.pttg.dto.HmrcIndividual;
+import uk.gov.digital.ho.pttg.spring.SpringConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;

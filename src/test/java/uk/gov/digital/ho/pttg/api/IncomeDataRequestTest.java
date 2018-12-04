@@ -14,7 +14,7 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
-import static uk.gov.digital.ho.pttg.application.SpringConfiguration.initialiseObjectMapper;
+import static uk.gov.digital.ho.pttg.spring.SpringConfiguration.initialiseObjectMapper;
 
 public class IncomeDataRequestTest {
 

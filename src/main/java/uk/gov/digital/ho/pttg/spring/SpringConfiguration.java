@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg.application;
+package uk.gov.digital.ho.pttg.spring;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,9 +9,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.MediaType;
@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
-import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
+import uk.gov.digital.ho.pttg.application.ProxyCustomizer;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.*;
 
@@ -36,7 +36,7 @@ import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@Configuration
+@SpringBootConfiguration
 @EnableRetry
 public class SpringConfiguration implements WebMvcConfigurer {
 
@@ -122,6 +122,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
                 .build();
     }
 
+    // TODO: What is the mapper for?
     private RestTemplateBuilder initaliseRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
         RestTemplateBuilder builder = restTemplateBuilder;
 
