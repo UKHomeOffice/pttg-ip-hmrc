@@ -67,10 +67,10 @@ pipeline:
       branch: master
       event: [push, tag]
 
-  run-e2e-tests:
-    repo: UKHomeOffice/pttg-ip-e2e-tests
-    when:
-      event: [ pull_request ]
+#  run-e2e-tests:
+#    repo: UKHomeOffice/pttg-ip-e2e-tests
+#    when:
+#      event: [ pull_request ]
 
   deployment:
     image: quay.io/ukhomeofficedigital/kd:v0.8.0
