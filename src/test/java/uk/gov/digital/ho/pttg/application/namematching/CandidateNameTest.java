@@ -2,7 +2,10 @@ package uk.gov.digital.ho.pttg.application.namematching;
 
 import org.junit.Test;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_LAST_NAMES;
 
 public class CandidateNameTest {
 
@@ -43,5 +46,12 @@ public class CandidateNameTest {
         CandidateName inputName = new CandidateName("a", "cd efg");
         CandidateName expected = new CandidateName("a", "cd e");
         assertThat(inputName.hmrcNameMatchingEquivalent()).isEqualTo(expected);
+    }
+
+    @Test
+    public void shouldProduceDefaultCandidateDerivationWithDeprecatedConstructor() {
+        CandidateName candidateName = new CandidateName("some first name", "some last name");
+        assertThat(candidateName.derivation()).isEqualTo(
+                new CandidateDerivation(null, singletonList(null), ALL_FIRST_NAMES, ALL_LAST_NAMES));
     }
 }

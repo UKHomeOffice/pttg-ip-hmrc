@@ -2,6 +2,7 @@ package uk.gov.digital.ho.pttg.application.namematching;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -16,6 +17,7 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameType.LAST;
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
+@EqualsAndHashCode
 public class NameDerivation {
 
     public static final NameDerivation ALL_FIRST_NAMES = new NameDerivation(FIRST, null, null, singletonList(ENTIRE));
