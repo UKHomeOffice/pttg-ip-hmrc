@@ -6,10 +6,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.digital.ho.pttg.application.namematching.Name.End.LEFT;
+import static uk.gov.digital.ho.pttg.application.namematching.Name.End.RIGHT;
+import static uk.gov.digital.ho.pttg.application.namematching.NameType.FIRST;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InputNamesTest {
@@ -194,5 +197,56 @@ public class InputNamesTest {
     public void allAliasSurnamesAsString_twoAliasNames_aliasNamesJoined() {
         InputNames twoAliasNames = new InputNames(SOME_NAME, SOME_NAME, "aliasName1 aliasName2");
         assertThat(twoAliasNames.fullAliasNames()).isEqualTo("aliasName1 aliasName2");
+    }
+
+    @Test
+    public void shouldCalculateSize() {
+        Name someName = new Name(Optional.empty(), FIRST, 0, "some name");
+        List<Name> firstNames = Arrays.asList(someName, someName);
+        List<Name> lastNames = Arrays.asList(someName, someName, someName);
+        List<Name> aliasSurnames = EMPTY_LIST;
+
+        InputNames inputNames = new InputNames(firstNames, lastNames, aliasSurnames);
+
+        assertThat(inputNames.size()).isEqualTo(5);
+    }
+
+    @Test
+    public void shouldProduceRawFirstNames() {
+        InputNames inputNames = new InputNames("some first names", "some last names");
+
+        assertThat(inputNames.rawFirstNames()).containsExactly("some", "first", "names");
+    }
+
+    @Test
+    public void shouldProduceRawLastNames() {
+        InputNames inputNames = new InputNames("some first names", "some last names");
+
+        assertThat(inputNames.rawLastNames()).containsExactly("some", "last", "names");
+    }
+
+    @Test
+    public void shouldReduceFirstNames() {
+        InputNames inputNames = new InputNames("some first names", "last");
+
+        assertThat(inputNames.reduceFirstNames(LEFT, 1)).isEqualTo(new InputNames("names", "last"));
+    }
+
+    @Test
+    public void shouldReduceLastNames() {
+        InputNames inputNames = new InputNames("first", "some last names");
+
+        assertThat(inputNames.reduceLastNames(RIGHT, 1)).isEqualTo(new InputNames("first", "some"));
+    }
+
+    @Test
+    public void shouldGroupByAbbreviatedNames() {
+        InputNames inputNames = new InputNames("dr. first", "mr. last", "mdm. alias");
+
+        InputNames abbreviatedNames = inputNames.groupByAbbreviatedNames();
+
+        assertThat(abbreviatedNames.firstNames()).containsExactly(new Name(Optional.empty(), FIRST, 0, "dr. first"));
+        assertThat(abbreviatedNames.lastNames()).containsExactly(new Name(Optional.empty(), FIRST, 0, "mr. last"));
+        assertThat(abbreviatedNames.aliasSurnames()).containsExactly(new Name(Optional.empty(), FIRST, 0, "mdm. alias"));
     }
 }

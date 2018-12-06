@@ -107,10 +107,6 @@ public class InputNames {
         return new InputNames(firstNames, lastNames, aliasNames);
     }
 
-    private List<Name> allNames() {
-        return Stream.concat(Stream.concat(firstNames.stream(), lastNames.stream()), aliasSurnames.stream()).collect(toList());
-    }
-
     public InputNames reduceFirstNames(End end, int amount) {
         return new InputNames(reduceNames(firstNames, end, amount), lastNames, aliasSurnames);
     }
