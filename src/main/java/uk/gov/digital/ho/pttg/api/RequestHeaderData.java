@@ -130,7 +130,4 @@ public class RequestHeaderData implements HandlerInterceptor {
     public String userId() {
         return MDC.get(USER_ID_HEADER);
     }
-
-    String threadCount() { return MDC.get(THREAD_COUNT); }
-
 }
