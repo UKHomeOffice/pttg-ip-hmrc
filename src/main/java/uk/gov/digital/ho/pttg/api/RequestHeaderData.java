@@ -28,7 +28,6 @@ public class RequestHeaderData implements HandlerInterceptor {
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
     public static final String REQUEST_DURATION_MS = "request_duration_ms";
     public static final String THREAD_COUNT = "thread_count";
-    public static final String UNSTARTED_THREADS = "unstarted_threads";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
