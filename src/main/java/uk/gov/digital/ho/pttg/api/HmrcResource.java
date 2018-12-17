@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.REQUEST_DURATION_MS;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.THREAD_COUNT;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
