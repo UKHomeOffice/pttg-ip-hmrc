@@ -1,4 +1,4 @@
-  @jira=EE-8838
+@jira=EE-8838
 Feature: Handling of name matching edge cases
 
   @name_matching
