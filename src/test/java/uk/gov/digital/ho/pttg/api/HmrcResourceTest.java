@@ -105,8 +105,7 @@ public class HmrcResourceTest {
 
             return loggingEvent.getFormattedMessage().equals("Income summary successfully retrieved from HMRC") &&
                             ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("thread_count");
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
         }));
     }
 }
