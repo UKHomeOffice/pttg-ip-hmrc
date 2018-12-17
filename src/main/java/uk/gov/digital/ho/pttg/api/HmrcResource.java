@@ -74,8 +74,7 @@ class HmrcResource {
 
         log.info("Income summary successfully retrieved from HMRC",
                 value(EVENT, HMRC_SERVICE_RESPONSE_SUCCESS),
-                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()),
-                value(THREAD_COUNT, requestHeaderData.threadCount())
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration())
                 );
 
         return incomeSummary;
