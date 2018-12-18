@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
+import static java.lang.Thread.activeCount;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
@@ -26,6 +27,7 @@ public class RequestHeaderData implements HandlerInterceptor {
     public static final String USER_ID_HEADER = "x-auth-userid";
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
     public static final String REQUEST_DURATION_MS = "request_duration_ms";
+    public static final String THREAD_COUNT = "thread_count";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -41,6 +43,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseCorrelationId(request);
         initialiseUserName(request);
         inititaliseRequestStart();
+        initialiseThreadCount();
         MDC.put("userHost", request.getRemoteHost());
         MDC.put("thread_id", String.valueOf(Thread.currentThread().getId()));
         return true;
@@ -100,6 +103,10 @@ public class RequestHeaderData implements HandlerInterceptor {
         return deploymentName;
     }
 
+    private void initialiseThreadCount() {
+        MDC.put(THREAD_COUNT, Integer.toString(activeCount()));
+    }
+
     public String deploymentNamespace() {
         return deploymentNamespace;
     }
@@ -123,5 +130,4 @@ public class RequestHeaderData implements HandlerInterceptor {
     public String userId() {
         return MDC.get(USER_ID_HEADER);
     }
-
 }
