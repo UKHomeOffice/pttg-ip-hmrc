@@ -11,6 +11,7 @@ import java.time.LocalDate;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.POOL_SIZE;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.REQUEST_DURATION_MS;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
@@ -73,7 +74,8 @@ class HmrcResource {
 
         log.info("Income summary successfully retrieved from HMRC",
                 value(EVENT, HMRC_SERVICE_RESPONSE_SUCCESS),
-                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration())
+                value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()),
+                value(POOL_SIZE, requestHeaderData.poolSize())
                 );
 
         return incomeSummary;
