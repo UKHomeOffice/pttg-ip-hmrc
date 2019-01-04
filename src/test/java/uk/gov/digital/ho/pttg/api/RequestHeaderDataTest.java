@@ -112,4 +112,11 @@ public class RequestHeaderDataTest {
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
         assertThat(requestData.calculateRequestDuration()).isNotNegative();
     }
+
+    @Test
+    public void shouldReturnPoolSize() {
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+        assertThat(requestData.poolSize()).isNotNegative();
+    }
+
 }

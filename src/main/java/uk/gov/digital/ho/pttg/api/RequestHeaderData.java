@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -28,6 +29,7 @@ public class RequestHeaderData implements HandlerInterceptor {
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
     public static final String REQUEST_DURATION_MS = "request_duration_ms";
     public static final String THREAD_COUNT = "thread_count";
+    public static final String POOL_SIZE = "pool_size";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -106,6 +108,8 @@ public class RequestHeaderData implements HandlerInterceptor {
     private void initialiseThreadCount() {
         MDC.put(THREAD_COUNT, Integer.toString(activeCount()));
     }
+
+    Integer poolSize() { return new ThreadPoolTaskExecutor().getPoolSize(); }
 
     public String deploymentNamespace() {
         return deploymentNamespace;
