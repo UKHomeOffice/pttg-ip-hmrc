@@ -39,6 +39,11 @@
                 <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
                     <pattern>
                         {
+                        "timestamp" : "%date{\"yyyy-MM-dd'T'HH:mm:ss,SSSXXX\", UTC}",
+                        "thread"    : "%thread",
+                        "subsystem" : "${appName}",
+                        "logger"    : "%logger{50}",
+                        "exception" : "%exception",
                         "message": "%replace(%msg){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}"
                         }
                     </pattern>
