@@ -6,7 +6,18 @@ pipeline:
       - ./gradlew build
     when:
       event: [push, pull_request, tag]
-  
+
+  tag-new-version:
+    image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
+    commands:
+#      - ./gradlew release -Prelease.useAutomaticVersion=true
+      - /bin/bash export newVersion=$(git describe --abbrev=0)
+      - /bin/bash sed "/appVersion/c\\appVersion: '${newVersion}'" Chart2.yaml > tempChart.yaml && mv tempChart.yaml Chart2.yaml
+      - git add . && git commit -m "Set chart version to ${newVersion} [CI SKIP]" && git push
+    when:
+      branch: [master, EE-12943-update-helm-chart]
+      event: [push]
+
   docker-build:
     image: docker:17.09.1
     environment:
