@@ -9,7 +9,7 @@ pipeline:
 
   tag-new-version:
     image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
-    ENVIRONMENT:
+    environment:
       - NEW_VERSION=$(git describe --abbrev=0)
     commands:
       - sed "/appVersion/c\\appVersion: '${NEW_VERSION}'" Chart2.yaml > tempChart.yaml && mv tempChart.yaml Chart2.yaml
