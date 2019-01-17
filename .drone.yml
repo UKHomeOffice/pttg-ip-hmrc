@@ -9,11 +9,8 @@ pipeline:
 
   tag-new-version:
     image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
-    environment:
-      - NEW_VERSION=$(git describe --abbrev=0)
     commands:
-      - sed "/appVersion/c\\appVersion: '${NEW_VERSION}'" Chart2.yaml > tempChart.yaml && mv tempChart.yaml Chart2.yaml
-      - git add . && git commit -m "Set chart version to ${NEW_VERSION} [CI SKIP]" && git push
+        - sh update-version.sh
     #      - ./gradlew release -Prelease.useAutomaticVersion=true
     when:
       branch: [master, EE-12943-update-helm-chart]
