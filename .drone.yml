@@ -5,10 +5,11 @@ pipeline:
     commands:
       - ./gradlew build
     when:
+      branch: [no_branch] # TOSO remove this line - we should always build the project
       event: [push, pull_request, tag]
 
   tag-new-version:
-    image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
+    image: plugins/git
     commands:
         - sh update-version.sh
     #      - ./gradlew release -Prelease.useAutomaticVersion=true
