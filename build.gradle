@@ -139,7 +139,11 @@ dependencies {
 gradle.startParameter.continueOnFailure = false
 
 release {
-  preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) - pre tag commit: '
+  // TODO Remove his - should only work from master branch
+  git {
+    requireBranch = /EE-12943-update-helm-chart/
+  }
+  preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - pre tag commit: '
   tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
-  newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) - new version commit: '
+  newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - new version commit: '
 }

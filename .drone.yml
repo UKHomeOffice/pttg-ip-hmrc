@@ -5,14 +5,16 @@ pipeline:
     commands:
       - ./gradlew build
     when:
-      branch: [no_branch] # TOSO remove this line - we should always build the project
+      branch: [no_branch] # TODO remove this line - we should always build the project
       event: [push, pull_request, tag]
 
-  tag-new-version:
-    image: plugins/git
+  update-version:
+    image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
+    secrets: [ github_ssh_key ]
     commands:
-        - sh update-version.sh
-    #      - ./gradlew release -Prelease.useAutomaticVersion=true
+      - sh set-up-git.sh
+      - ./gradlew release -Prelease.useAutomaticVersion=true
+      - sh update-version.git
     when:
       branch: [master, EE-12943-update-helm-chart]
       event: [push]
