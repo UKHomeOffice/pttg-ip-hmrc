@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.pttg
+package uk.gov.digital.ho.pttg.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.junit.WireMockRule
@@ -13,9 +13,12 @@ import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 import uk.gov.digital.ho.pttg.dto.AccessCode
 
+import java.time.LocalDate
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import static org.springframework.http.HttpMethod.POST
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.CORRELATION_ID_HEADER
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.USER_ID_HEADER
 
@@ -52,8 +55,8 @@ class HMRCResourceHeadersIntSpec extends Specification {
         stubFor(get(urlEqualTo("/access"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildOauthResponse())
-
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+
         stubFor(post(urlEqualTo("/individuals/matching/"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildMatchResponse())
@@ -74,17 +77,17 @@ class HMRCResourceHeadersIntSpec extends Specification {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildEmploymentsResponse())))
 
-        stubFor(get(urlEqualTo("/individuals/employments/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01"))
+        stubFor(get(urlEqualTo("/individuals/employments/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildEmploymentsPayeResponse())))
 
-        stubFor(get(urlEqualTo("/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01"))
+        stubFor(get(urlEqualTo("/individuals/income/paye?matchId=" + MATCH_ID + "&fromDate=2017-01-01&toDate=2017-06-01"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildPayeIncomeResponse())))
 
-        stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17"))
+        stubFor(get(urlEqualTo("/individuals/income/sa?matchId="+MATCH_ID+"&fromTaxYear=2016-17&toTaxYear=2017-18"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(buildEmptySaResponse())))
@@ -96,16 +99,58 @@ class HMRCResourceHeadersIntSpec extends Specification {
 
         when:
         sleep(2000)
-        restTemplate.exchange("/income?firstName=Bob&nino=AA123456A&lastName=Brown&fromDate=2017-01-01&dateOfBirth=2000-03-01", HttpMethod.GET, createEntityForHeaders("headers"), String.class)
+        IncomeDataRequest incomeDataRequest = new IncomeDataRequest("Bob", "Brown", "AA123456A",
+                                                                    LocalDate.of(2000, 03, 01),
+                                                                    LocalDate.of(2017, 01, 01),
+                                                                    LocalDate.of(2017, 06, 01),
+                                                                    "")
+
+        restTemplate.exchange("/income", POST, createEntityForHeaders(incomeDataRequest), String.class)
         then:
+
+        verify(postRequestedFor(urlEqualTo("/audit"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(postRequestedFor(urlEqualTo("/audit"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
         verify(getRequestedFor(urlEqualTo("/access"))
                 .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
         verify(getRequestedFor(urlEqualTo("/access"))
                 .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
 
-        verify(getRequestedFor(urlEqualTo("/individuals/income/paye?matchId=87654321&fromDate=2017-01-01"))
+        verify(postRequestedFor(urlEqualTo("/individuals/matching/"))
                 .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
-        verify(getRequestedFor(urlEqualTo("/individuals/income/paye?matchId=87654321&fromDate=2017-01-01"))
+        verify(postRequestedFor(urlEqualTo("/individuals/matching/"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
+        verify(getRequestedFor(urlEqualTo("/individuals/matching/87654321"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(getRequestedFor(urlEqualTo("/individuals/matching/87654321"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
+        verify(getRequestedFor(urlEqualTo("/individuals/income/?matchId=87654321"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(getRequestedFor(urlEqualTo("/individuals/income/?matchId=87654321"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
+        verify(getRequestedFor(urlEqualTo("/individuals/income/paye?matchId=87654321&fromDate=2017-01-01&toDate=2017-06-01"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(getRequestedFor(urlEqualTo("/individuals/income/paye?matchId=87654321&fromDate=2017-01-01&toDate=2017-06-01"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
+        verify(getRequestedFor(urlEqualTo("/individuals/employments/paye?matchId=87654321&fromDate=2017-01-01&toDate=2017-06-01"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(getRequestedFor(urlEqualTo("/individuals/employments/paye?matchId=87654321&fromDate=2017-01-01&toDate=2017-06-01"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
+        verify(getRequestedFor(urlEqualTo("/individuals/income/sa?matchId=87654321&fromTaxYear=2016-17&toTaxYear=2017-18"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(getRequestedFor(urlEqualTo("/individuals/income/sa?matchId=87654321&fromTaxYear=2016-17&toTaxYear=2017-18"))
+                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
+
+        verify(getRequestedFor(urlEqualTo("/individuals/income/sa/self-employments?matchId=87654321&fromTaxYear=2016-17"))
+                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
+        verify(getRequestedFor(urlEqualTo("/individuals/income/sa/self-employments?matchId=87654321&fromTaxYear=2016-17"))
                 .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
     }
 
