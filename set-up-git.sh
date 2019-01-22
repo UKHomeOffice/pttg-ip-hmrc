@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-mkdir /root/.ssh/ && echo "$GITHUB_SSH_KEY" > /root/.ssh/id_rsa && chmod 0600 /root/.ssh/id_rsa
-ssh-keyscan github.com >> /root/.ssh/known_hosts && chmod 600 /root/.ssh/known_hosts
-printf  "Host github.com\n   Hostname github.com\n   IdentityFile /root/.ssh/id_rsa\n" > /root/.ssh/config
-chmod 0600 /root/.ssh/config
-printf "[github]\n[user]\n user = git" > /root/.gitconfig
+mkdir ~/.ssh/ && echo "$GITHUB_SSH_KEY" > ~/.ssh/id_rsa && chmod 0600 ~/.ssh/id_rsa
+ssh-keyscan github.com >> ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+printf  "Host github.com\n   Hostname github.com\n   IdentityFile ~/.ssh/id_rsa\n" > ~/.ssh/config
+chmod 0600 ~/.ssh/config
+printf "[github]\n[user]\n user = git" > ~/.gitconfig
