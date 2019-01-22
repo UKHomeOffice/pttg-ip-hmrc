@@ -11,11 +11,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -111,7 +113,15 @@ public class HmrcResourceIntegrationTest {
 
         buildAndExpectSuccessfulTraversal();
 
-        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", IncomeSummary.class);
+        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                                                            LocalDate.of(1992, 3, 1),
+                                                            LocalDate.of(2017, 1, 1),
+                                                            LocalDate.of(2017, 6, 1),
+                                                "");
+
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
         //verifies all services were called.
@@ -168,8 +178,16 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildPayeIncomeResponse(), APPLICATION_JSON));
 
+        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                LocalDate.of(1992, 3, 1),
+                LocalDate.of(2017, 1, 1),
+                LocalDate.of(2017, 6, 1),
+                "");
 
-        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity("/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", IncomeSummary.class);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+
+        // when
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
 
@@ -186,9 +204,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withBadRequest());
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         hmrcApiMockService.verify();
 
@@ -203,9 +219,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withStatus(I_AM_A_TEAPOT));
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         hmrcApiMockService.verify();
 
@@ -224,9 +238,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         auditMockService.verify();
 
@@ -249,9 +261,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withBadRequest());
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -283,9 +293,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withServerError());
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -313,9 +321,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withBadRequest());
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -370,8 +376,16 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildSaSelfEmploymentResponse(), APPLICATION_JSON));
 
-        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&dateOfBirth=1992-03-01", IncomeSummary.class);
+        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                LocalDate.of(1992, 3, 1),
+                LocalDate.of(2017, 1, 1),
+                LocalDate.of(2017, 6, 1),
+                "");
+
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+
+        // when
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -400,8 +414,12 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildIncomeResponse(), APPLICATION_JSON));
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01", String.class);
+        hmrcApiMockService
+                .expect(ExpectedCount.times(3), requestTo(containsString("/individuals/employments/?matchId=" + MATCH_ID)))
+                .andExpect(method(GET))
+                .andRespond(withServerError());
+
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -436,10 +454,16 @@ public class HmrcResourceIntegrationTest {
 
         buildAndExpectSuccessfulTraversal();
 
+        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                LocalDate.of(1992, 3, 1),
+                LocalDate.of(2017, 1, 1),
+                LocalDate.of(2017, 6, 1),
+                "");
+
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+
         // when
-        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                IncomeSummary.class);
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         // then
         auditMockService.verify();
@@ -485,10 +509,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withUnauthorizedRequest());
 
-        // when
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         // then
         auditMockService.verify();
@@ -518,10 +539,7 @@ public class HmrcResourceIntegrationTest {
                     throw new ResourceAccessException("ExceptionMessage", httpHostConnectException);
                 });
 
-        // when
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Laurie&nino=GH576240A&lastName=Halford&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         // then
         auditMockService.verify();
@@ -541,9 +559,15 @@ public class HmrcResourceIntegrationTest {
 
         buildAndExpectSuccessfulTraversal();
 
-        ResponseEntity<IncomeSummary> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Halford&nino=GH576240A&lastName=Laurie&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                IncomeSummary.class);
+        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                LocalDate.of(1992, 3, 1),
+                LocalDate.of(2017, 1, 1),
+                LocalDate.of(2017, 6, 1),
+                "");
+
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+
+        ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -562,9 +586,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN));
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(
-                "/income?firstName=Halford&nino=GH576240A&lastName=Laurie&fromDate=2017-01-01&toDate=2017-06-01&dateOfBirth=1992-03-01",
-                String.class);
+        ResponseEntity<String> responseEntity = anyResponseEntity();
 
         auditMockService.verify();
         hmrcAccecssCodeMockService.verify();
@@ -667,6 +689,18 @@ public class HmrcResourceIntegrationTest {
     private String buildSaSelfEmploymentResponse() throws IOException {
         return loadJsonFile("incomeSASelfEmploymentsResponse")
                 .replace("${matchId}", MATCH_ID);
+    }
+
+    private ResponseEntity<String> anyResponseEntity() {
+        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                LocalDate.of(1992, 3, 1),
+                LocalDate.of(2017, 1, 1),
+                LocalDate.of(2017, 6, 1),
+                "");
+
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+
+        return restTemplate.exchange("/income", POST, requestEntity, String.class);
     }
 }
 
