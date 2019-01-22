@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-mkdir gradle-user-home
 ./gradlew release -i -s -Prelease.useAutomaticVersion=true --gradle-user-home=./gradle-user-home
 NEW_VERSION=$(git describe --abbrev=0)
 sed "/appVersion/c\\appVersion: '${NEW_VERSION}'" Chart.yaml > tempChart.yaml && mv tempChart.yaml Chart.yaml
