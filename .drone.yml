@@ -13,7 +13,6 @@ pipeline:
     secrets: [ github_ssh_key ]
     commands:
       - sh set-up-git.sh
-      - ./gradlew release -i -s -Prelease.useAutomaticVersion=true
       - sh update-version.git
     when:
       branch: [master, EE-12943-update-helm-chart]
