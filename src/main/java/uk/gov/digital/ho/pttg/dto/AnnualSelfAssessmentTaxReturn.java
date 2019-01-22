@@ -3,11 +3,13 @@ package uk.gov.digital.ho.pttg.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Getter
 @Builder
+@NoArgsConstructor
 public class AnnualSelfAssessmentTaxReturn {
     @JsonProperty private String taxYear;
     @JsonProperty private BigDecimal selfEmploymentProfit;

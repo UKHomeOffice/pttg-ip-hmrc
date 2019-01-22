@@ -10,10 +10,10 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import com.google.common.collect.ImmutableMap;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
+import com.jayway.restassured.specification.RequestSpecification;
 import cucumber.api.DataTable;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
@@ -57,7 +57,6 @@ import java.util.regex.Pattern;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static com.jayway.restassured.RestAssured.given;
 import static java.time.format.DateTimeFormatter.*;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -203,6 +202,7 @@ public class NameMatchingSteps {
         HMRC_MOCK_SERVICE.stubFor(post(urlEqualTo(INDIVIDUAL_MATCHING_ENDPOINT))
                                           .atPriority(5)
                                           .willReturn(aFailedMatchResponse()));
+
     }
 
     @When("^an income request is made with the following identity$")
@@ -212,22 +212,24 @@ public class NameMatchingSteps {
         IndividualRow individualRow = IndividualRow.fromMap(individualMap);
 
         LocalDate now = LocalDate.now();
-        Map<String, String> requestParameters = new HashMap<>();
+
+        JSONObject requestParameters = new JSONObject();
         requestParameters.put("nino", individualRow.nino());
         requestParameters.put("firstName", individualRow.firstName());
         requestParameters.put("lastName", individualRow.lastName());
         requestParameters.put("dateOfBirth", individualRow.dateOfBirth());
         requestParameters.put("fromDate", now.format(ISO_DATE));
+        requestParameters.put("toDate", now.format(ISO_DATE));
 
         if (!Objects.isNull(individualRow.aliasSurname())) {
             requestParameters.put("aliasSurnames", individualRow.aliasSurname());
         }
-        ImmutableMap<String, String> requestBody = ImmutableMap.copyOf(requestParameters);
 
-        Response response = given()
-                                .basePath("/income")
-                                .queryParameters(requestBody)
-                                .get();
+        RequestSpecification httpRequest = RestAssured.given();
+        httpRequest.header("Content-Type", "application/json");
+        httpRequest.body(requestParameters.toString());
+
+        Response response = httpRequest.post("/income");
 
         SessionMap<Object, Object> currentSession = Serenity.getCurrentSession();
         currentSession.put(INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY, response);

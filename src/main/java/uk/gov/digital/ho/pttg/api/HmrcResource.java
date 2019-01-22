@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.pttg.api;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.digital.ho.pttg.application.NinoUtils;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
@@ -29,33 +28,10 @@ class HmrcResource {
         this.requestHeaderData = requestHeaderData;
     }
 
-    @SuppressWarnings("checkstyle:parameternumber")
-    // TODO EE-10165 Can't help having 7 parameters when there's 7 items of data being sent - This interface is deprecated in favour of postHmrcData anyway
-    @GetMapping(value = "/income", produces = APPLICATION_JSON_VALUE)
-    IncomeSummary getHmrcData(
-            @RequestParam(value = "firstName") String firstName,
-            @RequestParam(value = "lastName") String lastName,
-            @RequestParam(value = "nino") String nino,
-            @RequestParam(value = "dateOfBirth") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
-            @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-            @RequestParam(value = "aliasSurnames", required = false) String aliasSurnames) {
-
-        return produceIncomeSummary(
-                individual(
-                        firstName,
-                        lastName,
-                        nino,
-                        dob,
-                        aliasSurnames),
-                fromDate,
-                toDate);
-    }
-
     @PostMapping(value="/income", produces = APPLICATION_JSON_VALUE)
     IncomeSummary getHmrcData(@RequestBody IncomeDataRequest incomeDataRequest) {
 
-        return produceIncomeSummary(
+        IncomeSummary incomeSummary = produceIncomeSummary(
                 individual(
                         incomeDataRequest.firstName(),
                         incomeDataRequest.lastName(),
@@ -64,6 +40,8 @@ class HmrcResource {
                         incomeDataRequest.aliasSurnames()),
                 incomeDataRequest.fromDate(),
                 incomeDataRequest.toDate());
+
+        return incomeSummary;
     }
 
     private IncomeSummary produceIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
