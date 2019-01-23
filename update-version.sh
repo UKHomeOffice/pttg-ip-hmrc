@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ls -la
-mkdir /home/app/.gradle
+cp -R .gradle /home/app
 chmod 0600 /home/app/.gradle
 ./gradlew release -i -s -Prelease.useAutomaticVersion=true --gradle-user-home=/home/app/.gradle
 NEW_VERSION=$(git describe --abbrev=0)
