@@ -10,6 +10,7 @@ pipeline:
 
   update-version:
     image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.1
+    user: root
     secrets: [ github_ssh_key ]
     commands:
       - sh set-up-git.sh
