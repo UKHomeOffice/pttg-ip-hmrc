@@ -5,7 +5,4 @@ printf  "Host github.com\n   Hostname github.com\n   IdentityFile ~/.ssh/id_rsa\
 chmod 0600 ~/.ssh/config
 printf "[url \"ssh://git@github.com/\"]\n insteadOf = https://github.com/\n" > ~/.gitconfig
 printf "[github]\n[user]\n user = git\n" >> ~/.gitconfig
-cat ~/.gitconfig
-git config --global user.email "drone@noreply.drone.acp"
-git config --global user.name "Drone ACP"
 git checkout EE-12943-update-helm-chart
