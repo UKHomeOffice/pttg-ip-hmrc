@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+ls -la
 mkdir /home/app/.gradle
 chmod 0600 /home/app/.gradle
 ./gradlew release -i -s -Prelease.useAutomaticVersion=true --gradle-user-home=/home/app/.gradle
