@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 ls -la
 pwd
+mkdir .gradle
 chmod -R 777 .
 ./gradlew release -i -s -Prelease.useAutomaticVersion=true
 NEW_VERSION=$(git describe --abbrev=0)
