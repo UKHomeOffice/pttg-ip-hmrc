@@ -17,8 +17,6 @@ buildscript {
   }
 }
 
-version = '0.0.1'
-
 if (System.getenv('VERSION')) {
   version = System.getenv('VERSION')
 }
@@ -139,7 +137,7 @@ dependencies {
 gradle.startParameter.continueOnFailure = false
 
 release {
-  preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) - pre tag commit: '
-  tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
-  newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) - new version commit: '
+    preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - pre tag commit: '
+    tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
+    newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - new version commit: '
 }
