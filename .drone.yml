@@ -9,11 +9,11 @@ pipeline:
       event: [push, pull_request, tag]
 
   update-version:
-    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.1.1
+    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.2.1
     secrets: [ github_ssh_key ]
     commands:
-      - sh set-up-git.sh
-      - sh update-version.sh
+      - sh git-utilities/set-up-git.sh
+      - sh gradle-utilities/update-version.sh
     when:
       branch: [master, EE-12943-update-helm-chart]
       event: [push]
