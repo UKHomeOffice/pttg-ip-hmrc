@@ -10,7 +10,8 @@ pipeline:
 
   update-version:
     image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.2.2
-    secrets: [ github_ssh_key ]
+    secrets:
+      - github_ssh_key
     commands:
       - sh /root/git-utilities/set-up-github-user.sh $${GITHUB_SSH_KEY}
       - sh /root/gradle-utilities/update-project-version.sh
