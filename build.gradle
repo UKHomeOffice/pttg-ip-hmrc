@@ -137,14 +137,39 @@ dependencies {
 gradle.startParameter.continueOnFailure = false
 
 release {
+    git {
+        requireBranch = 'EE-12943-chart-version-timing'
+    }
     preTagCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - pre tag commit: '
     tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
     newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - new version commit: '
 }
 
-task setChartVersion(type:Exec) {
-  commandLine 'sh', '-c', 'NEW_VERSION=$(git describe --abbrev=0)'
-  commandLine 'sh', '-c', 'echo ${newVersion}'
-  commandLine 'sh', '-c', 'sed "/appVersion/c\\\\appVersion: \'${NEW_VERSION}\'" Chart.yaml > tempChart.yaml && mv tempChart.yaml Chart.yaml'
-  commandLine 'sh', '-c', 'git add . && git commit -m "Set chart version to ${NEW_VERSION} [CI SKIP]" && git push'
+task updateChart() {
+  doLast {
+    updateChart_steps()
+  }
+}
+
+task testVersion() {
+  exec {
+    commandLine 'sh', '-c', 'echo "version=${version}"'
+  }
+}
+
+tasks.preTagCommit.dependsOn testVersion
+
+void updateChart_steps() {
+  exec {
+    commandLine 'sh', '-c', 'NEW_VERSION=$(git describe --abbrev=0)'
+  }
+  exec {
+    commandLine 'sh', '-c', 'echo ${NEW_VERSION}'
+  }
+  exec {
+    commandLine 'sh', '-c', 'sed "/appVersion/c\\\\appVersion: \'${NEW_VERSION}\'" Chart.yaml > tempChart.yaml && mv tempChart.yaml Chart.yaml'
+  }
+  exec {
+    commandLine 'sh', '-c', 'git add Chart.yaml'
+  }
 }

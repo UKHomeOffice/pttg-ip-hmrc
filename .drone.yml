@@ -13,7 +13,7 @@ pipeline:
       - github_ssh_key
     commands:
       - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
-      - sh /root/gradle-utilities/update-project-version.sh
+      - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks
     when:
       branch: [master ]
       event: [push]
