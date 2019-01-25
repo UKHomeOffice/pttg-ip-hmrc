@@ -12,9 +12,8 @@ pipeline:
     image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.2.1
     secrets: [ github_ssh_key ]
     commands:
-      - ls -la .
-      - sh git-utilities/set-up-github-user.sh ${GITHUB_SSH_KEY}
-      - sh gradle-utilities/update-project-version.sh
+      - sh /root/git-utilities/set-up-github-user.sh ${GITHUB_SSH_KEY}
+      - sh /root/gradle-utilities/update-project-version.sh
     when:
       branch: [master, EE-12943-update-helm-chart]
       event: [push]
