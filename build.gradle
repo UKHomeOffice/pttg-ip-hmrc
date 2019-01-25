@@ -161,15 +161,6 @@ tasks.preTagCommit.dependsOn updateChart
 
 void updateChart_steps() {
   exec {
-    commandLine 'sh', '-c', 'set -x && NEW_VERSION=$(git describe --abbrev=0)'
-  }
-  exec {
-    commandLine 'sh', '-c', 'set -x && echo "release.newVersion="' + release.newVersion
-  }
-  exec {
-    commandLine 'sh', '-c', 'set -x && sed "/appVersion/c\\\\appVersion: \'${NEW_VERSION}\'" Chart.yaml > tempChart.yaml && mv tempChart.yaml Chart.yaml'
-  }
-  exec {
-    commandLine 'sh', '-c', 'set -x && git add Chart.yaml'
+    commandLine 'sh', '-c', 'sh update-chart.sh'
   }
 }
