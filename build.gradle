@@ -157,7 +157,7 @@ task testVersion() {
   }
 }
 
-tasks.preTagCommit.dependsOn testVersion
+tasks.preTagCommit.dependsOn updateChart
 
 void updateChart_steps() {
   exec {
