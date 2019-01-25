@@ -164,7 +164,7 @@ void updateChart_steps() {
     commandLine 'sh', '-c', 'set -x && NEW_VERSION=$(git describe --abbrev=0)'
   }
   exec {
-    commandLine 'sh', '-c', 'set -x && echo "release.newVersion=${release.newVersion}"'
+    commandLine 'sh', '-c', 'set -x && echo "release.newVersion="' + release.newVersion
   }
   exec {
     commandLine 'sh', '-c', 'set -x && sed "/appVersion/c\\\\appVersion: \'${NEW_VERSION}\'" Chart.yaml > tempChart.yaml && mv tempChart.yaml Chart.yaml'
