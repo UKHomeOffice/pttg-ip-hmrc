@@ -13,7 +13,7 @@ pipeline:
     secrets:
       - github_ssh_key
     commands:
-      - sh /root/git-utilities/set-up-github-user.sh $${GITHUB_SSH_KEY}
+      - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
       - sh /root/gradle-utilities/update-project-version.sh
     when:
       branch: [master, EE-12943-update-helm-chart]
