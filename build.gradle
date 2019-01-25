@@ -141,3 +141,10 @@ release {
     tagCommitMessage = '[Gradle Release Plugin] (EE-9726) - creating tag: '
     newVersionCommitMessage = '[Gradle Release Plugin] (EE-9726) [CI SKIP] - new version commit: '
 }
+
+task setChartVersion(type:Exec) {
+  commandLine 'sh', '-c', 'NEW_VERSION=$(git describe --abbrev=0)'
+  commandLine 'sh', '-c', 'echo ${newVersion}'
+  commandLine 'sh', '-c', 'sed "/appVersion/c\\\\appVersion: \'${NEW_VERSION}\'" Chart.yaml > tempChart.yaml && mv tempChart.yaml Chart.yaml'
+  commandLine 'sh', '-c', 'git add . && git commit -m "Set chart version to ${NEW_VERSION} [CI SKIP]" && git push'
+}

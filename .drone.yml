@@ -15,7 +15,7 @@ pipeline:
       - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
       - sh /root/gradle-utilities/update-project-version.sh
     when:
-      branch: [master]
+      branch: [master ]
       event: [push]
 
   docker-build:
