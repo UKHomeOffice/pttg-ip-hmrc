@@ -26,6 +26,7 @@ import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.time.format.DateTimeFormatter;
@@ -69,6 +70,7 @@ public class HmrcHateoasClient {
     private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
 
     private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
+    private static final String  REQUEST_DURATION_TIMESTAMP = "request_duration_ms";
 
     public HmrcHateoasClient(
             RequestHeaderData requestHeaderData,
@@ -88,9 +90,12 @@ public class HmrcHateoasClient {
     List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
-        log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
+        log.info("Sending PAYE request to HMRC at {}", link, value(EVENT, HMRC_PAYE_REQUEST_SENT));
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
         Resource<PayeIncome> incomeResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, payeIncomesResourceTypeRef);
-        log.info("PAYE response received from HMRC", value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
+        log.info("PAYE response received from HMRC",
+                    value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED),
+                    value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
 
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
@@ -100,8 +105,11 @@ public class HmrcHateoasClient {
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
         log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
         Resource<Employments> employmentsResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, employmentsResourceTypeRef);
-        log.info("Employments response received from HMRC", value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
+        log.info("Employments response received from HMRC",
+                    value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED),
+                    value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
         return employmentsResource.getContent().getEmployments();
     }
 
@@ -112,9 +120,12 @@ public class HmrcHateoasClient {
         }
 
         log.info("Sending Self Assessment self employment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
         Resource<SelfEmploymentSelfAssessment> selfEmploymentsResource =
                 hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSelfEmploymentsResourceTypeRef);
-        log.info("Self Assessment self employment response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        log.info("Self Assessment self employment response received from HMRC",
+                    value(EVENT, HMRC_SA_RESPONSE_RECEIVED),
+                    value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
 
         List<SelfEmploymentTaxReturn> taxReturns = selfEmploymentsResource.getContent().getSelfAssessment().getTaxReturns();
 
@@ -142,9 +153,12 @@ public class HmrcHateoasClient {
         }
 
         log.info("Sending Self Assessment Summary request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
         Resource<SummarySelfAssessment> selfAssessmentSummaryResource =
                 hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSummaryResourceTypeRef);
-        log.info("Self Assessment summary response received from HMRC", value(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        log.info("Self Assessment summary response received from HMRC",
+                    value(EVENT, HMRC_SA_RESPONSE_RECEIVED),
+                    value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
 
         List<SummaryTaxReturn> taxReturns = selfAssessmentSummaryResource.getContent().getSelfAssessment().getTaxReturns();
 
@@ -271,7 +285,12 @@ public class HmrcHateoasClient {
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Individual Resource from {}", url);
+        log.info("About to GET individual resource from HMRC at {}", url, value(EVENT, HMRC_GET_INDIVIDUAL_REQUEST));
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+
         Resource<EmbeddedIndividual> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), individualResourceTypeRef).getBody();
+
+        log.info("Individual resource received", value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
         log.debug("Individual Response has been received");
 
         return resource;
@@ -281,7 +300,12 @@ public class HmrcHateoasClient {
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Income Resource from {}", url);
+        log.info("About to GET income resource from HMRC at {}", url);
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
+
+        log.info("Income resource response received", value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
         log.debug("Income Response has been received");
 
         return resource;
@@ -291,7 +315,12 @@ public class HmrcHateoasClient {
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Employment Resource from {}", url);
+        log.info("About to GET employemnt resource from HMRC at {}", url);
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
+
+        log.info("Employment resource response received", value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
         log.debug("Employment Response has been received");
 
         return resource;
@@ -308,8 +337,11 @@ public class HmrcHateoasClient {
         String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
 
         log.debug("GET SA Resource from {}", url);
+        log.info("About to get self assessment resource from HRMC at {}", url);
+        Long requestStartTimeStamp = Instant.now().toEpochMilli();
 
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
+        log.info("Self assessment resource response received", value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
         log.debug("SA Response has been received");
 
         return resource;
@@ -353,6 +385,11 @@ public class HmrcHateoasClient {
         headers.setContentType(APPLICATION_JSON);
 
         return headers;
+    }
+
+    private Long calculateRequestDuration(Long requestStartTimeStamp) {
+        Long timeStamp = Instant.now().toEpochMilli();
+        return timeStamp - requestStartTimeStamp;
     }
 
 }
