@@ -5,8 +5,7 @@ pipeline:
     commands:
       - ./gradlew build
     when:
-#      event: [push, pull_request, tag]
-      event: [never] # TODO remove this - just for testing
+      event: [push, pull_request, tag]
 
   update-version:
     image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0-SNAPSHOT
