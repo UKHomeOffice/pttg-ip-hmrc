@@ -145,7 +145,7 @@ release {
 task updateChart() {
   doLast {
     exec {
-      executable './update-chart.sh'
+      commandLine 'sh', './update-chart.sh'
     }
   }
 }
