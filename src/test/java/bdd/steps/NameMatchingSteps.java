@@ -49,7 +49,10 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -761,10 +764,10 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataHasNameDerivation(MetaDataNameDerivation metaDataNameDerivation, NameDerivation nameDerivation) {
-        return (metaDataNameDerivation.section() == nameDerivation.section() || diagnoseWrongSection(metaDataNameDerivation.section(), nameDerivation.section())) &&
-                       (metaDataNameDerivation.index().equals(nameDerivation.index()) || diagnoseWrongIndex(metaDataNameDerivation.index(), (nameDerivation.index())) &&
-                       (metaDataNameDerivation.length() == nameDerivation.length() || diagnoseWrongLength(metaDataNameDerivation.length(), nameDerivation.length()))) &&
-                       (metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions()) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions()));
+        return ((metaDataNameDerivation.section() == nameDerivation.section()) || diagnoseWrongSection(metaDataNameDerivation.section(), nameDerivation.section())) &&
+                       ((metaDataNameDerivation.index().equals(nameDerivation.index())) || diagnoseWrongIndex(metaDataNameDerivation.index(), (nameDerivation.index()))) &&
+                       ((metaDataNameDerivation.length() == nameDerivation.length()) || diagnoseWrongLength(metaDataNameDerivation.length(), nameDerivation.length())) &&
+                       ((metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions())) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions()));
     }
 
     private boolean diagnoseWrongLength(int expected, Integer actual) {

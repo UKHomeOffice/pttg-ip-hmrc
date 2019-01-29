@@ -64,7 +64,7 @@ public final class InputNamesFunctions {
     static Set<UnicodeBlock> calculateUnicodeBlocks(String name) {
 
         return name.chars()
-                       .mapToObj(codePoint -> UnicodeBlock.of(codePoint))
+                       .mapToObj(UnicodeBlock::of)
                        .collect(toSet());
     }
 
