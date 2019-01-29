@@ -8,17 +8,15 @@ pipeline:
       event: [push, pull_request, tag]
 
   update-version:
-    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0-SNAPSHOT
+    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0
     secrets:
       - github_ssh_key
     commands:
       - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
-      - ls -la
-      - id
       - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks -s -i
     when:
-      branch: [EE-12943-use-bash] # TODO reinstate [master] when error with drone build identified
-      event: [push] # TODO reinstate [push] when error with drone build identified
+      branch: [master]
+      event: [push]
 
   docker-build:
     image: docker:17.09.1
