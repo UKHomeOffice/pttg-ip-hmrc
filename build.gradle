@@ -144,13 +144,9 @@ release {
 
 task updateChart() {
   doLast {
-    updateChart_steps()
-  }
-}
-
-void updateChart_steps() {
-  exec {
-    commandLine 'sh', '-c', 'sh update-chart.sh'
+    exec {
+      commandLine 'sh', './update-chart.sh'
+    }
   }
 }
 

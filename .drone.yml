@@ -8,14 +8,14 @@ pipeline:
       event: [push, pull_request, tag]
 
   update-version:
-    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.4
+    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0
     secrets:
       - github_ssh_key
     commands:
       - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
-      - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks
+      - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks -s -i
     when:
-      branch: [master ]
+      branch: [master]
       event: [push]
 
   docker-build:
