@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -12,6 +13,8 @@ import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.util.List;
 
+@Getter
+@Setter
 @Accessors(fluent = true)
 public class IncomeSummaryContext {
 
@@ -21,13 +24,9 @@ public class IncomeSummaryContext {
     private Resource<String> employmentResource;
     private Resource<String> selfAssessmentResource;
 
-    @Getter
     private List<Income> payeIncome;
-    @Getter
     private List<Employment> employments;
-    @Getter
     private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome;
-    @Getter
     private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome;
 
 
@@ -67,42 +66,6 @@ public class IncomeSummaryContext {
         return selfAssessmentSummaryIncome == null;
     }
 
-    void setMatchResource(Resource<String> matchResource) {
-        this.matchResource = matchResource;
-    }
-
-    void setIndividualResource(Resource<EmbeddedIndividual> individualResource) {
-        this.individualResource = individualResource;
-    }
-
-    void setIncomeResource(Resource<String> incomeResource) {
-        this.incomeResource = incomeResource;
-    }
-
-    void setEmploymentResource(Resource<String> employmentResource) {
-        this.employmentResource = employmentResource;
-    }
-
-    void setSelfAssessmentResource(Resource<String> selfAssessmentResource) {
-        this.selfAssessmentResource = selfAssessmentResource;
-    }
-
-    void setPayeIncome(List<Income> payeIncome) {
-        this.payeIncome = payeIncome;
-    }
-
-    void setEmployments(List<Employment> employments) {
-        this.employments = employments;
-    }
-
-    void setSelfAssessmentSelfEmploymentIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome) {
-        this.selfAssessmentSelfEmploymentIncome = selfAssessmentSelfEmploymentIncome;
-    }
-
-    void setSelfAssessmentSummaryIncome(List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome) {
-        this.selfAssessmentSummaryIncome = selfAssessmentSummaryIncome;
-    }
-
     Individual getIndividual() {
         return individualResource.getContent().getIndividual();
     }
@@ -126,7 +89,4 @@ public class IncomeSummaryContext {
     Link getSelfAssessmentLink(String rel) {
         return selfAssessmentResource.getLink(rel);
     }
-
-
 }
-

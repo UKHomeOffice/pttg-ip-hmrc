@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.pttg.application;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
@@ -18,6 +20,7 @@ import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
 
 @Service
+@Slf4j
 public class HmrcCallWrapper {
 
     private RestTemplate restTemplate;
@@ -31,14 +34,20 @@ public class HmrcCallWrapper {
     public <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
         try {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
-        } catch (HttpClientErrorException ex) {
-            throw handleClientErrorExceptions(ex);
+        } catch (HttpServerErrorException e) {
+            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
+            throw e;
+        } catch (HttpClientErrorException e) {
+            throw handleClientErrorExceptions(e);
         }
     }
 
     <T> Resource<T> followTraverson(String link, String accessToken, ParameterizedTypeReference<Resource<T>> reference) {
         try {
             return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
+        } catch (HttpServerErrorException e) {
+            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
+            throw e;
         } catch (HttpClientErrorException ex) {
             throw handleClientErrorExceptions(ex);
         }
