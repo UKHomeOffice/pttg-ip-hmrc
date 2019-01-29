@@ -15,8 +15,8 @@ pipeline:
       - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
       - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks
     when:
-      branch: [never] # TODO reinstate [master] when error with drone build identified
-      event: [never] # TODO reinstate [push] when error with drone build identified
+      branch: [EE-12943-use-bash] # TODO reinstate [master] when error with drone build identified
+      event: [push] # TODO reinstate [push] when error with drone build identified
 
   docker-build:
     image: docker:17.09.1
