@@ -8,7 +8,7 @@ pipeline:
       event: [push, pull_request, tag]
 
   update-version:
-    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.4.2
+    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.4.3
     secrets:
       - github_ssh_key
     commands:
