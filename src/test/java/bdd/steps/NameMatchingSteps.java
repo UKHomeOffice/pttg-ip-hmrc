@@ -771,7 +771,7 @@ public class NameMatchingSteps {
     }
 
     private boolean logIfInvalidDerivationActions(MetaDataNameDerivation metaDataNameDerivation, NameDerivation nameDerivation) {
-        return (metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions())) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions());
+        return metaDataNameDerivation.derivationActions().equals(nameDerivation.derivationActions()) || diagnoseWrongDerivation(metaDataNameDerivation.derivationActions(), nameDerivation.derivationActions());
     }
 
     private boolean logIfInvalidLength(MetaDataNameDerivation metaDataNameDerivation, NameDerivation nameDerivation) {
