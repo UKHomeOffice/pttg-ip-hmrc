@@ -5,18 +5,21 @@ pipeline:
     commands:
       - ./gradlew build
     when:
-      event: [push, pull_request, tag]
+#      event: [push, pull_request, tag]
+      event: [never] # TODO remove this - just for testing
 
   update-version:
-    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.3
+    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0-SNAPSHOT
     secrets:
       - github_ssh_key
     commands:
       - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
-      - sh /root/gradle-utilities/update-project-version.sh
+      - ls -la
+      - id
+      - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks -s -i
     when:
-      branch: [master ]
-      event: [push]
+      branch: [EE-12943-use-bash] # TODO reinstate [master] when error with drone build identified
+      event: [push] # TODO reinstate [push] when error with drone build identified
 
   docker-build:
     image: docker:17.09.1
