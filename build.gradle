@@ -150,7 +150,7 @@ task updateChart() {
 
 void updateChart_steps() {
   exec {
-    commandLine 'sh', '-c', './update-chart.sh'
+    executable './update-chart.sh'
   }
 }
 
