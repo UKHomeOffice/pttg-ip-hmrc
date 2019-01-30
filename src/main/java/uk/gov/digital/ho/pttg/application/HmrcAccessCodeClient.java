@@ -27,8 +27,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
-import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_API_CALL_ATTEMPT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Component
 @Slf4j
@@ -73,9 +72,9 @@ public class HmrcAccessCodeClient {
     }
 
     public void loadLatestAccessCode() {
-        log.info("Refresh the cached Access Code");
+        log.info("Refreshing the cached Access Code", value(EVENT, HMRC_UPDATE_ACCESS_CODE));
         getAccessCodeWithRetries();
-        log.info("Cached Access Code refreshed");
+        log.info("Cached Access Code refreshed", value(EVENT, HMRC_ACCESS_CODE_RECEIVED));
     }
 
     public void reportBadAccessCode() {
