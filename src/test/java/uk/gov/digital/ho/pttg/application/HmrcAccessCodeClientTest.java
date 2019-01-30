@@ -370,7 +370,7 @@ public class HmrcAccessCodeClientTest {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals("Refreshing the cached Access Code") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_ACCESS_CODE_REFRESH));
+                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_UPDATE_ACCESS_CODE));
         }));
     }
 
@@ -384,7 +384,7 @@ public class HmrcAccessCodeClientTest {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals("Cached Access Code refreshed") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_ACCESS_CODE_REFRESHED));
+                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_ACCESS_CODE_RECEIVED));
         }));
     }
 

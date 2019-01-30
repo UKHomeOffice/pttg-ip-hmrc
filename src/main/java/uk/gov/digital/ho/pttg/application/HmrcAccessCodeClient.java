@@ -72,9 +72,9 @@ public class HmrcAccessCodeClient {
     }
 
     public void loadLatestAccessCode() {
-        log.info("Refreshing the cached Access Code", value(EVENT, HMRC_ACCESS_CODE_REFRESH));
+        log.info("Refreshing the cached Access Code", value(EVENT, HMRC_UPDATE_ACCESS_CODE));
         getAccessCodeWithRetries();
-        log.info("Cached Access Code refreshed", value(EVENT, HMRC_ACCESS_CODE_REFRESHED));
+        log.info("Cached Access Code refreshed", value(EVENT, HMRC_ACCESS_CODE_RECEIVED));
     }
 
     public void reportBadAccessCode() {
