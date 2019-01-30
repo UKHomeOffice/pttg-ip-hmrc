@@ -1,6 +1,8 @@
 package uk.gov.digital.ho.pttg.application;
 
 public enum LogEvent {
+    HMRC_ACCESS_CODE_REFRESH,
+    HMRC_ACCESS_CODE_REFRESHED,
     HMRC_SERVICE_STARTED,
     HMRC_PROXY_ENABLED,
     HMRC_SERVICE_REQUEST_RECEIVED,

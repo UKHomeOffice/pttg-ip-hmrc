@@ -40,6 +40,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcAccessCodeClientTest {
@@ -69,6 +70,9 @@ public class HmrcAccessCodeClientTest {
     @Before
     public void setUp() {
         accessCodeClient = new HmrcAccessCodeClient(mockRestTemplate, mockRequestHeaderData, ACCESS_CODE_URL, MAX_RETRY_ATTEMPTS, RETRY_DELAY_IN_MILLIS);
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcAccessCodeClient.class);
+        rootLogger.setLevel(Level.INFO);
+        rootLogger.addAppender(mockAppender);
     }
 
     @Test
@@ -354,6 +358,34 @@ public class HmrcAccessCodeClientTest {
 
 
         assertThat(accessUri.toString()).isEqualTo("http://localhost:10080/hmrcaccesscode/access");
+    }
+
+    @Test
+    public void shouldLogBeforeLoadLatestAccessCode() {
+        when(mockRestTemplate.exchange(uriCaptor.capture(), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class))).thenReturn(okResponse());
+
+        accessCodeClient.loadLatestAccessCode();
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Refreshing the cached Access Code") &&
+                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_ACCESS_CODE_REFRESH));
+        }));
+    }
+
+    @Test
+    public void shouldLogAfterLoadLatestAccessCode() {
+        when(mockRestTemplate.exchange(uriCaptor.capture(), eq(HttpMethod.GET), isA(HttpEntity.class), eq(AccessCode.class))).thenReturn(okResponse());
+
+        accessCodeClient.loadLatestAccessCode();
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Cached Access Code refreshed") &&
+                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_ACCESS_CODE_REFRESHED));
+        }));
     }
 
     private ResourceAccessException connectionRefusedException(final String exceptionMessage) {
