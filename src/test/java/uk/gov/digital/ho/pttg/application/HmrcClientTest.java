@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.hateoas.Link;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.dto.Address;
 import uk.gov.digital.ho.pttg.dto.Employer;
@@ -255,26 +254,9 @@ public class HmrcClientTest {
 
     @Test
     @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void shouldGetSummaryIfConfigNotSelfEmploymentOnly() {
+    public void shouldGetSelfEmployment() {
         HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
-        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
-        IncomeSummaryContext mockIncomeSummaryContext = mock(IncomeSummaryContext.class);
-        when(mockIncomeSummaryContext.needsSelfAssessmentSummaryIncome()).thenReturn(true);
-        when(mockIncomeSummaryContext.getSelfAssessmentLink(any(String.class))).thenReturn(mock(Link.class));
 
-        hmrcClient.getIncomeSummary("some access token", mock(Individual.class), LocalDate.now(), LocalDate.now(), mockIncomeSummaryContext);
-
-        verify(mockIncomeSummaryContext).needsSelfAssessmentSummaryIncome();
-        verify(mockHmrcHateoasClient).getSelfAssessmentSummaryIncome(anyString(), any(Link.class));
-        verify(mockHmrcHateoasClient, times(0)).getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
-
-    }
-
-    @Test
-    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void shouldGetSelfEmploymentIfConfigIsSelfEmploymentOnly() {
-        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
-        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", true);
         IncomeSummaryContext mockIncomeSummaryContext = mock(IncomeSummaryContext.class);
         when(mockIncomeSummaryContext.needsSelfAssessmentSelfEmploymentIncome()).thenReturn(true);
         when(mockIncomeSummaryContext.getSelfAssessmentLink(any(String.class))).thenReturn(mock(Link.class));
@@ -284,6 +266,5 @@ public class HmrcClientTest {
         verify(mockIncomeSummaryContext).needsSelfAssessmentSelfEmploymentIncome();
         verify(mockHmrcHateoasClient).getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
         verify(mockHmrcHateoasClient, times(0)).getSelfAssessmentSummaryIncome(anyString(), any(Link.class));
-
     }
 }

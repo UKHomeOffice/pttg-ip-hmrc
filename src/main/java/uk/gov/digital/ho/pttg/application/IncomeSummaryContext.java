@@ -27,8 +27,6 @@ public class IncomeSummaryContext {
     private List<Income> payeIncome;
     private List<Employment> employments;
     private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSelfEmploymentIncome;
-    private List<AnnualSelfAssessmentTaxReturn> selfAssessmentSummaryIncome;
-
 
     boolean needsMatchResource() {
         return matchResource == null;
@@ -60,10 +58,6 @@ public class IncomeSummaryContext {
 
     boolean needsSelfAssessmentSelfEmploymentIncome() {
         return selfAssessmentSelfEmploymentIncome == null;
-    }
-
-    boolean needsSelfAssessmentSummaryIncome() {
-        return selfAssessmentSummaryIncome == null;
     }
 
     Individual getIndividual() {

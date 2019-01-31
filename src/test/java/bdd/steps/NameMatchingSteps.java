@@ -238,16 +238,6 @@ public class NameMatchingSteps {
         currentSession.put(INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY, response);
     }
 
-    @When("^the service configuration is changed to self assessment summary$")
-    public void theServiceConfigurationIsChangedToSelfAssessmentSummary() {
-        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", true);
-    }
-
-    @When("^the service configuration is changed to self assessment self employment only")
-    public void theServiceConfigurationIsChangedToSelfAssessmentSelfEmploymentOnly() {
-        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
-    }
-
     @Then("^the following identities will be tried in this order$")
     public void theFollowingIdentitiesWillBeTriedInThisOrder(DataTable dataTable) {
 
@@ -311,18 +301,6 @@ public class NameMatchingSteps {
         JsonPath jsonPath = new JsonPath(response.asString());
         assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(10500);
         assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(0);
-        assertThat(response.getStatusCode()).isEqualTo(SC_OK);
-    }
-
-    @And("^the summary income will be returned from the service$")
-    public void theSummaryIncomeWillBeReturnedFromTheService() {
-
-        Response response = getIndividualMatchingResponse();
-
-        assertThat(response).isNotNull();
-        JsonPath jsonPath = new JsonPath(response.asString());
-        assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(30000);
-        assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(0);
         assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 

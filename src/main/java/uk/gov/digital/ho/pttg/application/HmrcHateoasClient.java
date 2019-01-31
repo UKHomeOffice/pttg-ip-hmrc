@@ -54,7 +54,7 @@ public class HmrcHateoasClient {
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
     private final HmrcCallWrapper hmrcCallWrapper;
-    private NameMatchingCandidatesService nameMatchingCandidatesService;
+    private final NameMatchingCandidatesService nameMatchingCandidatesService;
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {};
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};
@@ -77,8 +77,8 @@ public class HmrcHateoasClient {
             NameNormalizer nameNormalizer,
             HmrcCallWrapper hmrcCallWrapper,
             NameMatchingCandidatesService nameMatchingCandidatesService,
-            @Value("${hmrc.endpoint}") String hmrcUrl
-            ) {
+            @Value("${hmrc.endpoint}") String hmrcUrl) {
+
         this.requestHeaderData = requestHeaderData;
         this.nameNormalizer = nameNormalizer;
         this.hmrcCallWrapper = hmrcCallWrapper;
