@@ -80,8 +80,7 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
         properties = {
         "pttg.audit.url=http://localhost:1111",
         "base.hmrc.url=http://localhost:2222",
-        "base.hmrc.access.code.url=http://localhost:3333",
-        "hmrc.sa.self-employment-only=false"
+        "base.hmrc.access.code.url=http://localhost:3333"
         })
 public class NameMatchingSteps {
     private static final String INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY = "IndividualMatchingResponse";
