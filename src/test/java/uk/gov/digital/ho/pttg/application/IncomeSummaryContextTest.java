@@ -38,7 +38,6 @@ public class IncomeSummaryContextTest {
         assertThat(incomeSummaryContext.needsPayeIncome()).isTrue();
         assertThat(incomeSummaryContext.needsEmployments()).isTrue();
         assertThat(incomeSummaryContext.needsSelfAssessmentSelfEmploymentIncome()).isTrue();
-        assertThat(incomeSummaryContext.needsSelfAssessmentSummaryIncome()).isTrue();
     }
 
     @Test
@@ -145,13 +144,4 @@ public class IncomeSummaryContextTest {
         assertThat(incomeSummaryContext.selfAssessmentSelfEmploymentIncome()).isEqualTo(mockAnnualSelfAssessmentTaxReturns);
     }
 
-    @Test
-    public void shouldSetSelfAssessmentSummaryIncome() {
-        List<AnnualSelfAssessmentTaxReturn> mockAnnualSelfAssessmentTaxReturns = mock(List.class);
-
-        incomeSummaryContext.selfAssessmentSummaryIncome(mockAnnualSelfAssessmentTaxReturns);
-
-        assertThat(incomeSummaryContext.needsSelfAssessmentSummaryIncome()).isFalse();
-        assertThat(incomeSummaryContext.selfAssessmentSummaryIncome()).isEqualTo(mockAnnualSelfAssessmentTaxReturns);
-    }
 }

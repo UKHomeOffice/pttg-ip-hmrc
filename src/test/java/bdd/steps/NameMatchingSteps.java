@@ -80,8 +80,7 @@ import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
         properties = {
         "pttg.audit.url=http://localhost:1111",
         "base.hmrc.url=http://localhost:2222",
-        "base.hmrc.access.code.url=http://localhost:3333",
-        "hmrc.sa.self-employment-only=false"
+        "base.hmrc.access.code.url=http://localhost:3333"
         })
 public class NameMatchingSteps {
     private static final String INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY = "IndividualMatchingResponse";
@@ -238,16 +237,6 @@ public class NameMatchingSteps {
         currentSession.put(INDIVIDUAL_MATCHING_RESPONSE_SESSION_KEY, response);
     }
 
-    @When("^the service configuration is changed to self assessment summary$")
-    public void theServiceConfigurationIsChangedToSelfAssessmentSummary() {
-        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", true);
-    }
-
-    @When("^the service configuration is changed to self assessment self employment only")
-    public void theServiceConfigurationIsChangedToSelfAssessmentSelfEmploymentOnly() {
-        ReflectionTestUtils.setField(hmrcClient, "selfEmploymentOnly", false);
-    }
-
     @Then("^the following identities will be tried in this order$")
     public void theFollowingIdentitiesWillBeTriedInThisOrder(DataTable dataTable) {
 
@@ -311,18 +300,6 @@ public class NameMatchingSteps {
         JsonPath jsonPath = new JsonPath(response.asString());
         assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(10500);
         assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(0);
-        assertThat(response.getStatusCode()).isEqualTo(SC_OK);
-    }
-
-    @And("^the summary income will be returned from the service$")
-    public void theSummaryIncomeWillBeReturnedFromTheService() {
-
-        Response response = getIndividualMatchingResponse();
-
-        assertThat(response).isNotNull();
-        JsonPath jsonPath = new JsonPath(response.asString());
-        assertThat(jsonPath.getInt("selfAssessment[1].summaryIncome")).isEqualTo(30000);
-        assertThat(jsonPath.getInt("selfAssessment[1].selfEmploymentProfit")).isEqualTo(0);
         assertThat(response.getStatusCode()).isEqualTo(SC_OK);
     }
 
