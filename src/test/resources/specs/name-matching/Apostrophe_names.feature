@@ -34,11 +34,11 @@ Feature: Names with apostrophes and spaces
     Then the following identities will be tried in this order
       | First name | Last name | Date of Birth | nino      |
       | Aaa        | Bb' Ccc   | 1987-12-10    | SE123456B |
+      | Bb' Ccc    | Aaa       | 1987-12-10    | SE123456B |
       | Aaa        | Ccc       | 1987-12-10    | SE123456B |
       | Bb'        | Ccc       | 1987-12-10    | SE123456B |
       | Ccc        | Aaa       | 1987-12-10    | SE123456B |
       | Ccc        | Bb'       | 1987-12-10    | SE123456B |
-      | Bb'        | Aaa       | 1987-12-10    | SE123456B |
       | Aaa        | Bb Ccc    | 1987-12-10    | SE123456B |
     And a Matched response will be returned from the service
     And HMRC was called 7 times

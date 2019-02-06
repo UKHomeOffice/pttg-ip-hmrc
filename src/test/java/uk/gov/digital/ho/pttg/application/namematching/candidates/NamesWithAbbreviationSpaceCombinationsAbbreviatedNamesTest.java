@@ -9,15 +9,15 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.splitAroundAbbreviatedNames;
 
-public class NamesWithFullStopSpaceCombinationsFunctionsSplitAbbreviatedAbbreviatedNamesTest {
+public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
 
     @Test
-    public void splitNamesIgnoringFullStopSpace_emptyName_returnEmptyList() {
+    public void splitNamesIgnoringAbbreviationSpace_emptyName_returnEmptyList() {
         assertThat(splitAroundAbbreviatedNames("")).isEmpty();
     }
 
     @Test
-    public void splitNamesIgnoringFullStopSpace_twoNames_returnAsList() {
+    public void splitNamesIgnoringAbbreviationSpace_twoNames_returnAsList() {
         String twoNames = "John Smith";
         List<String> expected = asList("John", "Smith");
 
@@ -56,6 +56,42 @@ public class NamesWithFullStopSpaceCombinationsFunctionsSplitAbbreviatedAbbrevia
     public void splitNamesIgnoringFullStopSpace_tabAfterFullStop_changeToSingleSpace() {
         String nameWithTwoSpaces = "St.\tJohn";
         List<String> expected = singletonList("St. John");
+
+        assertThat(splitAroundAbbreviatedNames(nameWithTwoSpaces))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void splitNamesIgnoringApostropheSpace_ApostropheNoSpaceInName_doNotSplit() {
+        String nameWithApostrophe = "O'Connor";
+        List<String> expected = singletonList("O'Connor");
+
+        assertThat(splitAroundAbbreviatedNames(nameWithApostrophe))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void splitNamesIgnoringApostropheSpace_ApostropheSpaceInName_doNotSplit() {
+        String nameWithApostrophe = "O' Connor";
+        List<String> expected = singletonList("O' Connor");
+
+        assertThat(splitAroundAbbreviatedNames(nameWithApostrophe))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void splitNamesIgnoringApostropheSpace_multipleSpacesAfterApostrophe_reduceToSingleSpace() {
+        String nameWithTwoSpaces = "O'  Connor";
+        List<String> expected = singletonList("O' Connor");
+
+        assertThat(splitAroundAbbreviatedNames(nameWithTwoSpaces))
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void splitNamesIgnoringApostropheSpace_tabAfterApostrophe_changeToSingleSpace() {
+        String nameWithTwoSpaces = "O'\tConnor";
+        List<String> expected = singletonList("O' Connor");
 
         assertThat(splitAroundAbbreviatedNames(nameWithTwoSpaces))
                 .isEqualTo(expected);
