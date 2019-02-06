@@ -1,6 +1,6 @@
 Feature: Identity Matching
 
-  Scenario: applicant should be matched using NINO, DOB, firstname and lastname
+  Scenario: Applicant should be matched using NINO - DOB - firstname and lastname
     Given HMRC has the following individual records
       | First name    | Last name        | Date of Birth | nino      |
       | Freddy        | Flintstone       | 1952-02-28    | NR123456C |
