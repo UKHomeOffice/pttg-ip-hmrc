@@ -21,7 +21,6 @@ import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturn;
 import uk.gov.digital.ho.pttg.dto.sasummary.Summary;
-import uk.gov.digital.ho.pttg.dto.sasummary.SummarySelfAssessment;
 import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
 
 import java.math.BigDecimal;
@@ -54,14 +53,13 @@ public class HmrcHateoasClient {
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
     private final HmrcCallWrapper hmrcCallWrapper;
-    private NameMatchingCandidatesService nameMatchingCandidatesService;
+    private final NameMatchingCandidatesService nameMatchingCandidatesService;
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {};
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};
     private static final ParameterizedTypeReference<Resource<PayeIncome>> payeIncomesResourceTypeRef = new ParameterizedTypeReference<Resource<PayeIncome>>() {};
     private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {};
     private static final ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>> saSelfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>>() {};
-    private static final ParameterizedTypeReference<Resource<SummarySelfAssessment>> saSummaryResourceTypeRef = new ParameterizedTypeReference<Resource<SummarySelfAssessment>>() {};
 
     private static final MonthDay END_OF_TAX_YEAR = MonthDay.of(4, 5);
     private static final String QUERY_PARAM_TO_DATE = "toDate";
@@ -77,8 +75,8 @@ public class HmrcHateoasClient {
             NameNormalizer nameNormalizer,
             HmrcCallWrapper hmrcCallWrapper,
             NameMatchingCandidatesService nameMatchingCandidatesService,
-            @Value("${hmrc.endpoint}") String hmrcUrl
-            ) {
+            @Value("${hmrc.endpoint}") String hmrcUrl) {
+
         this.requestHeaderData = requestHeaderData;
         this.nameNormalizer = nameNormalizer;
         this.hmrcCallWrapper = hmrcCallWrapper;
@@ -144,25 +142,6 @@ public class HmrcHateoasClient {
                                 .reduce(BigDecimal.ZERO, BigDecimal::add))
                         .build())
                 .collect(Collectors.toList());
-    }
-
-    List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSummaryIncome(String accessToken, Link link) {
-
-        if (link == null) {
-            return emptyList();
-        }
-
-        log.info("Sending Self Assessment Summary request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
-        Resource<SummarySelfAssessment> selfAssessmentSummaryResource =
-                hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSummaryResourceTypeRef);
-        log.info("Self Assessment summary response received from HMRC",
-                    value(EVENT, HMRC_SA_RESPONSE_RECEIVED),
-                    value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
-
-        List<SummaryTaxReturn> taxReturns = selfAssessmentSummaryResource.getContent().getSelfAssessment().getTaxReturns();
-
-        return groupSummaries(taxReturns);
     }
 
     List<AnnualSelfAssessmentTaxReturn> groupSummaries(List<SummaryTaxReturn> taxReturns) {

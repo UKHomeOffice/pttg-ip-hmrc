@@ -7,7 +7,10 @@ import org.junit.Rule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.http.*
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
@@ -23,8 +26,7 @@ import static uk.gov.digital.ho.pttg.api.RequestHeaderData.CORRELATION_ID_HEADER
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.USER_ID_HEADER
 
 @SpringBootTest(
-        webEnvironment = RANDOM_PORT,
-        properties = ["hmrc.sa.self-employment-only=true"]
+        webEnvironment = RANDOM_PORT
 )
 @TestPropertySource(locations = "classpath:test-application-override.properties")
 @ContextConfiguration
