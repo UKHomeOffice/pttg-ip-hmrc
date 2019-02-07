@@ -265,6 +265,5 @@ public class HmrcClientTest {
 
         verify(mockIncomeSummaryContext).needsSelfAssessmentSelfEmploymentIncome();
         verify(mockHmrcHateoasClient).getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
-        verify(mockHmrcHateoasClient, times(0)).getSelfAssessmentSummaryIncome(anyString(), any(Link.class));
     }
 }
