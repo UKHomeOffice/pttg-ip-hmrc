@@ -12,12 +12,12 @@ import static uk.gov.digital.ho.pttg.application.namematching.candidates.Abbrevi
 public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
 
     @Test
-    public void splitNamesIgnoringAbbreviationSpace_emptyName_returnEmptyList() {
+    public void splitAroundAbbreviatedNames_emptyName_returnEmptyList() {
         assertThat(splitAroundAbbreviatedNames("")).isEmpty();
     }
 
     @Test
-    public void splitNamesIgnoringAbbreviationSpace_twoNames_returnAsList() {
+    public void splitAroundAbbreviatedNames_twoNames_returnAsList() {
         String twoNames = "John Smith";
         List<String> expected = asList("John", "Smith");
 
@@ -26,7 +26,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringFullStopSpace_fullStopNoSpaceInName_doNotSplit() {
+    public void splitAroundAbbreviatedNames_fullStopNoSpaceInName_doNotSplit() {
         String nameWithFullStop = "St.John";
         List<String> expected = singletonList("St.John");
 
@@ -35,7 +35,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringFullStopSpace_fullStopSpaceInName_doNotSplit() {
+    public void splitAroundAbbreviatedNames_fullStopSpaceInName_doNotSplit() {
         String nameWithFullStop = "St. John";
         List<String> expected = singletonList("St. John");
 
@@ -44,7 +44,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringFullStopSpace_multipleSpacesAfterFullStop_reduceToSingleSpace() {
+    public void splitAroundAbbreviatedNames_multipleSpacesAfterFullStop_reduceToSingleSpace() {
         String nameWithTwoSpaces = "St.  John";
         List<String> expected = singletonList("St. John");
 
@@ -53,7 +53,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringFullStopSpace_tabAfterFullStop_changeToSingleSpace() {
+    public void splitAroundAbbreviatedNames_tabAfterFullStop_changeToSingleSpace() {
         String nameWithTwoSpaces = "St.\tJohn";
         List<String> expected = singletonList("St. John");
 
@@ -62,7 +62,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringApostropheSpace_ApostropheNoSpaceInName_doNotSplit() {
+    public void splitAroundAbbreviatedNames_apostropheNoSpaceInName_doNotSplit() {
         String nameWithApostrophe = "O'Connor";
         List<String> expected = singletonList("O'Connor");
 
@@ -71,7 +71,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringApostropheSpace_ApostropheSpaceInName_doNotSplit() {
+    public void splitAroundAbbreviatedNames_apostropheSpaceInName_doNotSplit() {
         String nameWithApostrophe = "O' Connor";
         List<String> expected = singletonList("O' Connor");
 
@@ -80,7 +80,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringApostropheSpace_multipleSpacesAfterApostrophe_reduceToSingleSpace() {
+    public void splitAroundAbbreviatedNames_multipleSpacesAfterApostrophe_reduceToSingleSpace() {
         String nameWithTwoSpaces = "O'  Connor";
         List<String> expected = singletonList("O' Connor");
 
@@ -89,7 +89,7 @@ public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
     }
 
     @Test
-    public void splitNamesIgnoringApostropheSpace_tabAfterApostrophe_changeToSingleSpace() {
+    public void splitAroundAbbreviatedNames_tabAfterApostrophe_changeToSingleSpace() {
         String nameWithTwoSpaces = "O'\tConnor";
         List<String> expected = singletonList("O' Connor");
 
