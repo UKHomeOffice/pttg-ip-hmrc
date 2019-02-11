@@ -9,7 +9,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.splitAroundAbbreviatedNames;
 
-public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesTest {
+public class AbbreviatedNamesFunctionsSplitAroundAbbreviatedNamesTest {
 
     @Test
     public void splitAroundAbbreviatedNames_emptyName_returnEmptyList() {

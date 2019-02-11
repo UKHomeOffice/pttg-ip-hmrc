@@ -12,7 +12,7 @@ import static java.util.Collections.emptyList;
 public final class AbbreviatedNamesFunctions {
 
     private static final String ANY_LETTER_INCLUDING_UNICODE_MATCHER = "\\p{L}\\p{M}*+";
-    private static final String ABBREVIATION_SPACE_MATCHER = "([.'])\\s+";
+    private static final String ABBREVIATION_SPACE_MATCHER = "[.']\\s+";
 
     private static final String ABBREVIATION_SPACE_BETWEEN_NAMES_PATTERN = ANY_LETTER_INCLUDING_UNICODE_MATCHER + ABBREVIATION_SPACE_MATCHER + ANY_LETTER_INCLUDING_UNICODE_MATCHER;
     private static final Pattern ABBREVIATION_SPACE_REGEX_PATTERN = Pattern.compile(ABBREVIATION_SPACE_BETWEEN_NAMES_PATTERN);

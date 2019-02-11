@@ -6,7 +6,7 @@ import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.application.namematching.candidates.AbbreviatedNamesFunctions.doesNotContainAbbreviatedNames;
 
-public class NamesWithAbbreviationSpaceCombinationsAbbreviatedNamesFunctionsTest {
+public class AbbreviatedNamesFunctionsDoesNotContainAbbreviatedNamesTest {
 
     @Test
     public void doesNotContainAbbreviatedNames_emptyString_returnTrue() {
