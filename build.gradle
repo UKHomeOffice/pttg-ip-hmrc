@@ -14,7 +14,6 @@ buildscript {
   dependencies {
     classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     classpath 'net.researchgate:gradle-release:2.6.0'
-    classpath 'net.serenity-bdd:serenity-gradle-plugin:2.0.38'
   }
 }
 
@@ -36,7 +35,6 @@ apply plugin: 'findbugs'
 apply plugin: 'jacoco'
 apply plugin: 'project-report'
 apply plugin: 'net.researchgate.release'
-apply plugin: 'net.serenity-bdd.aggregator'
 
 checkstyleTest.enabled = false
 checkstyle {
@@ -119,8 +117,8 @@ dependencies {
   testCompile group: 'cglib', name: 'cglib-nodep', version: '3.2.5'
   testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.3'
 
-  testCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: '1.9.29'
-  testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: '2.0.38'
+  testCompile group: 'net.serenity-bdd', name: 'serenity-cucumber', version: '1.9.18'
+  testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: '2.0.7'
 
   testCompile group: 'info.cukes', name:'gherkin', version: '2.12.2'
 
@@ -135,14 +133,6 @@ dependencies {
 
 }
 
-task testCucumber(type: Test) {
-  include 'bdd/ExecutableSpecifications*'
-  finalizedBy aggregate
-  testLogging.showStandardStreams = true
-  outputs.upToDateWhen { false }
-}
-
-build.dependsOn(testCucumber)
 
 gradle.startParameter.continueOnFailure = false
 
