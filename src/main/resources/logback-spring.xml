@@ -19,6 +19,16 @@
                 <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}</Pattern>
             </layout>
         </appender>
+
+        <appender name="thirdPartyErrorAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}</Pattern>
+            </layout>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>ERROR</level>
+            </filter>
+        </appender>
+
     </springProfile>
 
     <springProfile name="!logtoconsole">
@@ -50,17 +60,46 @@
                 </provider>
             </encoder>
         </appender>
+
+        <appender name="thirdPartyErrorAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeCallerInfo>true</includeCallerInfo>
+                <fieldNames>
+                    <!-- Do not output the standard message field.  It will be output by the pattern provider below -->
+                    <message>[ignore]</message>
+                </fieldNames>
+                <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
+                    <pattern>
+                        {
+                        "timestamp" : "%date{\"yyyy-MM-dd'T'HH:mm:ss,SSSXXX\", UTC}",
+                        "thread" : "%thread",
+                        "subsystem" : "${appName}",
+                        "logger" : "%logger{50}",
+                        "exception" : "%exception",
+                        "message": "%replace(%msg){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}",
+                        "event_id": "THIRD_PARTY_ERROR"
+                        }
+                    </pattern>
+                </provider>
+            </encoder>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>ERROR</level>
+            </filter>
+        </appender>
     </springProfile>
 
     <logger name="org.eclipse.jetty" additivity="false" level="WARN">
         <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyErrorAppender" />
     </logger>
     <logger name="org.springframework" additivity="false" level="INFO">
         <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyErrorAppender" />
     </logger>
 
     <logger name="org.hibernate" additivity="false" level="WARN">
         <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyErrorAppender" />
     </logger>
 
     <!--This logger _must_ use the redactingAppender - NINOs must be hidden in logs-->
@@ -68,16 +107,9 @@
         <appender-ref ref="redactingAppender"/>
     </logger>
 
-    <logger name="com.github.tomakehurst.wiremock" additivity="false" level="INFO">
-        <appender-ref ref="consoleAppender"/>
-    </logger>
-
-    <logger name="org.apache.catalina.core" additivity="false" level="WARN">
-        <appender-ref ref="consoleAppender"/>
-    </logger>
-
     <root level="INFO">
         <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyErrorAppender" />
     </root>
 
 </configuration>
