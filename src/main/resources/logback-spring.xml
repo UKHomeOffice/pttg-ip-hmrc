@@ -7,17 +7,22 @@
     <springProperty scope="context" name="appVersion" source="info.app.version"/>
 
     <springProfile name="logtoconsole">
-        <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-            <layout class="ch.qos.logback.classic.PatternLayout">
-                <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
-            </layout>
-        </appender>
-
         <!--This appender is used when logging may include a NINO - NINOs must not be logged in full-->
-        <appender name="redactingAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <appender name="applicationAppender" class="ch.qos.logback.core.ConsoleAppender">
             <layout class="ch.qos.logback.classic.PatternLayout">
                 <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}</Pattern>
             </layout>
+        </appender>
+
+        <appender name="thirdPartyAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <Pattern>%replace(${CONSOLE_LOG_PATTERN}){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}</Pattern>
+            </layout>
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>ERROR</level>
+                <onMatch>DENY</onMatch>
+                <onMismatch>NEUTRAL</onMismatch>
+            </filter>
         </appender>
 
         <appender name="thirdPartyErrorAppender" class="ch.qos.logback.core.ConsoleAppender">
@@ -28,18 +33,11 @@
                 <level>ERROR</level>
             </filter>
         </appender>
-
     </springProfile>
 
     <springProfile name="!logtoconsole">
-        <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <includeCallerInfo>true</includeCallerInfo>
-            </encoder>
-        </appender>
-
         <!--This appender is used when logging may include a NINO - NINOs must not be logged in full-->
-        <appender name="redactingAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <appender name="applicationAppender" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
                 <includeCallerInfo>true</includeCallerInfo>
                 <fieldNames>
@@ -59,6 +57,33 @@
                     </pattern>
                 </provider>
             </encoder>
+        </appender>
+
+        <appender name="thirdPartyAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeCallerInfo>true</includeCallerInfo>
+                <fieldNames>
+                    <!-- Do not output the standard message field.  It will be output by the pattern provider below -->
+                    <message>[ignore]</message>
+                </fieldNames>
+                <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
+                    <pattern>
+                        {
+                        "thread"    : "%thread",
+                        "subsystem" : "${appName}",
+                        "logger"    : "%logger{50}",
+                        "exception" : "%exception",
+                        "message": "%replace(%msg){'([A-Za-z]\\s*[A-Za-z]\\s*[0-9]\\s*[0-9]\\s*[0-9]\\s*)[0-9]\\s*[0-9]\\s*[0-9]\\s*[A-Da-d]','$1****'}"
+                        }
+                    </pattern>
+                </provider>
+            </encoder>
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>ERROR</level>
+                <onMatch>DENY</onMatch>
+                <onMismatch>NEUTRAL</onMismatch>
+            </filter>
+
         </appender>
 
         <appender name="thirdPartyErrorAppender" class="ch.qos.logback.core.ConsoleAppender">
@@ -89,26 +114,26 @@
     </springProfile>
 
     <logger name="org.eclipse.jetty" additivity="false" level="WARN">
-        <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyAppender"/>
         <appender-ref ref="thirdPartyErrorAppender" />
     </logger>
     <logger name="org.springframework" additivity="false" level="INFO">
-        <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyAppender"/>
         <appender-ref ref="thirdPartyErrorAppender" />
     </logger>
 
     <logger name="org.hibernate" additivity="false" level="WARN">
-        <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyAppender"/>
         <appender-ref ref="thirdPartyErrorAppender" />
     </logger>
 
-    <!--This logger _must_ use the redactingAppender - NINOs must be hidden in logs-->
+    <!--This logger _must_ use the applicationAppender - NINOs must be hidden in logs-->
     <logger name="uk.gov" additivity="false" level="INFO">
-        <appender-ref ref="redactingAppender"/>
+        <appender-ref ref="applicationAppender"/>
     </logger>
 
     <root level="INFO">
-        <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="thirdPartyAppender"/>
         <appender-ref ref="thirdPartyErrorAppender" />
     </root>
 
