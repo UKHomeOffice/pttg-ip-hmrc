@@ -17,8 +17,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,6 +87,34 @@ public class RequestHeaderDataTest {
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
         assertThat(requestData.userId()).isEqualTo("some user id");
+    }
+
+    @Test
+    public void shouldDefaultMaxDurationWhenNotSuppliedInRequest() {
+        when(mockHttpServletRequest.getHeader("x-max-duration")).thenReturn(null);
+
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+
+        assertThat(requestData.maxDuration()).isEqualTo(Optional.empty());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenNonIntegerMaxDuration() {
+        when(mockHttpServletRequest.getHeader("x-max-duration")).thenReturn("a76543");
+
+        assertThatThrownBy(() -> requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(requestData.maxDuration()).isEqualTo(Optional.empty());
+    }
+
+    @Test
+    public void shouldUseMaxDurationFromRequest() {
+        when(mockHttpServletRequest.getHeader("x-max-duration")).thenReturn("76543");
+
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+
+        assertThat(requestData.maxDuration()).isEqualTo(Optional.of(76543));
     }
 
     @Test
