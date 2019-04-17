@@ -20,8 +20,6 @@ import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturn;
-import uk.gov.digital.ho.pttg.dto.sasummary.Summary;
-import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -139,20 +137,6 @@ public class HmrcHateoasClient {
                         .selfEmploymentProfit(tr.getSelfEmployments()
                                 .stream()
                                 .map(SelfEmployment::getSelfEmploymentProfit)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add))
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    List<AnnualSelfAssessmentTaxReturn> groupSummaries(List<SummaryTaxReturn> taxReturns) {
-
-        return taxReturns
-                .stream()
-                .map(tr -> AnnualSelfAssessmentTaxReturn.builder()
-                        .taxYear(tr.getTaxYear())
-                        .summaryIncome(tr.getSummary()
-                                .stream()
-                                .map(Summary::getTotalIncome)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add))
                         .build())
                 .collect(Collectors.toList());

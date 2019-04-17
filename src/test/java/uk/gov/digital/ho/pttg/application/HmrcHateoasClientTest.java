@@ -31,8 +31,6 @@ import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturn;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturns;
-import uk.gov.digital.ho.pttg.dto.sasummary.Summary;
-import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -460,29 +458,6 @@ public class HmrcHateoasClientTest {
                     (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
         }));
-    }
-
-    @Test
-    public void groupSummarySelfAssessments() {
-        List<Summary> summaries1 = Arrays.asList(new Summary(new BigDecimal("1.00")), new Summary(new BigDecimal("2.00")));
-        List<Summary> summaries2 = Arrays.asList(new Summary(new BigDecimal("3.00")), new Summary(new BigDecimal("4.00")));
-        List<SummaryTaxReturn> summaryTaxReturns =
-                Arrays.asList(
-                    new SummaryTaxReturn("2015-16", summaries1),
-                    new SummaryTaxReturn("2016-17", summaries2)
-                );
-
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-
-        List<AnnualSelfAssessmentTaxReturn> saTaxReturns = client.groupSummaries(summaryTaxReturns);
-
-        assertThat(saTaxReturns.size()).isEqualTo(2);
-        assertThat(saTaxReturns.get(0).getTaxYear()).isEqualTo("2015-16");
-        assertThat(saTaxReturns.get(0).getSummaryIncome()).isEqualTo(new BigDecimal("3.00"));
-        assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
-        assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
-        assertThat(saTaxReturns.get(1).getSummaryIncome()).isEqualTo(new BigDecimal("7.00"));
-        assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
     }
 
     @Test
