@@ -11,7 +11,12 @@ import uk.gov.digital.ho.pttg.dto.EmbeddedIndividual;
 import uk.gov.digital.ho.pttg.dto.Employment;
 import uk.gov.digital.ho.pttg.dto.Income;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.PAYE;
+import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.SELF_ASSESSMENT;
 
 @Getter
 @Setter
@@ -82,5 +87,19 @@ public class IncomeSummaryContext {
 
     Link getSelfAssessmentLink(String rel) {
         return selfAssessmentResource.getLink(rel);
+    }
+
+    List<IncomeDataTypes> incomeDataAvailable() {
+        List<IncomeDataTypes> available = new ArrayList<>();
+
+        if (!needsPayeIncome()) {
+            available.add(PAYE);
+        }
+
+        if (!needsSelfAssessmentSelfEmploymentIncome()) {
+            available.add(SELF_ASSESSMENT);
+        }
+
+        return Collections.unmodifiableList(available);
     }
 }

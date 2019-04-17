@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.dto.AnnualSelfAssessmentTaxReturn;
 import uk.gov.digital.ho.pttg.dto.EmbeddedIndividual;
@@ -12,10 +13,13 @@ import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.util.List;
 
+import static java.util.Collections.EMPTY_LIST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
+import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.PAYE;
+import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.SELF_ASSESSMENT;
 
 public class IncomeSummaryContextTest {
 
@@ -144,4 +148,29 @@ public class IncomeSummaryContextTest {
         assertThat(incomeSummaryContext.selfAssessmentSelfEmploymentIncome()).isEqualTo(mockAnnualSelfAssessmentTaxReturns);
     }
 
+    @Test
+    public void incomeDataAvailable_whenNone_shouldReturnEmptyList() {
+        assertThat(incomeSummaryContext.incomeDataAvailable()).isEmpty();
+    }
+
+    @Test
+    public void incomeDataAvailable_whenPAYE_shouldReturnPAYE() {
+        ReflectionTestUtils.setField(incomeSummaryContext, "payeIncome", EMPTY_LIST);
+        ReflectionTestUtils.setField(incomeSummaryContext, "selfAssessmentSelfEmploymentIncome", null);
+        assertThat(incomeSummaryContext.incomeDataAvailable()).containsExactly(PAYE);
+    }
+
+    @Test
+    public void incomeDataAvailable_whenSAE_shouldReturnSA() {
+        ReflectionTestUtils.setField(incomeSummaryContext, "payeIncome", null);
+        ReflectionTestUtils.setField(incomeSummaryContext, "selfAssessmentSelfEmploymentIncome", EMPTY_LIST);
+        assertThat(incomeSummaryContext.incomeDataAvailable()).containsExactly(SELF_ASSESSMENT);
+    }
+
+    @Test
+    public void incomeDataAvailable_whenBOTH_shouldReturnBOTH() {
+        ReflectionTestUtils.setField(incomeSummaryContext, "payeIncome", EMPTY_LIST);
+        ReflectionTestUtils.setField(incomeSummaryContext, "selfAssessmentSelfEmploymentIncome", EMPTY_LIST);
+        assertThat(incomeSummaryContext.incomeDataAvailable()).containsExactly(PAYE, SELF_ASSESSMENT);
+    }
 }
