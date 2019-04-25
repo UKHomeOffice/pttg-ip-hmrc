@@ -13,13 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.Thread.activeCount;
 import static net.logstash.logback.argument.StructuredArguments.value;
-import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
 public class RequestHeaderData implements HandlerInterceptor {
@@ -27,6 +25,8 @@ public class RequestHeaderData implements HandlerInterceptor {
     private static final String MAX_DURATION_MS_HEADER = "x-max-duration";
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
     private static final String THREAD_COUNT = "thread_count";
+    private static final String MAX_DURATION = "max_duration";
+    private static final int DEFAULT_MAX_DURATION = 60000;
 
     static final String REQUEST_DURATION_MS = "request_duration_ms";
     static final String POOL_SIZE = "pool_size";
@@ -40,8 +40,6 @@ public class RequestHeaderData implements HandlerInterceptor {
     @Value("${hmrc.access.service.auth}") private String hmrcAccessBasicAuth;
     @Value("${audit.service.auth}") private String auditBasicAuth;
     @Value("${hmrc.api.version}") private String hmrcApiVersion;
-
-    private Optional<Integer> maxDuration = Optional.empty();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -109,15 +107,20 @@ public class RequestHeaderData implements HandlerInterceptor {
 
         String header = request.getHeader(MAX_DURATION_MS_HEADER);
 
+        int maxDuration = DEFAULT_MAX_DURATION;
+
         if (!StringUtils.isBlank(header)) {
 
             try {
-                maxDuration = Optional.of(Integer.parseInt(request.getHeader(MAX_DURATION_MS_HEADER)));
+                maxDuration = Integer.parseInt(header);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(String.format("Cannot parse %s header (%s) into Integer", MAX_DURATION_MS_HEADER, header), e);
             }
-
         }
+
+        log.info("Hmrc service response required in {} ms", maxDuration, value(EVENT, HMRC_SERVICE_MAX_RESPONSE_TIME));
+
+        MDC.put(MAX_DURATION, Integer.toString(maxDuration));
     }
 
     private void inititaliseRequestStart() {
@@ -171,7 +174,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         return MDC.get(USER_ID_HEADER);
     }
 
-    Optional<Integer> maxDuration() {
-        return maxDuration;
+    boolean maxDurationNotElapsed() {
+        return calculateRequestDuration() < Integer.parseInt(MDC.get(MAX_DURATION));
     }
 }
