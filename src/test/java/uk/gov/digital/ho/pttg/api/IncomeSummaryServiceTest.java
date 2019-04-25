@@ -14,11 +14,11 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.IncomeSummaryContext;
@@ -33,15 +33,14 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -58,6 +57,7 @@ public class IncomeSummaryServiceTest {
     @Mock private IncomeSummary mockIncomeSummary;
     @Mock private Individual mockIndividual;
     @Mock private Appender<ILoggingEvent> mockAppender;
+    @Mock private RequestHeaderData mockRequestHeaderData;
 
     @Captor private ArgumentCaptor<UUID> eventIdCaptor;
     @Captor private ArgumentCaptor<AuditIndividualData> auditDataCaptor;
@@ -80,7 +80,9 @@ public class IncomeSummaryServiceTest {
                 mockAuditClient,
                 reauthorisingRetryTemplate,
                 apiFailureRetryTemplate,
-                MAX_API_CALL_ATTEMPTS);
+                MAX_API_CALL_ATTEMPTS,
+                REAUTHORISING_RETRY_ATTEMPTS,
+                mockRequestHeaderData);
 
         given(mockAccessCodeClient.getAccessCode()).willReturn(SOME_ACCESS_CODE);
     }
@@ -92,13 +94,13 @@ public class IncomeSummaryServiceTest {
         LocalDate someToDate = LocalDate.of(2018, Month.MAY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
-        given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), any(Individual.class), eq(someFromDate), eq(someToDate), any(IncomeSummaryContext.class)))
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), any(Individual.class), eq(someFromDate), eq(someToDate), any(IncomeSummaryContext.class)))
                 .willReturn(mockIncomeSummary);
 
         incomeSummaryService.getIncomeSummary(someIndividual, someFromDate, someToDate);
 
         verify(mockAccessCodeClient).getAccessCode();
-        verify(mockHmrcClient).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someFromDate), eq(someToDate), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someFromDate), eq(someToDate), any(IncomeSummaryContext.class));
         verify(mockAuditClient).add(any(AuditEventType.class), any(UUID.class), any(AuditIndividualData.class));
     }
 
@@ -108,12 +110,12 @@ public class IncomeSummaryServiceTest {
         LocalDate someFromDate = LocalDate.of(2018, Month.JANUARY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
-        given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), any(Individual.class), eq(someFromDate), isNull(), any(IncomeSummaryContext.class)))
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), any(Individual.class), eq(someFromDate), isNull(), any(IncomeSummaryContext.class)))
                 .willReturn(mockIncomeSummary);
 
         incomeSummaryService.getIncomeSummary(someIndividual, someFromDate, null);
 
-        verify(mockHmrcClient).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someFromDate), isNull(), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someFromDate), isNull(), any(IncomeSummaryContext.class));
     }
 
     @Test
@@ -126,7 +128,7 @@ public class IncomeSummaryServiceTest {
         String nino = "Nino";
         Individual individual = new Individual(firstName, lastName, nino, dateOfBirth, "");
 
-        given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(someFromDate), isNull(), any(IncomeSummaryContext.class)))
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(someFromDate), isNull(), any(IncomeSummaryContext.class)))
                 .willReturn(mockIncomeSummary);
 
         incomeSummaryService.getIncomeSummary(individual, someFromDate, null);
@@ -151,7 +153,7 @@ public class IncomeSummaryServiceTest {
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
-        given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
                 .willThrow(new HmrcUnauthorisedException("test"))
                 .willReturn(mockIncomeSummary);
 
@@ -161,7 +163,7 @@ public class IncomeSummaryServiceTest {
 
         verify(mockAccessCodeClient, times(2)).getAccessCode();
         verify(mockAccessCodeClient).loadLatestAccessCode();
-        verify(mockHmrcClient, times(2)).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient, times(2)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class));
         verify(mockAuditClient, times(2)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
     }
 
@@ -171,11 +173,12 @@ public class IncomeSummaryServiceTest {
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
-        given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
                 .willThrow(new IllegalArgumentException());
 
-        assertThatThrownBy(() -> incomeSummaryService.getIncomeSummary(someIndividual, someDate, someDate))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> incomeSummaryService.getIncomeSummary(someIndividual, someDate, someDate));
+
     }
 
     @Test(expected = HttpServerErrorException.class)
@@ -185,8 +188,8 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
-                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+        when(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
+                .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
@@ -201,8 +204,8 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
-                .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        when(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
+                .thenThrow(new HttpClientErrorException(BAD_REQUEST));
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
@@ -219,7 +222,7 @@ public class IncomeSummaryServiceTest {
         verify(mockAccessCodeClient).getAccessCode();
 
         // verify an income summary request is made to HMRC
-        verify(mockHmrcClient).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
 
         // verify an audit call is made
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -234,7 +237,7 @@ public class IncomeSummaryServiceTest {
         LocalDate someDate = LocalDate.of(2018, Month.JANUARY, 1);
         Individual someIndividual = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
 
-        given(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(someIndividual), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
                 .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
 
         assertThatThrownBy(() -> incomeSummaryService.getIncomeSummary(someIndividual, someDate, someDate))
@@ -248,8 +251,8 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
-                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+        when(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
+                .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 
@@ -260,7 +263,7 @@ public class IncomeSummaryServiceTest {
             // Ignore expected exception
         }
         // Verify api retry
-        verify(mockHmrcClient, times(MAX_API_CALL_ATTEMPTS)).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient, times(MAX_API_CALL_ATTEMPTS)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
 
         verify(mockAccessCodeClient).getAccessCode();
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -274,7 +277,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
+        when(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
                 .thenThrow(new ApplicationExceptions.HmrcNotFoundException("message"));
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
@@ -286,7 +289,7 @@ public class IncomeSummaryServiceTest {
             // Ignore expected exception
         }
         // Verify api retry
-        verify(mockHmrcClient, times(1)).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient, times(1)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
 
         verify(mockAccessCodeClient).getAccessCode();
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -300,7 +303,7 @@ public class IncomeSummaryServiceTest {
         final LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
+        when(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
                 .thenThrow(new ApplicationExceptions.ProxyForbiddenException("message"));
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
@@ -312,7 +315,7 @@ public class IncomeSummaryServiceTest {
             // Ignore expected exception
         }
         // Verify api retry
-        verify(mockHmrcClient, times(1)).getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
+        verify(mockHmrcClient, times(1)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class));
 
         verify(mockAccessCodeClient).getAccessCode();
         verify(mockAuditClient).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
@@ -326,8 +329,8 @@ public class IncomeSummaryServiceTest {
         LocalDate toDate = LocalDate.of(2018, Month.MAY, 1);
 
         when(mockAccessCodeClient.getAccessCode()).thenReturn(SOME_ACCESS_CODE);
-        when(mockHmrcClient.getIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
-                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+        when(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(mockIndividual), eq(fromDate), eq(toDate), any(IncomeSummaryContext.class)))
+                .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
         when(mockIndividual.getFirstName()).thenReturn("Arthur");
         when(mockIndividual.getLastName()).thenReturn("Bobbins");
 

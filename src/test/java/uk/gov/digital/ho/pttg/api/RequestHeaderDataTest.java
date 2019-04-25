@@ -17,7 +17,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -95,7 +94,7 @@ public class RequestHeaderDataTest {
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
-        assertThat(requestData.maxDuration()).isEqualTo(Optional.empty());
+        assertThat(MDC.get("max_duration")).isEqualTo("60000");
     }
 
     @Test
@@ -105,7 +104,7 @@ public class RequestHeaderDataTest {
         assertThatThrownBy(() -> requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler))
                 .isInstanceOf(IllegalArgumentException.class);
 
-        assertThat(requestData.maxDuration()).isEqualTo(Optional.empty());
+        assertThat(MDC.get("max_duration")).isEqualTo(null);
     }
 
     @Test
@@ -114,7 +113,7 @@ public class RequestHeaderDataTest {
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
-        assertThat(requestData.maxDuration()).isEqualTo(Optional.of(76543));
+        assertThat(MDC.get("max_duration")).isEqualTo("76543");
     }
 
     @Test
