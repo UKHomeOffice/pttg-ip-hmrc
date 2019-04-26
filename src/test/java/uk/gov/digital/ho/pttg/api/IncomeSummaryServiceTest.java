@@ -352,8 +352,6 @@ public class IncomeSummaryServiceTest {
     @Test
     public void shouldNotProduceIncomeSummaryWhenSufficientRetriesButInsufficientTime() {
 
-        RequestHeaderData mockRequestHeaderData = mock(RequestHeaderData.class);
-
         RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
                                                            .retryHmrcUnauthorisedException()
                                                            .build();
@@ -398,8 +396,6 @@ public class IncomeSummaryServiceTest {
 
     @Test
     public void shouldNotProduceIncomeSummaryWhenInsufficientRetriesButSufficientTime() {
-
-        RequestHeaderData mockRequestHeaderData = mock(RequestHeaderData.class);
 
         RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
                                                            .retryHmrcUnauthorisedException()
