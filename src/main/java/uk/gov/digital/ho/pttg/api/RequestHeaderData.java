@@ -174,7 +174,8 @@ public class RequestHeaderData implements HandlerInterceptor {
         return MDC.get(USER_ID_HEADER);
     }
 
-    boolean maxDurationNotElapsed() {
-        return calculateRequestDuration() < Integer.parseInt(MDC.get(MAX_DURATION));
+    int serviceMaxDuration() {
+        return Integer.parseInt(MDC.get(MAX_DURATION));
     }
+
 }
