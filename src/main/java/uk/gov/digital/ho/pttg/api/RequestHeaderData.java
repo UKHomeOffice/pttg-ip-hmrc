@@ -26,7 +26,6 @@ public class RequestHeaderData implements HandlerInterceptor {
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
     private static final String THREAD_COUNT = "thread_count";
     private static final String MAX_DURATION = "max_duration";
-    private static final int DEFAULT_MAX_DURATION = 60000;
 
     static final String REQUEST_DURATION_MS = "request_duration_ms";
     static final String POOL_SIZE = "pool_size";
@@ -40,6 +39,7 @@ public class RequestHeaderData implements HandlerInterceptor {
     @Value("${hmrc.access.service.auth}") private String hmrcAccessBasicAuth;
     @Value("${audit.service.auth}") private String auditBasicAuth;
     @Value("${hmrc.api.version}") private String hmrcApiVersion;
+    @Value("${service.max.duration:60000}") private int defaultMaxDuration;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -105,22 +105,23 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     private void initialiseMaxDuration(HttpServletRequest request) {
 
-        String header = request.getHeader(MAX_DURATION_MS_HEADER);
-
-        int maxDuration = DEFAULT_MAX_DURATION;
-
-        if (!StringUtils.isBlank(header)) {
-
-            try {
-                maxDuration = Integer.parseInt(header);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException(String.format("Cannot parse %s header (%s) into Integer", MAX_DURATION_MS_HEADER, header), e);
-            }
-        }
+        int maxDuration = maxDuration(request.getHeader(MAX_DURATION_MS_HEADER));
 
         log.info("Hmrc service response required in {} ms", maxDuration, value(EVENT, HMRC_SERVICE_MAX_RESPONSE_TIME));
 
         MDC.put(MAX_DURATION, Integer.toString(maxDuration));
+    }
+
+    private int maxDuration(String header) {
+        if (StringUtils.isBlank(header)) {
+            return defaultMaxDuration;
+        }
+
+        try {
+            return Integer.parseInt(header);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(String.format("Cannot parse %s header (%s) into Integer", MAX_DURATION_MS_HEADER, header), e);
+        }
     }
 
     private void inititaliseRequestStart() {
