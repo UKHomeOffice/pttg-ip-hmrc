@@ -10,7 +10,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
@@ -25,8 +24,6 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.MonthDay;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +37,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.InvalidIdentityException;
+import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.buildLinkWithDateRangeQueryParams;
+import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.buildLinkWithTaxYearRangeQueryParams;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Service
@@ -59,14 +58,8 @@ public class HmrcHateoasClient {
     private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {};
     private static final ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>> saSelfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>>() {};
 
-    private static final MonthDay END_OF_TAX_YEAR = MonthDay.of(4, 5);
-    private static final String QUERY_PARAM_TO_DATE = "toDate";
-    private static final String QUERY_PARAM_FROM_DATE = "fromDate";
-    private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
-    private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
-
     private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
-    private static final String  REQUEST_DURATION_TIMESTAMP = "request_duration_ms";
+    private static final String REQUEST_DURATION_TIMESTAMP = "request_duration_ms";
 
     public HmrcHateoasClient(
             RequestHeaderData requestHeaderData,
@@ -140,48 +133,6 @@ public class HmrcHateoasClient {
                                 .reduce(BigDecimal.ZERO, BigDecimal::add))
                         .build())
                 .collect(Collectors.toList());
-    }
-
-    String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
-        String uri;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_DATE, fromDate.format(DateTimeFormatter.ISO_DATE));
-        if (toDate != null) {
-            uri = withFromDate.queryParam(QUERY_PARAM_TO_DATE, toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
-        } else {
-            uri = withFromDate.build().toUriString();
-        }
-        return uri;
-    }
-
-    String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
-        String uri;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
-        if (toDate != null) {
-            uri = withFromDate.queryParam(QUERY_PARAM_TO_TAX_YEAR, getTaxYear(toDate)).build().toUriString();
-        } else {
-            uri = withFromDate.build().toUriString();
-        }
-        return uri;
-    }
-
-    String getTaxYear(LocalDate date) {
-        String taxYear;
-        if (MonthDay.from(date).isAfter(END_OF_TAX_YEAR)) {
-            taxYear = date.getYear() + "-" + (removeFirstTwoDigits(date.getYear() + 1));
-        } else {
-            taxYear = (date.getYear() - 1) + "-" + removeFirstTwoDigits(date.getYear());
-        }
-        return taxYear;
-    }
-
-    private int removeFirstTwoDigits(int fourDigitYear) {
-        return fourDigitYear % 100;
-    }
-
-    private String stripPlaceholderQueryParams(String href) {
-        return href.replaceFirst("\\{&.*\\}", "");
     }
 
     Resource<String> getMatchResource(Individual individual, String accessToken) {
