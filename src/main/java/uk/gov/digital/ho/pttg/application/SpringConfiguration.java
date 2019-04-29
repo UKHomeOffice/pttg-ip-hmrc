@@ -84,7 +84,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RestTemplate auditRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
-        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
+        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder);
 
         MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, APPLICATION_JSON);
 
@@ -97,7 +97,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RestTemplate hmrcAccessCodeRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
-        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
+        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder);
 
         MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, APPLICATION_JSON);
 
@@ -110,7 +110,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RestTemplate hmrcApiRestTemplate(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper, ClientHttpRequestFactory clientHttpRequestFactory) {
-        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder, mapper);
+        RestTemplateBuilder builder = initaliseRestTemplateBuilder(restTemplateBuilder);
 
         MappingJackson2HttpMessageConverter converter = initialiseConverter(mapper, MediaTypes.HAL_JSON, APPLICATION_JSON);
 
@@ -122,7 +122,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
                 .build();
     }
 
-    private RestTemplateBuilder initaliseRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder, ObjectMapper mapper) {
+    private RestTemplateBuilder initaliseRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder) {
         RestTemplateBuilder builder = restTemplateBuilder;
 
         if (useProxy) {
@@ -202,12 +202,8 @@ public class SpringConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public RetryTemplate apiFailureRetryTemplate() {
-        return new RetryTemplateBuilder(retryProperties.getAttempts())
-                .withBackOffPeriod(retryProperties.getDelay())
-                .retryHttpServerErrors()
-                .build();
+    public HmrcRetryTemplateFactory hmrcRetryTemplateFactory() {
+        return new HmrcRetryTemplateFactory(retryProperties.getAttempts(), retryProperties.getDelay());
     }
 
 }
-
