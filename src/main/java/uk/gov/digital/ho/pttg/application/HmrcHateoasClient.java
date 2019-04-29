@@ -142,7 +142,7 @@ public class HmrcHateoasClient {
                 .collect(Collectors.toList());
     }
 
-    private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
+    String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
         UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_DATE, fromDate.format(DateTimeFormatter.ISO_DATE));
@@ -154,7 +154,7 @@ public class HmrcHateoasClient {
         return uri;
     }
 
-    private String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
+    String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
         String uri;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
         UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
@@ -166,7 +166,7 @@ public class HmrcHateoasClient {
         return uri;
     }
 
-    private String getTaxYear(LocalDate date) {
+    String getTaxYear(LocalDate date) {
         String taxYear;
         if (MonthDay.from(date).isAfter(END_OF_TAX_YEAR)) {
             taxYear = date.getYear() + "-" + (removeFirstTwoDigits(date.getYear() + 1));
