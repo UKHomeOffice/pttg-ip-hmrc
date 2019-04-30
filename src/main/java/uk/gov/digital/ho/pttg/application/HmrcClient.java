@@ -7,6 +7,8 @@ import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 
+import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
+
 @Service
 @Slf4j
 public class HmrcClient {
@@ -105,7 +107,7 @@ public class HmrcClient {
 
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentResource()) {
-            context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromDate, toDate, context.getIncomeLink(SELF_ASSESSMENT)));
+            context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, getTaxYear(fromDate), getTaxYear(toDate), context.getIncomeLink(SELF_ASSESSMENT)));
         }
     }
 

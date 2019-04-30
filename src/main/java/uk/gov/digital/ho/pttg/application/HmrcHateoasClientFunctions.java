@@ -14,7 +14,7 @@ final class HmrcHateoasClientFunctions {
     private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
     private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
 
-    private HmrcHateoasClientFunctions(){
+    private HmrcHateoasClientFunctions() {
         throw new UnsupportedOperationException("Companion class for HmrcHateoasClient - do not instatiate.");
     }
 
