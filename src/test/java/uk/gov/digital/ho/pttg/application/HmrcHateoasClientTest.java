@@ -50,6 +50,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -458,6 +459,69 @@ public class HmrcHateoasClientTest {
                     (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
         }));
+    }
+
+    @Test
+    public void shouldLogBeforeGetSelfAssessmentResourceRequestSent_taxYear() {
+        // given
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
+
+        // when
+        client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("About to get self assessment resource from HMRC at http://something.com/anyurl?fromTaxYear=2010-11&toTaxYear=2011-12") &&
+                    (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
+        }));
+    }
+
+    @Test
+    public void shouldLogAfterSelAssessmentResourceResponseReceived_taxYear() {
+        // given
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
+
+        // when
+        client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
+
+        // then
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals("Self assessment resource response received") &&
+                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
+                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+        }));
+    }
+
+    @Test
+    public void getSelfAssessmentResource_responseFromCallWrapper_returnedToCaller() {
+        ResponseEntity someResponse = new ResponseEntity<>(new Resource<>("some response"), OK);
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(someResponse);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
+
+        Resource<String> returnedResponse = client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
+
+        assertThat(returnedResponse.getContent()).isEqualTo("some response");
+    }
+
+    @Test
+    public void getSelfAssessmentResource_nullLink_returnEmptyResource() {
+        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
+
+        Resource<String> returnedResponse = client.getSelfAssessmentResource("token", "2010-11", "2011-12", null);
+
+        assertThat(returnedResponse.getContent()).isEqualTo("");
+        assertThat(returnedResponse.getLinks()).isEmpty();
     }
 
     @Test
