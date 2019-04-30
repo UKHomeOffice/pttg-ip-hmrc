@@ -42,6 +42,17 @@ final class HmrcHateoasClientFunctions {
         return uri;
     }
 
+    static String buildLinkWithTaxYearRangeQueryParams(String fromTaxYear, String toTaxYear, String href) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
+        uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, fromTaxYear);
+        if (toTaxYear != null) {
+            uriComponentsBuilder.queryParam(QUERY_PARAM_TO_TAX_YEAR, toTaxYear);
+        }
+        return uriComponentsBuilder
+                .build()
+                .toUriString();
+    }
+
     static String getTaxYear(LocalDate date) {
         String taxYear;
         if (MonthDay.from(date).isAfter(END_OF_TAX_YEAR)) {
