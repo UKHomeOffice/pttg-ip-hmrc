@@ -259,7 +259,7 @@ public class HmrcHateoasClientTest {
         Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(employmentsResource);
 
-        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
+        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3), "token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
                 .should()
@@ -276,7 +276,7 @@ public class HmrcHateoasClientTest {
         Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(employmentsResource);
 
-        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
+        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3), "token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
                 .should()
