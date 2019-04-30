@@ -7,9 +7,7 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -46,8 +44,6 @@ import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IncomeSummaryServiceTest {
-
-    @Rule public ExpectedException exception = ExpectedException.none();
 
     private static final int REAUTHORISING_RETRY_ATTEMPTS = 2;
     private static final int MAX_API_CALL_ATTEMPTS = 5;
@@ -220,9 +216,7 @@ public class IncomeSummaryServiceTest {
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class)))
                 .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
 
-        exception.expect(HttpServerErrorException.class);
-
-        incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE);
+        when_getIncomeSummary_throws(HttpServerErrorException.class);
 
         then(mockHmrcClient)
                 .should(times(MAX_API_CALL_ATTEMPTS))
@@ -239,9 +233,7 @@ public class IncomeSummaryServiceTest {
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class)))
                 .willThrow(new HttpClientErrorException(NOT_FOUND));
 
-        exception.expect(HttpClientErrorException.class);
-
-        incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE);
+        when_getIncomeSummary_throws(HttpClientErrorException.class);
 
         then(mockHmrcClient)
                 .should(times(1))
@@ -258,9 +250,7 @@ public class IncomeSummaryServiceTest {
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class)))
                 .willThrow(new RuntimeException("message"));
 
-        exception.expect(RuntimeException.class);
-
-        incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE);
+        when_getIncomeSummary_throws(RuntimeException.class);
 
         then(mockHmrcClient)
                 .should(times(1))
@@ -276,19 +266,17 @@ public class IncomeSummaryServiceTest {
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class)))
                 .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
 
-        exception.expect(HttpServerErrorException.class);
-
         Logger rootLogger = (Logger) LoggerFactory.getLogger(IncomeSummaryService.class);
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
 
-        incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE);
+        when_getIncomeSummary_throws(HttpServerErrorException.class);
 
-        verifyHmrcCallMessage("HMRC call attempt 1");
-        verifyHmrcCallMessage("HMRC call attempt 2");
-        verifyHmrcCallMessage("HMRC call attempt 3");
-        verifyHmrcCallMessage("HMRC call attempt 4");
-        verifyHmrcCallMessage("HMRC call attempt 5");
+        then_verifyHmrcCallMessage("HMRC call attempt 1");
+        then_verifyHmrcCallMessage("HMRC call attempt 2");
+        then_verifyHmrcCallMessage("HMRC call attempt 3");
+        then_verifyHmrcCallMessage("HMRC call attempt 4");
+        then_verifyHmrcCallMessage("HMRC call attempt 5");
     }
 
     @Test
@@ -328,11 +316,12 @@ public class IncomeSummaryServiceTest {
         assertThatExceptionOfType(HttpServerErrorException.class)
                 .isThrownBy(() -> incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, someDate, someDate));
 
-        verify(mockAppender, never()).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("HMRC call attempt " + Integer.MAX_VALUE);
-        }));
+        then(mockAppender)
+                .should(never())
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                    return loggingEvent.getFormattedMessage().equals("HMRC call attempt " + Integer.MAX_VALUE);
+                }));
     }
 
     @Test
@@ -359,19 +348,31 @@ public class IncomeSummaryServiceTest {
         assertThatExceptionOfType(HttpServerErrorException.class)
                 .isThrownBy(() -> incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE));
 
-        verify(mockAppender, never()).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("HMRC call attempt " + (MAX_API_CALL_ATTEMPTS + 1));
-        }));
+        then(mockAppender)
+                .should(never())
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                    return loggingEvent.getFormattedMessage().equals("HMRC call attempt " + (MAX_API_CALL_ATTEMPTS + 1));
+                }));
     }
 
-    private void verifyHmrcCallMessage(String message) {
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals(message) &&
+    private void then_verifyHmrcCallMessage(String message) {
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                    return loggingEvent.getFormattedMessage().equals(message) &&
                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+                }));
+    }
+
+    private void when_getIncomeSummary_throws(Class exceptionType) {
+
+        try {
+            incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE);
+            fail("Should have received a " + exceptionType.getName());
+        } catch(Exception e1) {
+            assertThat(e1.getClass()).isEqualTo(exceptionType);
+        }
     }
 }
