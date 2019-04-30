@@ -106,9 +106,15 @@ public class HmrcClient {
     }
 
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
-        if (context.needsSelfAssessmentResource()) {
-            context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, getTaxYear(fromDate), getTaxYear(toDate), context.getIncomeLink(SELF_ASSESSMENT)));
-        }
+        String toTaxYear = getTaxYear(toDate);
+        String fromTaxYear = getTaxYear(fromDate);
+
+        storeSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context);
     }
 
+    private void storeSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, IncomeSummaryContext context) {
+        if (context.needsSelfAssessmentResource()) {
+            context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context.getIncomeLink(SELF_ASSESSMENT)));
+        }
+    }
 }
