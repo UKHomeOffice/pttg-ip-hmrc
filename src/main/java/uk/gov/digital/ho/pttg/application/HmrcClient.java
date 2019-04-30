@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
@@ -14,6 +15,7 @@ import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
 public class HmrcClient {
 
     private final HmrcHateoasClient hateoasClient;
+    private final Clock clock;
 
     /*
         Hypermedia paths and links
@@ -26,8 +28,9 @@ public class HmrcClient {
     private static final String PAYE_EMPLOYMENT = "paye";
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
-    public HmrcClient(HmrcHateoasClient hateoasClient) {
+    public HmrcClient(HmrcHateoasClient hateoasClient, Clock clock) {
         this.hateoasClient = hateoasClient;
+        this.clock = clock;
     }
 
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -108,6 +111,9 @@ public class HmrcClient {
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         String toTaxYear = getTaxYear(toDate);
         String fromTaxYear = getTaxYear(fromDate);
+        if (isTooLongAgo(fromTaxYear)) {
+            fromTaxYear = earliestAllowedTaxYear();
+        }
 
         storeSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context);
     }
@@ -116,5 +122,13 @@ public class HmrcClient {
         if (context.needsSelfAssessmentResource()) {
             context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context.getIncomeLink(SELF_ASSESSMENT)));
         }
+    }
+
+    private String earliestAllowedTaxYear() {
+        return getTaxYear(LocalDate.now(clock).minusYears(6));
+    }
+
+    private boolean isTooLongAgo(String taxYear) {
+        return Integer.parseInt(taxYear.substring(0, 4)) < Integer.parseInt(earliestAllowedTaxYear().substring(0, 4));
     }
 }

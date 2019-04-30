@@ -6,18 +6,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.cglib.core.Local;
 import org.springframework.hateoas.Link;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
-import java.time.LocalDate;
-import java.time.Month;
+import java.time.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
@@ -31,7 +29,8 @@ public class HmrcClientTest {
 
     @Before
     public void setUp() {
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient);
+        Clock mockClock = Clock.fixed(LocalDate.of(2018, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneId.systemDefault());
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient, mockClock);
     }
 
     @Test
@@ -58,5 +57,35 @@ public class HmrcClientTest {
         then(mockHmrcHateoasClient)
                 .should()
                 .getSelfAssessmentResource(anyString(), eq("2017-18"), eq("2018-19"), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_fromTaxYearIsCurrentMinus6_requestAllTaxYears() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate toDate = LocalDate.of(2018, Month.JANUARY, 1); // Tax year 2017-18
+
+        LocalDate fromDate = LocalDate.of(2012, Month.JANUARY, 1); // Tax year 2011-12
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2017-18"), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_fromTaxYearIsCurrentMinus7_requestOnlyLast6() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate toDate = LocalDate.of(2018, Month.JANUARY, 1); // Tax year 2017-18
+
+        LocalDate fromDate = LocalDate.of(2011, Month.JANUARY, 1); // Tax year2010-11
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2017-18"), any(Link.class));
     }
 }
