@@ -246,29 +246,6 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    Resource<String> getSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
-
-        if (link == null) {
-            log.debug("No SA Resource");
-            return new Resource<>("", emptyList());
-        }
-
-        String baseUrl = asAbsolute(link.getHref());
-        String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
-
-        log.debug("GET SA Resource from {}", url);
-        log.info("About to get self assessment resource from HMRC at {}", url, value(EVENT, HMRC_SA_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
-
-        Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
-        log.info("Self assessment resource response received",
-                value(EVENT, HMRC_SA_RESPONSE_RECEIVED),
-                value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
-        log.debug("SA Response has been received");
-
-        return resource;
-    }
-
     Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
 
         if (link == null) {
@@ -287,6 +264,8 @@ public class HmrcHateoasClient {
         log.info("Self assessment resource response received",
                 value(EVENT, HMRC_SA_RESPONSE_RECEIVED),
                 value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
+        log.debug("SA Response has been received");
+
         return resource;
     }
 

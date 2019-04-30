@@ -393,39 +393,6 @@ public class HmrcHateoasClientTest {
     public void shouldLogBeforeGetSelfAssessmentResourceRequestSent() {
         given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        client.getSelfAssessmentResource("token", LocalDate.of(2000, 1, 1), LocalDate.of(2000, 2, 2), new Link("http://something.com/anyurl"));
-
-        then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-                    return loggingEvent.getFormattedMessage().equals("About to get self assessment resource from HMRC at http://something.com/anyurl?fromTaxYear=1999-0&toTaxYear=1999-0") &&
-                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
-                }));
-    }
-
-    @Test
-    public void shouldLogAfterSelAssessmentResourceResponseReceived() {
-        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
-
-        client.getSelfAssessmentResource("token", LocalDate.of(2000, 1, 1), LocalDate.of(2000, 2, 2), new Link("http://something.com/anyurl"));
-
-        then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-                    return loggingEvent.getFormattedMessage().equals("Self assessment resource response received") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
-    }
-
-    @Test
-    public void shouldLogBeforeGetSelfAssessmentResourceRequestSent_taxYear() {
-        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
-
         client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
@@ -439,7 +406,7 @@ public class HmrcHateoasClientTest {
     }
 
     @Test
-    public void shouldLogAfterSelAssessmentResourceResponseReceived_taxYear() {
+    public void shouldLogAfterSelAssessmentResourceResponseReceived() {
         given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
         client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));

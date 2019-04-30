@@ -30,18 +30,6 @@ final class HmrcHateoasClientFunctions {
         return uri;
     }
 
-    static String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
-        String uri;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
-        if (toDate != null) {
-            uri = withFromDate.queryParam(QUERY_PARAM_TO_TAX_YEAR, getTaxYear(toDate)).build().toUriString();
-        } else {
-            uri = withFromDate.build().toUriString();
-        }
-        return uri;
-    }
-
     static String buildLinkWithTaxYearRangeQueryParams(String fromTaxYear, String toTaxYear, String href) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
         uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, fromTaxYear);
@@ -53,22 +41,7 @@ final class HmrcHateoasClientFunctions {
                 .toUriString();
     }
 
-    static String getTaxYear(LocalDate date) {
-        String taxYear;
-        if (MonthDay.from(date).isAfter(END_OF_TAX_YEAR)) {
-            taxYear = date.getYear() + "-" + (removeFirstTwoDigits(date.getYear() + 1));
-        } else {
-            taxYear = (date.getYear() - 1) + "-" + removeFirstTwoDigits(date.getYear());
-        }
-        return taxYear;
-    }
-
     private static String stripPlaceholderQueryParams(String href) {
         return href.replaceFirst("\\{&.*\\}", "");
     }
-
-    private static int removeFirstTwoDigits(int fourDigitYear) {
-        return fourDigitYear % 100;
-    }
-
 }

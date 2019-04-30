@@ -24,5 +24,4 @@ final class HmrcClientFunctions {
     private static int removeFirstTwoDigits(int fourDigitYear) {
         return fourDigitYear % 100;
     }
-
 }
