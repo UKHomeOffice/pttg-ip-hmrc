@@ -1,16 +1,12 @@
 package uk.gov.digital.ho.pttg.application;
 
-import org.junit.Before;
 import org.junit.Test;
-import uk.gov.digital.ho.pttg.api.RequestHeaderData;
-import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
-import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.*;
+import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.buildLinkWithDateRangeQueryParams;
+import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.buildLinkWithTaxYearRangeQueryParams;
 
 public class HmrcHateoasClientFunctionsTest {
 
@@ -34,9 +30,16 @@ public class HmrcHateoasClientFunctionsTest {
 
     @Test
     public void shouldRetainAnyReturnedQueryParamsFromAbsoluteUrl_forTaxYearParams() {
-        String link = buildLinkWithTaxYearRangeQueryParams(FROM_DATE, TO_DATE, ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS_TAX_YEAR);
+        String link = buildLinkWithTaxYearRangeQueryParams("2016-17", "2016-18", ABSOLUTE_URI_WITH_QUERY_PARAMS_AND_PLACEHOLDER_PARAMS_TAX_YEAR);
         assertThat(link)
-                .isEqualTo(HMRC_BASE_URL + "/individuals?existingParam=123&fromTaxYear=2016-17&toTaxYear=2016-17");
+                .isEqualTo(HMRC_BASE_URL + "/individuals?existingParam=123&fromTaxYear=2016-17&toTaxYear=2016-18");
+    }
+
+    @Test
+    public void shouldExcludeToTaxYearIfNotProvided() {
+        String link = buildLinkWithTaxYearRangeQueryParams("2013-14", null, ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS);
+        assertThat(link)
+                .isEqualTo(HMRC_BASE_URL + "/individuals?fromTaxYear=2013-14");
     }
 
     @Test
@@ -57,16 +60,4 @@ public class HmrcHateoasClientFunctionsTest {
         String link = buildLinkWithDateRangeQueryParams(FROM_DATE, null, ABSOLUTE_URL_WITHOUT_URL_QUERY_PARAMS);
         assertThat(link).isEqualTo(HMRC_BASE_URL + "/individuals?fromDate=2016-06-21");
     }
-
-    @Test
-    public void shouldReturnTaxYearFromDate() {
-        String taxYear1 = getTaxYear(DATE_5_APRIL_2015);
-        String taxYear2 = getTaxYear(DATE_1_MAY_2013);
-        String taxYear3 = getTaxYear(DATE_6_APRIL_2011);
-
-        assertThat(taxYear1).isEqualTo("2014-15");
-        assertThat(taxYear2).isEqualTo("2013-14");
-        assertThat(taxYear3).isEqualTo("2011-12");
-    }
-
 }
