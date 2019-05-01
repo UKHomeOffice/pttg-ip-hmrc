@@ -21,7 +21,8 @@ final class HmrcClientFunctions {
         return taxYear;
     }
 
-    private static int removeFirstTwoDigits(int fourDigitYear) {
-        return fourDigitYear % 100;
+    private static String removeFirstTwoDigits(int fourDigitYear) {
+        int oneOrTwoDigitYear = fourDigitYear % 100;
+        return String.format("%02d", oneOrTwoDigitYear);
     }
 }
