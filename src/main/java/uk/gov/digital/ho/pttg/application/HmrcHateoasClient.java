@@ -246,7 +246,7 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    Resource<String> getSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
+    Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
 
         if (link == null) {
             log.debug("No SA Resource");
@@ -254,7 +254,7 @@ public class HmrcHateoasClient {
         }
 
         String baseUrl = asAbsolute(link.getHref());
-        String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
+        String url = buildLinkWithTaxYearRangeQueryParams(fromTaxYear, toTaxYear, baseUrl);
 
         log.debug("GET SA Resource from {}", url);
         log.info("About to get self assessment resource from HMRC at {}", url, value(EVENT, HMRC_SA_REQUEST_SENT));
