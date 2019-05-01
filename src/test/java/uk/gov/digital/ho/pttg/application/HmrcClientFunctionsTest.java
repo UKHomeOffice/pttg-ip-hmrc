@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYearForDateOrEarliestAllowed;
 
