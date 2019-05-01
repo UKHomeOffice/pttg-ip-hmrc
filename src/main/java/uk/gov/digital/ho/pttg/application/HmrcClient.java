@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
@@ -16,6 +17,7 @@ public class HmrcClient {
 
     private final HmrcHateoasClient hateoasClient;
     private final Clock clock;
+    private final int maximumTaxYearHistory;
 
     /*
         Hypermedia paths and links
@@ -28,9 +30,12 @@ public class HmrcClient {
     private static final String PAYE_EMPLOYMENT = "paye";
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
-    public HmrcClient(HmrcHateoasClient hateoasClient, Clock clock) {
+    public HmrcClient(HmrcHateoasClient hateoasClient,
+                      Clock clock,
+                      @Value("#{${hmrc.self-assessment.tax-years.history.maximum:1000}}") int maximumSelfAssessmentTaxYearHistory) {
         this.hateoasClient = hateoasClient;
         this.clock = clock;
+        this.maximumTaxYearHistory = maximumSelfAssessmentTaxYearHistory;
     }
 
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -125,7 +130,7 @@ public class HmrcClient {
     }
 
     private String earliestAllowedTaxYear() {
-        return getTaxYear(LocalDate.now(clock).minusYears(6));
+        return getTaxYear(LocalDate.now(clock).minusYears(maximumTaxYearHistory));
     }
 
     private boolean isTooLongAgo(String taxYear) {

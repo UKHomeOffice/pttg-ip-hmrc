@@ -151,8 +151,29 @@ public class HmrcClientTest {
                 .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2012-13"), any(Link.class));
     }
 
+    @Test
+    public void populateIncomeSummary_maximumHistoryIs1000_doNotRestrictTaxYears() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate toDate = LocalDate.of(2019, Month.JANUARY, 1); // Tax year 2018-19
+        LocalDate fromDate = LocalDate.of(2000, Month.JANUARY, 1); // Tax year 1999-00
+
+        HmrcClient hmrcClient = clientWithClockFixedAndMaxHistory(toDate.atStartOfDay(), 1000);
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("1999-00"), eq("2018-19"), any(Link.class));
+    }
+
     private HmrcClient clientWithClockFixedAtDate(LocalDateTime dateTime) {
+        return clientWithClockFixedAndMaxHistory(dateTime, 6);
+    }
+
+    private HmrcClient clientWithClockFixedAndMaxHistory(LocalDateTime dateTime, int maxSelfAssesmentTaxYearHistory) {
         Clock fixedClock = Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        return new HmrcClient(mockHmrcHateoasClient, fixedClock);
+        return new HmrcClient(mockHmrcHateoasClient, fixedClock, maxSelfAssesmentTaxYearHistory);
     }
 }
