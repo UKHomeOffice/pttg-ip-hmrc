@@ -113,7 +113,11 @@ public class RequestHeaderData implements HandlerInterceptor {
     }
 
     private int maxDuration(String header) {
+        log.info("In maxDuration setter with header {}", header);
+
         if (StringUtils.isBlank(header)) {
+            log.info("In maxDuration setter no header so using default {}", defaultMaxDuration);
+
             return defaultMaxDuration;
         }
 
