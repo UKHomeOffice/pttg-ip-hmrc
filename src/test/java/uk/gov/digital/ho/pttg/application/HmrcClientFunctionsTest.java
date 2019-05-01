@@ -24,4 +24,21 @@ public class HmrcClientFunctionsTest {
         assertThat(taxYear3).isEqualTo("2011-12");
     }
 
+    @Test
+    public void getTaxYear_dateBefore2010_returnTaxYear() {
+        assertThat(getTaxYear(LocalDate.of(2001, 1, 1)))
+                .isEqualTo("2000-01");
+    }
+
+    @Test
+    public void getTaxYear_dateAfter2100_returnTaxYear() {
+        assertThat(getTaxYear(LocalDate.of(2100, 1, 1)))
+                .isEqualTo("2099-00");
+    }
+
+    @Test
+    public void getTaxYear_taxYear1999_2000_returnTaxYear() {
+        assertThat(getTaxYear(LocalDate.of(2000, 1, 1)))
+                .isEqualTo("1999-00");
+    }
 }
