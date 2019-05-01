@@ -20,6 +20,8 @@ import static org.mockito.Mockito.eq;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
+    private static final LocalDate TODAY = LocalDate.of(2018, Month.JANUARY, 1);
+
     @Mock private Link anyLink;
     @Mock private Individual anyIndividual;
     @Mock private HmrcHateoasClient mockHmrcHateoasClient;
@@ -29,7 +31,7 @@ public class HmrcClientTest {
 
     @Before
     public void setUp() {
-        Clock mockClock = Clock.fixed(LocalDate.of(2018, Month.JANUARY, 1).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneId.systemDefault());
+        Clock mockClock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
         hmrcClient = new HmrcClient(mockHmrcHateoasClient, mockClock);
     }
 
@@ -81,11 +83,26 @@ public class HmrcClientTest {
 
         LocalDate toDate = LocalDate.of(2018, Month.JANUARY, 1); // Tax year 2017-18
 
-        LocalDate fromDate = LocalDate.of(2011, Month.JANUARY, 1); // Tax year2010-11
+        LocalDate fromDate = LocalDate.of(2011, Month.JANUARY, 1); // Tax year 2010-11
         hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
 
         then(mockHmrcHateoasClient)
                 .should()
                 .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2017-18"), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_toTaxYear5YearsAgo_fromTaxYear6YearsBeforeToYear_fromTaxYearIs6BeforeTaxYearForToday() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate toDate = LocalDate.of(2013, Month.JANUARY, 1); // Tax year 2012-03
+        LocalDate fromDate = LocalDate.of(2007, Month.JANUARY, 1); // Tax year 2006-07
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2012-13"), any(Link.class));
     }
 }
