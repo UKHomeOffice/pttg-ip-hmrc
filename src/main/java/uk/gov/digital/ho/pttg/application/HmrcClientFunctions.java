@@ -21,8 +21,20 @@ final class HmrcClientFunctions {
         return taxYear;
     }
 
+    static String getTaxYearForDateOrEarliestAllowed(LocalDate date, String earliestAllowedTaxYear) {
+        String fromTaxYear = getTaxYear(date);
+        if (isTooLongAgo(fromTaxYear, earliestAllowedTaxYear)) {
+            return earliestAllowedTaxYear;
+        }
+        return fromTaxYear;
+    }
+
     private static String removeFirstTwoDigits(int fourDigitYear) {
         int oneOrTwoDigitYear = fourDigitYear % 100;
         return String.format("%02d", oneOrTwoDigitYear);
+    }
+
+    private static boolean isTooLongAgo(String taxYear, String earliestAllowedTaxYear) {
+        return Integer.parseInt(taxYear.substring(0, 4)) < Integer.parseInt(earliestAllowedTaxYear.substring(0, 4));
     }
 }
