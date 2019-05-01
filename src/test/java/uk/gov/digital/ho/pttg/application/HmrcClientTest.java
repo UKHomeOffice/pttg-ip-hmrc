@@ -31,8 +31,7 @@ public class HmrcClientTest {
 
     @Before
     public void setUp() {
-        Clock mockClock = Clock.fixed(TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient, mockClock);
+        hmrcClient = clientWithClockFixedAtDate(TODAY.atStartOfDay());
     }
 
     @Test
@@ -62,33 +61,79 @@ public class HmrcClientTest {
     }
 
     @Test
-    public void populateIncomeSummary_fromTaxYearIsCurrentMinus6_requestAllTaxYears() {
+    public void populateIncomeSummary_startOfTaxYear_fromDate6TaxYearsAgo_requestAllTaxYears() {
         given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
         given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
 
-        LocalDate toDate = LocalDate.of(2018, Month.JANUARY, 1); // Tax year 2017-18
+        // Tax year 2019-20
+        LocalDateTime startOfTaxYear = LocalDate.of(2019, Month.APRIL, 6).atStartOfDay();
+        HmrcClient hmrcClient = clientWithClockFixedAtDate(startOfTaxYear);
 
-        LocalDate fromDate = LocalDate.of(2012, Month.JANUARY, 1); // Tax year 2011-12
+        LocalDate toDate = LocalDate.of(2019, Month.APRIL, 6); // Tax year 2019-20
+        LocalDate fromDate = LocalDate.of(2013, Month.APRIL, 6); // Tax year 2013-14
+
         hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
 
         then(mockHmrcHateoasClient)
                 .should()
-                .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2017-18"), any(Link.class));
+                .getSelfAssessmentResource(anyString(), eq("2013-14"), eq("2019-20"), any(Link.class));
     }
 
     @Test
-    public void populateIncomeSummary_fromTaxYearIsCurrentMinus7_requestOnlyLast6() {
+    public void populateIncomeSummary_startOfTaxYear_fromDate7TaxYearsAgo_toDateSixTaxYearsAgo() {
         given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
         given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
 
-        LocalDate toDate = LocalDate.of(2018, Month.JANUARY, 1); // Tax year 2017-18
+        // Tax year 2019-20
+        LocalDateTime startOfTaxYear = LocalDate.of(2019, Month.APRIL, 6).atStartOfDay();
+        HmrcClient hmrcClient = clientWithClockFixedAtDate(startOfTaxYear);
 
-        LocalDate fromDate = LocalDate.of(2011, Month.JANUARY, 1); // Tax year 2010-11
+        LocalDate toDate = LocalDate.of(2019, Month.APRIL, 6); // Tax year 2019-20
+        LocalDate fromDate = LocalDate.of(2012, Month.APRIL, 6); // Tax year 2012-13
+
         hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
 
         then(mockHmrcHateoasClient)
                 .should()
-                .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2017-18"), any(Link.class));
+                .getSelfAssessmentResource(anyString(), eq("2013-14"), eq("2019-20"), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_endOfTaxYear_fromDate6TaxYearsAgo_requestAllTaxYears() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        // Tax year 2018-19
+        LocalDateTime endOfTaxYear = LocalDate.of(2019, Month.APRIL, 5).atTime(23,59,59,999_999_999);
+        HmrcClient hmrcClient = clientWithClockFixedAtDate(endOfTaxYear);
+
+        LocalDate toDate = LocalDate.of(2019, Month.APRIL, 5); // Tax year 2018-19
+        LocalDate fromDate = LocalDate.of(2012, Month.APRIL, 6); // Tax year 2012-13
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("2012-13"), eq("2018-19"), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_endOfTaxYear_fromDate7TaxYearsAgo_toDateSixTaxYearsAgo() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        // Tax year 2018-19
+        LocalDateTime endOfTaxYear = LocalDate.of(2019, Month.APRIL, 5).atTime(23,59,59,999_999_999);
+        HmrcClient hmrcClient = clientWithClockFixedAtDate(endOfTaxYear);
+
+        LocalDate toDate = LocalDate.of(2019, Month.APRIL, 5); // Tax year 2018-19
+        LocalDate fromDate = LocalDate.of(2012, Month.APRIL, 5); // Tax year 2011-12
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("2012-13"), eq("2018-19"), any(Link.class));
     }
 
     @Test
@@ -104,5 +149,10 @@ public class HmrcClientTest {
         then(mockHmrcHateoasClient)
                 .should()
                 .getSelfAssessmentResource(anyString(), eq("2011-12"), eq("2012-13"), any(Link.class));
+    }
+
+    private HmrcClient clientWithClockFixedAtDate(LocalDateTime dateTime) {
+        Clock fixedClock = Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+        return new HmrcClient(mockHmrcHateoasClient, fixedClock);
     }
 }
