@@ -3,11 +3,9 @@ package uk.gov.digital.ho.pttg.application;
 import org.junit.Test;
 
 import java.time.LocalDate;
-import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
-import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYearForDateOrEarliestAllowed;
 
 public class HmrcClientFunctionsTest {
 
@@ -42,24 +40,5 @@ public class HmrcClientFunctionsTest {
     public void getTaxYear_taxYear1999_2000_returnTaxYear() {
         assertThat(getTaxYear(LocalDate.of(2000, 1, 1)))
                 .isEqualTo("1999-00");
-    }
-
-    @Test
-    public void getTaxYearForDateOrEarliestAllowed_dateAfterEarliestAllowed_returnTaxYearForDate() {
-        LocalDate afterEarliestAllowed = LocalDate.of(2013, Month.APRIL,5); // Tax year 2012-13
-        assertThat(getTaxYearForDateOrEarliestAllowed(afterEarliestAllowed, "2011-12"))
-                .isEqualTo("2012-13");
-    }
-    @Test
-    public void getTaxYearForDateOrEarliestAllowed_dateIsEarliestAllowed_returnTaxYearForDate() {
-        LocalDate sameAsEarliestAllowed = LocalDate.of(2011, Month.APRIL,6); // Tax year 2011-12
-        assertThat(getTaxYearForDateOrEarliestAllowed(sameAsEarliestAllowed, "2011-12"))
-                .isEqualTo("2011-12");
-    }
-    @Test
-    public void getTaxYearForDateOrEarliestAllowed_dateBeforeEarliestAllowed_returnEarliestAllowed() {
-        LocalDate beforeEarliestAllowed = LocalDate.of(2011, Month.APRIL,5); // Tax year 2010-11
-        assertThat(getTaxYearForDateOrEarliestAllowed(beforeEarliestAllowed, "2011-12"))
-                .isEqualTo("2011-12");
     }
 }

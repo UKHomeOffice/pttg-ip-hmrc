@@ -9,7 +9,6 @@ import uk.gov.digital.ho.pttg.application.domain.Individual;
 import java.time.LocalDate;
 
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
-import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYearForDateOrEarliestAllowed;
 
 @Service
 @Slf4j
@@ -112,7 +111,10 @@ public class HmrcClient {
 
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         String toTaxYear = getTaxYear(toDate);
-        String fromTaxYear = getTaxYearForDateOrEarliestAllowed(fromDate, earliestAllowedTaxYear());
+        String fromTaxYear = getTaxYear(fromDate);
+        if (isTooLongAgo(fromTaxYear)) {
+            fromTaxYear = earliestAllowedTaxYear();
+        }
 
         storeSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context);
     }
@@ -127,4 +129,7 @@ public class HmrcClient {
         return getTaxYear(LocalDate.now().minusYears(maximumTaxYearHistory));
     }
 
+    private boolean isTooLongAgo(String taxYear) {
+        return Integer.parseInt(taxYear.substring(0, 4)) < Integer.parseInt(earliestAllowedTaxYear().substring(0, 4));
+    }
 }
