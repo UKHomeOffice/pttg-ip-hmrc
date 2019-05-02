@@ -22,6 +22,8 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
+    private static final LocalDate DEFAULT_PAYE_EPOCH = LocalDate.of(2013, Month.MARCH, 31);
+
     @Mock private Link anyLink;
     @Mock private Individual anyIndividual;
     @Mock private HmrcHateoasClient mockHmrcHateoasClient;
@@ -31,7 +33,7 @@ public class HmrcClientTest {
 
     @Before
     public void setUp() {
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient);
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient, DEFAULT_PAYE_EPOCH);
     }
 
     @Test
@@ -58,5 +60,127 @@ public class HmrcClientTest {
         then(mockHmrcHateoasClient)
                 .should()
                 .getSelfAssessmentResource(anyString(), eq("2017-18"), eq("2018-19"), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeIncome_fromDateAfterEpoch_useInRequest() {
+        given(mockIncomeSummaryContext.needsPayeIncome()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = DEFAULT_PAYE_EPOCH.plusDays(1);
+        LocalDate toDate = LocalDate.now();
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getPayeIncome(eq(fromDate), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeIncome_fromDateOnEpoch_useInRequest() {
+        given(mockIncomeSummaryContext.needsPayeIncome()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = DEFAULT_PAYE_EPOCH;
+        LocalDate toDate = LocalDate.now();
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getPayeIncome(eq(fromDate), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeIncome_fromDateBeforeEpoch_useEpoch() {
+        given(mockIncomeSummaryContext.needsPayeIncome()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = DEFAULT_PAYE_EPOCH.minusDays(1);
+        LocalDate toDate = LocalDate.now();
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getPayeIncome(eq(DEFAULT_PAYE_EPOCH), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeIncome_epochLocalDateMin_doNotRestrictFromDate() {
+        given(mockIncomeSummaryContext.needsPayeIncome()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = LocalDate.of(1900, Month.JANUARY, 1);
+        LocalDate toDate = LocalDate.now();
+
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, LocalDate.MIN);
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getPayeIncome(eq(fromDate), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeEmployments_fromDateAfterEpoch_useInRequest() {
+        given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
+        given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = DEFAULT_PAYE_EPOCH.plusDays(1);
+        LocalDate toDate = LocalDate.now();
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getEmployments(eq(fromDate), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeEmployments_fromDateOnEpoch_useInRequest() {
+        given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
+        given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = DEFAULT_PAYE_EPOCH;
+        LocalDate toDate = LocalDate.now();
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getEmployments(eq(fromDate), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeEmployments_fromDateBeforeEpoch_useEpoch() {
+        given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
+        given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = DEFAULT_PAYE_EPOCH.minusDays(1);
+        LocalDate toDate = LocalDate.now();
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getEmployments(eq(DEFAULT_PAYE_EPOCH), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeEmployments_epochLocalDateMin_doNotRestrictFromDate() {
+        given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
+        given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = LocalDate.of(1900, Month.JANUARY, 1);
+        LocalDate toDate = LocalDate.now();
+
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, LocalDate.MIN);
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getEmployments(eq(fromDate), eq(toDate), anyString(), any(Link.class));
     }
 }

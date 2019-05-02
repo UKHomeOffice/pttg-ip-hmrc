@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
@@ -14,6 +15,7 @@ import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
 public class HmrcClient {
 
     private final HmrcHateoasClient hateoasClient;
+    private final LocalDate payeDataEpoch;
 
     /*
         Hypermedia paths and links
@@ -26,8 +28,10 @@ public class HmrcClient {
     private static final String PAYE_EMPLOYMENT = "paye";
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
-    public HmrcClient(HmrcHateoasClient hateoasClient) {
+    public HmrcClient(HmrcHateoasClient hateoasClient,
+                      @Value("#{${hmrc.paye.data.epoch:T(java.time.LocalDate).MIN}}") LocalDate payeDataEpoch) {
         this.hateoasClient = hateoasClient;
+        this.payeDataEpoch = payeDataEpoch;
     }
 
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -56,11 +60,16 @@ public class HmrcClient {
         storeIncomeResource(accessToken, context);
         storeEmploymentResource(accessToken, context);
         storeSelfAssessmentResource(accessToken, fromDate, toDate, context);
-
-        storePayeIncome(fromDate, toDate, accessToken, context);
-        storeEmployments(fromDate, toDate, accessToken, context);
+        storePayeData(accessToken, fromDate, toDate, context);
 
         storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
+    }
+
+    private void storePayeData(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
+        LocalDate payeFromDate = fromDate.isAfter(payeDataEpoch) ? fromDate : payeDataEpoch;
+
+        storePayeIncome(payeFromDate, toDate, accessToken, context);
+        storeEmployments(payeFromDate, toDate, accessToken, context);
     }
 
     private void storeEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
