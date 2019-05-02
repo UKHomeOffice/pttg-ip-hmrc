@@ -31,7 +31,7 @@ public class HmrcClient {
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
                       @Value("${hmrc.self-assessment.tax-years.history.maximum:1000}") int maximumSelfAssessmentTaxYearHistory,
-                      LocalDate payeDataEpoch) {
+                      @Value("#{${hmrc.paye.data.epoch:T(java.time.LocalDate).MIN}}") LocalDate payeDataEpoch) {
         this.hateoasClient = hateoasClient;
         this.maximumTaxYearHistory = maximumSelfAssessmentTaxYearHistory;
         this.payeDataEpoch = payeDataEpoch;

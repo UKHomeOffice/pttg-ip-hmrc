@@ -178,6 +178,22 @@ public class HmrcClientTest {
     }
 
     @Test
+    public void populateIncomeSummary_payeIncome_epochLocalDateMin_doNotRestrictFromDate() {
+        given(mockIncomeSummaryContext.needsPayeIncome()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = LocalDate.of(1900, Month.JANUARY, 1);
+        LocalDate toDate = LocalDate.now();
+
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, LocalDate.MIN);
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getPayeIncome(eq(fromDate), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
     public void populateIncomeSummary_payeEmployments_fromDateAfterEpoch_useInRequest() {
         given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
         given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
@@ -220,5 +236,21 @@ public class HmrcClientTest {
         then(mockHmrcHateoasClient)
                 .should()
                 .getEmployments(eq(DEFAULT_PAYE_EPOCH), eq(toDate), anyString(), any(Link.class));
+    }
+
+    @Test
+    public void populateIncomeSummary_payeEmployments_epochLocalDateMin_doNotRestrictFromDate() {
+        given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
+        given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = LocalDate.of(1900, Month.JANUARY, 1);
+        LocalDate toDate = LocalDate.now();
+
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, LocalDate.MIN);
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getEmployments(eq(fromDate), eq(toDate), anyString(), any(Link.class));
     }
 }
