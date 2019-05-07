@@ -29,7 +29,7 @@ public class HmrcClient {
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
-                      @Value("${hmrc.self-assessment.tax-years.history.maximum:1000}") int maximumSelfAssessmentTaxYearHistory) {
+                      @Value("${hmrc.self-assessment.tax-years.history.maximum}") int maximumSelfAssessmentTaxYearHistory) {
         this.hateoasClient = hateoasClient;
         this.maximumTaxYearHistory = maximumSelfAssessmentTaxYearHistory;
     }
