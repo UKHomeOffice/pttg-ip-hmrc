@@ -29,7 +29,7 @@ public class HmrcClient {
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
-                      @Value("${hmrc.paye.data.epoch}") LocalDate payeDataEpoch) {
+                      @Value("#{T(java.time.LocalDate).parse('${hmrc.paye.data.epoch}')}") LocalDate payeDataEpoch) {
         this.hateoasClient = hateoasClient;
         this.payeDataEpoch = payeDataEpoch;
     }
