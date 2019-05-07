@@ -47,7 +47,6 @@ public class HmrcRetryTemplateFactory {
     }
 
     private SimpleRetryPolicy simpleRetryPolicy(int attempts) {
-        log.debug("Retry policy has {} attempts", attempts);
         log.info("Retry policy has {} attempts", attempts);
         return new SimpleRetryPolicy(
                 attempts,
@@ -55,7 +54,6 @@ public class HmrcRetryTemplateFactory {
     }
 
     private TimeoutRetryPolicy timeoutRetryPolicy(int maxDurationInMs) {
-        log.debug("Retry policy has max duration of {} milliseconds", maxDurationInMs);
         log.info("Retry policy has max duration of {} milliseconds", maxDurationInMs);
         TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
         timeoutRetryPolicy.setTimeout(maxDurationInMs);
