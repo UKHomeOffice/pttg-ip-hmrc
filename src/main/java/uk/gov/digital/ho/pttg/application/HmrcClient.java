@@ -29,9 +29,9 @@ public class HmrcClient {
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
-                      @Value("${hmrc.paye.data.epoch:#{null}}") LocalDate payeDataEpoch) {
+                      @Value("${hmrc.paye.data.epoch}") LocalDate payeDataEpoch) {
         this.hateoasClient = hateoasClient;
-        this.payeDataEpoch = payeDataEpoch != null ? payeDataEpoch : LocalDate.MIN;
+        this.payeDataEpoch = payeDataEpoch;
     }
 
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {

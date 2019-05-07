@@ -55,10 +55,7 @@ public class HmrcClientPayeEpochTest {
         Object[] fromDateOnEpoch = {DEFAULT_PAYE_EPOCH, DEFAULT_PAYE_EPOCH, DEFAULT_PAYE_EPOCH};
         Object[] fromDateBeforeEpoch = {DEFAULT_PAYE_EPOCH.minusDays(1), DEFAULT_PAYE_EPOCH, DEFAULT_PAYE_EPOCH};
 
-        // fromDate not restricted if null used for Epoch
-        Object[] epochLocalDateMin = {DEFAULT_PAYE_EPOCH.minusDays(1), null, DEFAULT_PAYE_EPOCH.minusDays(1)};
-
-        return asList(fromDateAfterEpoch, fromDateOnEpoch, fromDateBeforeEpoch, epochLocalDateMin);
+        return asList(fromDateAfterEpoch, fromDateOnEpoch, fromDateBeforeEpoch);
     }
 
     public HmrcClientPayeEpochTest(LocalDate requestedFromDate, LocalDate epoch, LocalDate actualDateUsed) {
