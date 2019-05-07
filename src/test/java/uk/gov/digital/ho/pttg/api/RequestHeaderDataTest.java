@@ -17,10 +17,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
@@ -37,12 +41,24 @@ public class RequestHeaderDataTest {
 
     @Before
     public void setup() {
-        requestData = new RequestHeaderData();
+        Clock testClock =  Clock.fixed(Instant.ofEpochMilli(2222), ZoneId.of("Z"));
+        requestData = new RequestHeaderData(testClock);
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
 
         Logger rootLogger = (Logger) LoggerFactory.getLogger(RequestHeaderData.class);
         rootLogger.setLevel(Level.INFO);
         rootLogger.addAppender(mockAppender);
+    }
+
+    @Test
+    public void shouldUseSystemClockByDefault() {
+        Clock systemClock = Clock.systemUTC();
+
+        RequestHeaderData requestHeaderData = new RequestHeaderData();
+
+        Clock clock = (Clock) ReflectionTestUtils.getField(requestHeaderData, "clock");
+
+        assertThat(clock).isEqualTo(systemClock);
     }
 
     @Test
@@ -149,4 +165,16 @@ public class RequestHeaderDataTest {
         assertThat(requestData.poolSize()).isNotNegative();
     }
 
+    @Test
+    public void shouldCalculateTimeOfResponseRequiredBy() {
+
+        given(mockHttpServletRequest.getHeader(RequestHeaderData.MAX_DURATION_MS_HEADER))
+                .willReturn("777");
+
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+
+        long responseRequiredBy = requestData.responseRequiredBy();
+
+        assertThat(responseRequiredBy).isEqualTo(2999);
+    }
 }
