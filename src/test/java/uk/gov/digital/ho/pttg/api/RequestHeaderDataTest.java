@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,6 +86,34 @@ public class RequestHeaderDataTest {
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
         assertThat(requestData.userId()).isEqualTo("some user id");
+    }
+
+    @Test
+    public void shouldDefaultMaxDurationWhenNotSuppliedInRequest() {
+        when(mockHttpServletRequest.getHeader("x-max-duration")).thenReturn(null);
+
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+
+        assertThat(MDC.get("max_duration")).isEqualTo("60000");
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenNonIntegerMaxDuration() {
+        when(mockHttpServletRequest.getHeader("x-max-duration")).thenReturn("a76543");
+
+        assertThatThrownBy(() -> requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(MDC.get("max_duration")).isEqualTo(null);
+    }
+
+    @Test
+    public void shouldUseMaxDurationFromRequest() {
+        when(mockHttpServletRequest.getHeader("x-max-duration")).thenReturn("76543");
+
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+
+        assertThat(MDC.get("max_duration")).isEqualTo("76543");
     }
 
     @Test

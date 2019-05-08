@@ -31,8 +31,6 @@ import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturn;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturns;
-import uk.gov.digital.ho.pttg.dto.sasummary.Summary;
-import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -44,14 +42,13 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,6 +65,7 @@ public class HmrcHateoasClientTest {
 
     private final Individual individual = new Individual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30), "");
     private final HmrcIndividual individualForMatching = new HmrcIndividual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30));
+    private HmrcHateoasClient client;
 
     @Before
     public void setup() {
@@ -77,45 +75,49 @@ public class HmrcHateoasClientTest {
         when(mockNameNormalizer.normalizeNames(any(HmrcIndividual.class))).thenReturn(individualForMatching);
         List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
         when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(defaultCandidateNames);
+
+        client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
     }
 
     @Test
     public void shouldLogInfoBeforeMatchingRequestSent() {
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
 
         client.getMatchResource(individual, "");
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Match Individual NR123456C via a POST to http://localhost/individuals/matching/") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Match Individual NR123456C via a POST to http://localhost/individuals/matching/") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+                }));
     }
 
     @Test
     public void shouldLogInfoAfterMatchingRequestSent() {
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
         client.getMatchResource(individual, "");
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Successfully matched individual NR123456C") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("combination") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("name-matching-analysis") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("event_id");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Successfully matched individual NR123456C") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("combination") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("name-matching-analysis") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("event_id");
+                }));
     }
 
     @Test
     public void shouldLogInfoAfterMatchingFailure() {
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new ApplicationExceptions.HmrcNotFoundException(""));
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService,  "http://something.com/anyurl");
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
 
         try {
             client.getMatchResource(individual, "");
@@ -123,20 +125,20 @@ public class HmrcHateoasClientTest {
             // Swallowed as not of interest for this test.
         }
 
-        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should(atLeast(1))
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Failed to match individual NR123456C") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Failed to match individual NR123456C") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+                }));
     }
 
     @Test
     public void shouldLogInfoForEveryMatchingAttempt() {
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new ApplicationExceptions.HmrcNotFoundException(""));
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService,  "http://something.com/anyurl");
-
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
 
         try {
             client.getMatchResource(individual, "");
@@ -144,28 +146,30 @@ public class HmrcHateoasClientTest {
             // Swallowed as not of interest for this test.
         }
 
-        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should(atLeast(1))
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Match attempt 1 of 2") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Match attempt 1 of 2") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+                }));
 
-        verify(mockAppender, atLeast(1)).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should(atLeast(1))
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Match attempt 2 of 2") &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Match attempt 2 of 2") &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+                }));
     }
 
     @Test(expected = HttpClientErrorException.class)
     public void shouldNotThrowHmrcNotFoundExceptionWhenNot403() {
 
-        when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(
-                new HttpClientErrorException(NOT_FOUND));
-
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "some-resource");
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(NOT_FOUND));
 
         LocalDate now = LocalDate.now();
         client.getMatchResource(new Individual("somefirstname", "somelastname", "some nino", now, ""), "some access token");
@@ -174,10 +178,8 @@ public class HmrcHateoasClientTest {
     @Test(expected = ApplicationExceptions.HmrcNotFoundException.class)
     public void shouldThrowHmrcNotFoundExceptionWhenForbiddenFromHmrc() {
 
-        when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new ApplicationExceptions.HmrcNotFoundException(""));
-
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "some-resource");
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
 
         LocalDate now = LocalDate.now();
         client.getMatchResource(new Individual("somefirstname", "somelastname", "some nino", now, ""), "some access token");
@@ -185,304 +187,257 @@ public class HmrcHateoasClientTest {
 
     @Test
     public void shouldLogInfoBeforePayeRequestSent() {
-        // given
         Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(incomeResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-
-        // when
         client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should().
+                doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Sending PAYE request to HMRC") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_PAYE_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Sending PAYE request to HMRC") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_PAYE_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogInfoAfterPayeResponseReceived() {
-        // given
         Resource<Object> incomeResource = new Resource<>(new PayeIncome(new Incomes(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(incomeResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-
-        // when
         client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("PAYE response received from HMRC") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_PAYE_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("PAYE response received from HMRC") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_PAYE_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
     public void shouldLogInfoBeforeSelfAssessmentSelfEmploymentRequestSent() {
-        // given
         Resource<Object> saResource = new Resource<>(new SelfEmploymentSelfAssessment(new SelfEmploymentTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-
-        // when
         client.getSelfAssessmentSelfEmploymentIncome("token", new Link("http://foo.com/bar"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Sending Self Assessment self employment request to HMRC") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Sending Self Assessment self employment request to HMRC") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogInfoAfterSelfAssessmentSelfEmploymentResponseReceived() {
-        // given
         Resource<Object> saResource = new Resource<>(new SelfEmploymentSelfAssessment(new SelfEmploymentTaxReturns(new ArrayList<>())), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(saResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
-
-        // when
         client.getSelfAssessmentSelfEmploymentIncome("token", new Link("http://foo.com/bar"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Self Assessment self employment response received from HMRC") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Self Assessment self employment response received from HMRC") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
     public void shouldLogInfoBeforeEmploymentsRequestSent() {
-        // given
         Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(employmentsResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3), "token", new Link("http://foo.com/bar"));
 
-        // when
-        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Sending Employments request to HMRC") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Sending Employments request to HMRC") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogInfoAfterEmploymentsResponseReceived() {
-        // given
         Resource<Object> employmentsResource = new Resource<>(new Employments(new ArrayList<>()), new Link("http://www.foo.com/bar"));
         given(mockHmrcCallWrapper.followTraverson(anyString(), anyString(), any())).willReturn(employmentsResource);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3), "token", new Link("http://foo.com/bar"));
 
-        // when
-        client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3),"token", new Link("http://foo.com/bar"));
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Employments response received from HMRC") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Employments response received from HMRC") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
     public void shouldLogBeforeGetIndividualResourceRequestSent() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
-
-        // when
         client.getIndividualResource("token", new Link("http://something.com/anyurl"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("About to GET individual resource from HMRC at http://something.com/anyurl") &&
-                    (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("About to GET individual resource from HMRC at http://something.com/anyurl") &&
+                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogAfterIndividualResourceResponseReceived() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
-
-        // when
         client.getIndividualResource("token", new Link("http://something.com/anyurl"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Individual resource response received") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Individual resource response received") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
     public void shouldLogBeforeGetIncomeResourceRequestSent() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
-
-        // when
         client.getIncomeResource("token", new Link("http://something.com/anyurl"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("About to GET income resource from HMRC at http://something.com/anyurl") &&
-                    (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_INCOME_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("About to GET income resource from HMRC at http://something.com/anyurl") &&
+                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_INCOME_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogAfterIncomeResourceResponseReceived() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
-
-        // when
         client.getIncomeResource("token", new Link("http://something.com/anyurl"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Income resource response received") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_INCOME_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Income resource response received") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_INCOME_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
     public void shouldLogBeforeGetEmploymentResourceRequestSent() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
-
-        // when
         client.getEmploymentResource("token", new Link("http://something.com/anyurl"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("About to GET employment resource from HMRC at http://something.com/anyurl") &&
-                    (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("About to GET employment resource from HMRC at http://something.com/anyurl") &&
+                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogAfterEmploymentResourceResponseReceived() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
-
-        // when
         client.getEmploymentResource("token", new Link("http://something.com/anyurl"));
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Employment resource response received") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Employment resource response received") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
     public void shouldLogBeforeGetSelfAssessmentResourceRequestSent() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
+        client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
 
-        // when
-        client.getSelfAssessmentResource("token", LocalDate.of(2000, 1, 1), LocalDate.of(2000, 2, 2), new Link("http://something.com/anyurl"));
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("About to get self assessment resource from HMRC at http://something.com/anyurl?fromTaxYear=1999-0&toTaxYear=1999-0") &&
-                    (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
-        }));
+                    return loggingEvent.getFormattedMessage().equals("About to get self assessment resource from HMRC at http://something.com/anyurl?fromTaxYear=2010-11&toTaxYear=2011-12") &&
+                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
+                }));
     }
 
     @Test
     public void shouldLogAfterSelAssessmentResourceResponseReceived() {
-        // given
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://foo.com/bar");
+        client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
 
-        // when
-        client.getSelfAssessmentResource("token", LocalDate.of(2000, 1, 1), LocalDate.of(2000, 2, 2), new Link("http://something.com/anyurl"));
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Self assessment resource response received") &&
-                    (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Self assessment resource response received") &&
+                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
+                }));
     }
 
     @Test
-    public void groupSummarySelfAssessments() {
-        List<Summary> summaries1 = Arrays.asList(new Summary(new BigDecimal("1.00")), new Summary(new BigDecimal("2.00")));
-        List<Summary> summaries2 = Arrays.asList(new Summary(new BigDecimal("3.00")), new Summary(new BigDecimal("4.00")));
-        List<SummaryTaxReturn> summaryTaxReturns =
-                Arrays.asList(
-                    new SummaryTaxReturn("2015-16", summaries1),
-                    new SummaryTaxReturn("2016-17", summaries2)
-                );
+    public void getSelfAssessmentResource_responseFromCallWrapper_returnedToCaller() {
+        ResponseEntity someResponse = new ResponseEntity<>(new Resource<>("some response"), OK);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(someResponse);
 
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        Resource<String> returnedResponse = client.getSelfAssessmentResource("token", "2010-11", "2011-12", new Link("http://something.com/anyurl"));
 
-        List<AnnualSelfAssessmentTaxReturn> saTaxReturns = client.groupSummaries(summaryTaxReturns);
+        assertThat(returnedResponse.getContent()).isEqualTo("some response");
+    }
 
-        assertThat(saTaxReturns.size()).isEqualTo(2);
-        assertThat(saTaxReturns.get(0).getTaxYear()).isEqualTo("2015-16");
-        assertThat(saTaxReturns.get(0).getSummaryIncome()).isEqualTo(new BigDecimal("3.00"));
-        assertThat(saTaxReturns.get(0).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
-        assertThat(saTaxReturns.get(1).getTaxYear()).isEqualTo("2016-17");
-        assertThat(saTaxReturns.get(1).getSummaryIncome()).isEqualTo(new BigDecimal("7.00"));
-        assertThat(saTaxReturns.get(1).getSelfEmploymentProfit()).isEqualTo(new BigDecimal("0"));
+    @Test
+    public void getSelfAssessmentResource_nullLink_returnEmptyResource() {
+        Resource<String> returnedResponse = client.getSelfAssessmentResource("token", "2010-11", "2011-12", null);
+
+        assertThat(returnedResponse.getContent()).isEqualTo("");
+        assertThat(returnedResponse.getLinks()).isEmpty();
     }
 
     @Test
@@ -494,8 +449,6 @@ public class HmrcHateoasClientTest {
                         new SelfEmploymentTaxReturn("2015-16", summaries1),
                         new SelfEmploymentTaxReturn("2016-17", summaries2)
                 );
-
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
 
         List<AnnualSelfAssessmentTaxReturn> saTaxReturns = client.groupSelfEmploymentIncomes(selfEmploymentTaxReturns);
 
@@ -514,7 +467,7 @@ public class HmrcHateoasClientTest {
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
 
         CandidateName emptyNameCandidate = new CandidateName("", "Smith Jones");
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(singletonList(emptyNameCandidate));
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).willReturn(singletonList(emptyNameCandidate));
 
         try {
             client.getMatchResource(individual, "any access token");
@@ -522,7 +475,9 @@ public class HmrcHateoasClientTest {
             // Swallow exception that is not of interest to this test
         }
 
-        verify(mockHmrcCallWrapper, never()).exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class));
+        then(mockHmrcCallWrapper)
+                .should(never())
+                .exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class));
 
     }
 
@@ -532,7 +487,7 @@ public class HmrcHateoasClientTest {
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
 
         CandidateName emptyNameCandidate = new CandidateName("Bob John", "");
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(singletonList(emptyNameCandidate));
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).willReturn(singletonList(emptyNameCandidate));
 
 
         try {
@@ -541,7 +496,9 @@ public class HmrcHateoasClientTest {
             // Swallow exception that is not of interest to this test
         }
 
-        verify(mockHmrcCallWrapper, never()).exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class));
+        then(mockHmrcCallWrapper)
+                .should(never())
+                .exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class));
     }
 
     @Test
@@ -550,7 +507,7 @@ public class HmrcHateoasClientTest {
         HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
 
         CandidateName emptyNameCandidate = new CandidateName("Bob John", "");
-        when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(singletonList(emptyNameCandidate));
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).willReturn(singletonList(emptyNameCandidate));
 
         try {
             client.getMatchResource(individual, "any access token");
@@ -558,32 +515,33 @@ public class HmrcHateoasClientTest {
             // Swallow exception that is not of interest to this test
         }
 
-        verify(mockAppender, atLeastOnce()).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Skipped HMRC call due to Invalid Identity: Normalized name contains a blank name") &&
-                    loggingEvent.getLevel().equals(Level.INFO) &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-        }));
+                    return loggingEvent.getFormattedMessage().equals("Skipped HMRC call due to Invalid Identity: Normalized name contains a blank name") &&
+                            loggingEvent.getLevel().equals(Level.INFO) &&
+                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
+                }));
     }
 
     @Test
     public void shouldPassAliasSurnamesToCandidateGenerator() {
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
-        when(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(mockResponse);
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
         Individual individual = new Individual("some first names", "some last names", "some nino", SOME_DOB, "some alias surnames");
         client.getMatchResource(individual, "");
 
-        verify(mockNameMatchingCandidatesService).generateCandidateNames("some first names", "some last names", "some alias surnames");
+        then(mockNameMatchingCandidatesService)
+                .should()
+                .generateCandidateNames("some first names", "some last names", "some alias surnames");
     }
 
     @Test
     public void getMatchResource_hmrcOverRateLimitException_notCaught() {
         HmrcOverRateLimitException hmrcOverRateLimitException = new HmrcOverRateLimitException("some message");
-        when(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenThrow(hmrcOverRateLimitException);
-
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willThrow(hmrcOverRateLimitException);
 
         assertThatThrownBy(() -> client.getMatchResource(individual, "some access token"))
                 .isEqualTo(hmrcOverRateLimitException);

@@ -10,7 +10,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
@@ -20,15 +19,11 @@ import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentSelfAssessment;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmploymentTaxReturn;
-import uk.gov.digital.ho.pttg.dto.sasummary.Summary;
-import uk.gov.digital.ho.pttg.dto.sasummary.SummaryTaxReturn;
 
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.MonthDay;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +37,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.InvalidIdentityException;
+import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.buildLinkWithDateRangeQueryParams;
+import static uk.gov.digital.ho.pttg.application.HmrcHateoasClientFunctions.buildLinkWithTaxYearRangeQueryParams;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Service
@@ -61,14 +58,8 @@ public class HmrcHateoasClient {
     private static final ParameterizedTypeReference<Resource<Employments>> employmentsResourceTypeRef = new ParameterizedTypeReference<Resource<Employments>>() {};
     private static final ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>> saSelfEmploymentsResourceTypeRef = new ParameterizedTypeReference<Resource<SelfEmploymentSelfAssessment>>() {};
 
-    private static final MonthDay END_OF_TAX_YEAR = MonthDay.of(4, 5);
-    private static final String QUERY_PARAM_TO_DATE = "toDate";
-    private static final String QUERY_PARAM_FROM_DATE = "fromDate";
-    private static final String QUERY_PARAM_TO_TAX_YEAR = "toTaxYear";
-    private static final String QUERY_PARAM_FROM_TAX_YEAR = "fromTaxYear";
-
     private static final String INDIVIDUALS_MATCHING_PATH = "/individuals/matching/";
-    private static final String  REQUEST_DURATION_TIMESTAMP = "request_duration_ms";
+    private static final String REQUEST_DURATION_TIMESTAMP = "request_duration_ms";
 
     public HmrcHateoasClient(
             RequestHeaderData requestHeaderData,
@@ -142,62 +133,6 @@ public class HmrcHateoasClient {
                                 .reduce(BigDecimal.ZERO, BigDecimal::add))
                         .build())
                 .collect(Collectors.toList());
-    }
-
-    List<AnnualSelfAssessmentTaxReturn> groupSummaries(List<SummaryTaxReturn> taxReturns) {
-
-        return taxReturns
-                .stream()
-                .map(tr -> AnnualSelfAssessmentTaxReturn.builder()
-                        .taxYear(tr.getTaxYear())
-                        .summaryIncome(tr.getSummary()
-                                .stream()
-                                .map(Summary::getTotalIncome)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add))
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    private String buildLinkWithDateRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
-        String uri;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_DATE, fromDate.format(DateTimeFormatter.ISO_DATE));
-        if (toDate != null) {
-            uri = withFromDate.queryParam(QUERY_PARAM_TO_DATE, toDate.format(DateTimeFormatter.ISO_DATE)).build().toUriString();
-        } else {
-            uri = withFromDate.build().toUriString();
-        }
-        return uri;
-    }
-
-    private String buildLinkWithTaxYearRangeQueryParams(LocalDate fromDate, LocalDate toDate, String href) {
-        String uri;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(stripPlaceholderQueryParams(href));
-        UriComponentsBuilder withFromDate = uriComponentsBuilder.queryParam(QUERY_PARAM_FROM_TAX_YEAR, getTaxYear(fromDate));
-        if (toDate != null) {
-            uri = withFromDate.queryParam(QUERY_PARAM_TO_TAX_YEAR, getTaxYear(toDate)).build().toUriString();
-        } else {
-            uri = withFromDate.build().toUriString();
-        }
-        return uri;
-    }
-
-    private String getTaxYear(LocalDate date) {
-        String taxYear;
-        if (MonthDay.from(date).isAfter(END_OF_TAX_YEAR)) {
-            taxYear = date.getYear() + "-" + (removeFirstTwoDigits(date.getYear() + 1));
-        } else {
-            taxYear = (date.getYear() - 1) + "-" + removeFirstTwoDigits(date.getYear());
-        }
-        return taxYear;
-    }
-
-    private int removeFirstTwoDigits(int fourDigitYear) {
-        return fourDigitYear % 100;
-    }
-
-    private String stripPlaceholderQueryParams(String href) {
-        return href.replaceFirst("\\{&.*\\}", "");
     }
 
     Resource<String> getMatchResource(Individual individual, String accessToken) {
@@ -311,7 +246,7 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    Resource<String> getSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, Link link) {
+    Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
 
         if (link == null) {
             log.debug("No SA Resource");
@@ -319,7 +254,7 @@ public class HmrcHateoasClient {
         }
 
         String baseUrl = asAbsolute(link.getHref());
-        String url = buildLinkWithTaxYearRangeQueryParams(fromDate, toDate, baseUrl);
+        String url = buildLinkWithTaxYearRangeQueryParams(fromTaxYear, toTaxYear, baseUrl);
 
         log.debug("GET SA Resource from {}", url);
         log.info("About to get self assessment resource from HMRC at {}", url, value(EVENT, HMRC_SA_REQUEST_SENT));

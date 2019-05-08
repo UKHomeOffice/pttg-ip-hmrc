@@ -1,25 +1,19 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
 
 @Service
 @Slf4j
 public class HmrcClient {
 
     private final HmrcHateoasClient hateoasClient;
-
-    private static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
 
     /*
         Hypermedia paths and links
@@ -36,21 +30,23 @@ public class HmrcClient {
         this.hateoasClient = hateoasClient;
     }
 
-    public IncomeSummary getIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
+    public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
 
         log.debug("Attempt to retrieve HMRC data for {}", suppliedIndividual.getNino());
 
         getHmrcData(accessToken, suppliedIndividual, fromDate, toDate, context);
 
-        enrichIncomeData(context.payeIncome(), context.employments());
+        context.enrichIncomeData();
 
-        log.debug("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
-
-        return new IncomeSummary(
+        IncomeSummary incomeSummary = new IncomeSummary(
                 context.payeIncome(),
                 context.selfAssessmentSelfEmploymentIncome(),
                 context.employments(),
                 context.getIndividual());
+
+        log.debug("Successfully retrieved HMRC data for {}", suppliedIndividual.getNino());
+
+        return incomeSummary;
     }
 
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -110,39 +106,15 @@ public class HmrcClient {
     }
 
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
+        String toTaxYear = getTaxYear(toDate);
+        String fromTaxYear = getTaxYear(fromDate);
+
+        storeSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context);
+    }
+
+    private void storeSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentResource()) {
-            context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromDate, toDate, context.getIncomeLink(SELF_ASSESSMENT)));
+            context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context.getIncomeLink(SELF_ASSESSMENT)));
         }
-    }
-
-    private void enrichIncomeData(List<Income> incomes, List<Employment> employments) {
-        Map<String, String> employerPaymentRefMap = createEmployerPaymentRefMap(employments);
-        addPaymentFrequency(incomes, employerPaymentRefMap);
-    }
-
-    void addPaymentFrequency(List<Income> incomes, Map<String, String> employerPaymentRefMap) {
-        if (incomes == null) {
-            return;
-        }
-
-        incomes.forEach(income -> income.setPaymentFrequency(employerPaymentRefMap.get(income.getEmployerPayeReference())));
-    }
-
-    Map<String, String> createEmployerPaymentRefMap(List<Employment> employments) {
-        Map<String, String> paymentFrequency = new HashMap<>();
-
-        for (Employment employment : employments) {
-
-            String payeReference = employment.getEmployer().getPayeReference();
-
-            if (StringUtils.isEmpty(employment.getPayFrequency())) {
-                paymentFrequency.put(payeReference, DEFAULT_PAYMENT_FREQUENCY);
-            } else {
-                paymentFrequency.put(payeReference, employment.getPayFrequency());
-            }
-
-        }
-
-        return paymentFrequency;
     }
 }

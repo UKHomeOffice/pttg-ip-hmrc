@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 public enum LogEvent {
+    HMRC_SERVICE_MAX_RESPONSE_TIME,
     HMRC_UPDATE_ACCESS_CODE,
     HMRC_ACCESS_CODE_RECEIVED,
     HMRC_SERVICE_STARTED,

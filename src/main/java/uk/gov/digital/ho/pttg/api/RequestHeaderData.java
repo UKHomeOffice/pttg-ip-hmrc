@@ -17,19 +17,23 @@ import java.util.UUID;
 
 import static java.lang.Thread.activeCount;
 import static net.logstash.logback.argument.StructuredArguments.value;
-import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
 public class RequestHeaderData implements HandlerInterceptor {
 
+    private static final String MAX_DURATION_MS_HEADER = "x-max-duration";
+    private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
+    private static final String THREAD_COUNT = "thread_count";
+    private static final String MAX_DURATION = "max_duration";
+    private static final int DEFAULT_MAX_DURATION = 60000;
+
+    static final String REQUEST_DURATION_MS = "request_duration_ms";
+    static final String POOL_SIZE = "pool_size";
+
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
-    private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
-    public static final String REQUEST_DURATION_MS = "request_duration_ms";
-    public static final String THREAD_COUNT = "thread_count";
-    public static final String POOL_SIZE = "pool_size";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -41,13 +45,18 @@ public class RequestHeaderData implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
         MDC.clear();
+
         initialiseSessionId(request);
         initialiseCorrelationId(request);
         initialiseUserName(request);
+        initialiseMaxDuration(request);
+
         inititaliseRequestStart();
         initialiseThreadCount();
+
         MDC.put("userHost", request.getRemoteHost());
         MDC.put("thread_id", String.valueOf(Thread.currentThread().getId()));
+
         return true;
     }
 
@@ -60,20 +69,24 @@ public class RequestHeaderData implements HandlerInterceptor {
         response.setHeader(SESSION_ID_HEADER, sessionId());
         response.setHeader(USER_ID_HEADER, userId());
         response.setHeader(CORRELATION_ID_HEADER, correlationId());
+
         MDC.clear();
     }
 
     private void initialiseSessionId(HttpServletRequest request) {
         String sessionId = request.getHeader(SESSION_ID_HEADER);
-        if(StringUtils.isBlank(sessionId)) {
+
+        if (StringUtils.isBlank(sessionId)) {
             sessionId = "unknown";
         }
+
         MDC.put(SESSION_ID_HEADER, sessionId);
     }
 
     private void initialiseCorrelationId(HttpServletRequest request) {
         String correlationId = request.getHeader(CORRELATION_ID_HEADER);
-        if(StringUtils.isBlank(correlationId)) {
+
+        if (StringUtils.isBlank(correlationId)) {
             correlationId = UUID.randomUUID().toString();
             MDC.put(CORRELATION_ID_HEADER, correlationId);
             log.info("Generated new correlation id as not passed in request header", value(EVENT, HMRC_SERVICE_GENERATED_CORRELATION_ID));
@@ -84,10 +97,30 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     private void initialiseUserName(HttpServletRequest request) {
         String userId = request.getHeader(USER_ID_HEADER);
-        if(StringUtils.isBlank(userId)) {
+        if (StringUtils.isBlank(userId)) {
             userId = "unknown";
         }
         MDC.put(USER_ID_HEADER, userId);
+    }
+
+    private void initialiseMaxDuration(HttpServletRequest request) {
+
+        String header = request.getHeader(MAX_DURATION_MS_HEADER);
+
+        int maxDuration = DEFAULT_MAX_DURATION;
+
+        if (!StringUtils.isBlank(header)) {
+
+            try {
+                maxDuration = Integer.parseInt(header);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(String.format("Cannot parse %s header (%s) into Integer", MAX_DURATION_MS_HEADER, header), e);
+            }
+        }
+
+        log.info("Hmrc service response required in {} ms", maxDuration, value(EVENT, HMRC_SERVICE_MAX_RESPONSE_TIME));
+
+        MDC.put(MAX_DURATION, Integer.toString(maxDuration));
     }
 
     private void inititaliseRequestStart() {
@@ -109,7 +142,9 @@ public class RequestHeaderData implements HandlerInterceptor {
         MDC.put(THREAD_COUNT, Integer.toString(activeCount()));
     }
 
-    Integer poolSize() { return new ThreadPoolTaskExecutor().getPoolSize(); }
+    Integer poolSize() {
+        return new ThreadPoolTaskExecutor().getPoolSize();
+    }
 
     public String deploymentNamespace() {
         return deploymentNamespace;
@@ -119,9 +154,13 @@ public class RequestHeaderData implements HandlerInterceptor {
         return hmrcApiVersion;
     }
 
-    public String hmrcBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(hmrcAccessBasicAuth.getBytes(StandardCharsets.UTF_8))); }
+    public String hmrcBasicAuth() {
+        return String.format("Basic %s", Base64.getEncoder().encodeToString(hmrcAccessBasicAuth.getBytes(StandardCharsets.UTF_8)));
+    }
 
-    public String auditBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(auditBasicAuth.getBytes(StandardCharsets.UTF_8))); }
+    public String auditBasicAuth() {
+        return String.format("Basic %s", Base64.getEncoder().encodeToString(auditBasicAuth.getBytes(StandardCharsets.UTF_8)));
+    }
 
     public String sessionId() {
         return MDC.get(SESSION_ID_HEADER);
@@ -134,4 +173,9 @@ public class RequestHeaderData implements HandlerInterceptor {
     public String userId() {
         return MDC.get(USER_ID_HEADER);
     }
+
+    int serviceMaxDuration() {
+        return Integer.parseInt(MDC.get(MAX_DURATION));
+    }
+
 }

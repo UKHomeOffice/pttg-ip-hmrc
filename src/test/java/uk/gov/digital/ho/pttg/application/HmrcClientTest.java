@@ -1,269 +1,62 @@
 package uk.gov.digital.ho.pttg.application;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.cglib.core.Local;
 import org.springframework.hateoas.Link;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
-import uk.gov.digital.ho.pttg.dto.Address;
-import uk.gov.digital.ho.pttg.dto.Employer;
-import uk.gov.digital.ho.pttg.dto.Employment;
-import uk.gov.digital.ho.pttg.dto.Income;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.time.Month;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
+    @Mock private Link anyLink;
+    @Mock private Individual anyIndividual;
     @Mock private HmrcHateoasClient mockHmrcHateoasClient;
+    @Mock private IncomeSummaryContext mockIncomeSummaryContext;
 
-    @Test
-    public void shouldProduceEmptyMap() {
+    private HmrcClient hmrcClient;
 
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(new ArrayList<>());
-
-        assertThat(p).isEmpty();
-    }
-
-    @Test
-    public void shouldProduceMapWithOneEntry() {
-
-        LocalDate anyStartDate = LocalDate.now().minusYears(1);
-        LocalDate anyEndDate = LocalDate.now();
-        Address anyEmployerAddress = null;
-        String somePayFrequency = "some pay frequency";
-        String anyEmployer = "any employer";
-
-        String somePayeReference = "some ref";
-
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-        List<Employment> employments = Arrays.asList(
-                new Employment(
-                        somePayFrequency,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                somePayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)));
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(employments);
-
-        assertThat(p).size().isEqualTo(1);
-        assertThat(p).containsKey(somePayeReference);
-        assertThat(p.get(somePayeReference)).isEqualTo(somePayFrequency);
-    }
-
-    @Test
-    public void shouldProduceMapWithMutlipleEntries() {
-
-        LocalDate anyStartDate = LocalDate.now().minusYears(1);
-        LocalDate anyEndDate = LocalDate.now();
-        Address anyEmployerAddress = null;
-        String somePayFrequency = "some pay frequency";
-        String anyEmployer = "any employer";
-        String somePayeReference = "some ref";
-        String anotherPayFrequency = "another pay frequency";
-        String anotherPayeReference = "another pay reference";
-
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-        List<Employment> employments = Arrays.asList(
-                new Employment(
-                        somePayFrequency,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                somePayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)),
-                new Employment(
-                        anotherPayFrequency,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                anotherPayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)));
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(employments);
-
-        assertThat(p).size().isEqualTo(2);
-        assertThat(p).containsKey(somePayeReference);
-        assertThat(p.get(somePayeReference)).isEqualTo(somePayFrequency);
-        assertThat(p).containsKey(anotherPayeReference);
-        assertThat(p.get(anotherPayeReference)).isEqualTo(anotherPayFrequency);
-    }
-
-    @Test
-    public void shouldDoNothingWhenNoIncome() {
-
-        String somePayeReference = "some ref";
-        String somePayFrequency = "any pay frequency";
-        LocalDate anyStartDate = LocalDate.now().minusYears(1);
-        LocalDate anyEndDate = LocalDate.now();
-        String anyEmployer = "any employer";
-        Address anyEmployerAddress = null;
-
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-        List<Income> incomes = null;
-        List<Employment> employments = Arrays.asList(
-                new Employment(
-                        somePayFrequency,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                somePayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)));
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(employments);
-
-        client.addPaymentFrequency(incomes, p);
-    }
-
-    @Test
-    public void shouldDoNothingWhenEmptyIncome() {
-
-        String somePayeReference = "some ref";
-        String somePayFrequency = "any pay frequency";
-        LocalDate anyStartDate = LocalDate.now().minusYears(1);
-        LocalDate anyEndDate = LocalDate.now();
-        String anyEmployer = "any employer";
-        Address anyEmployerAddress = null;
-
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-        List<Income> incomes = Collections.emptyList();
-        List<Employment> employments = Arrays.asList(
-                new Employment(
-                        somePayFrequency,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                somePayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)));
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(employments);
-
-        client.addPaymentFrequency(incomes, p);
-
-        assertThat(incomes).isEmpty();
-    }
-
-    @Test
-    public void shouldDefaultPaymentFrequencyWhenNoPaymentFrequency() {
-
-        LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
-        String somePayeReference = "some ref";
-        BigDecimal anyTaxablePayment = new BigDecimal("0");
-        BigDecimal anyNonTaxablePayment = new BigDecimal("0");
-        Integer anyWeekPayNumber = 1;
-        Integer anyMonthPayNumber = 1;
-        LocalDate anyStartDate = LocalDate.now().minusYears(1);
-        LocalDate anyEndDate = LocalDate.now();
-        String anyEmployer = "any employer";
-        Address anyEmployerAddress = null;
-
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-
-        List<Employment> employments = Arrays.asList(
-                new Employment(
-                        null,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                somePayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)));
-
-        List<Income> incomes = Arrays.asList(
-                new Income(
-                        somePayeReference,
-                        anyTaxablePayment,
-                        anyNonTaxablePayment,
-                        anyPaymentDate.toString(),
-                        anyWeekPayNumber,
-                        anyMonthPayNumber,
-                        null));
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(employments);
-
-        assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(null);
-
-        client.addPaymentFrequency(incomes, p);
-
-        assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo("ONE_OFF");
-    }
-
-    @Test
-    public void shouldAddPaymentFrequencyToIncomeData() {
-
-        LocalDate anyPaymentDate = LocalDate.now().minusMonths(1);
-        String somePayeReference = "some ref";
-        BigDecimal anyTaxablePayment = new BigDecimal("0");
-        BigDecimal anyNonTaxablePayment = new BigDecimal("0");
-        Integer anyWeekPayNumber = 1;
-        Integer anyMonthPayNumber = 1;
-        String somePayFrequency = "any pay frequency";
-        LocalDate anyStartDate = LocalDate.now().minusYears(1);
-        LocalDate anyEndDate = LocalDate.now();
-        String anyEmployer = "any employer";
-        Address anyEmployerAddress = null;
-
-        HmrcClient client = new HmrcClient(mockHmrcHateoasClient);
-
-        List<Employment> employments = Arrays.asList(
-                new Employment(
-                        somePayFrequency,
-                        anyStartDate.toString(),
-                        anyEndDate.toString(),
-                        new Employer(
-                                somePayeReference,
-                                anyEmployer,
-                                anyEmployerAddress)));
-
-        List<Income> incomes = Arrays.asList(
-                new Income(
-                        somePayeReference,
-                        anyTaxablePayment,
-                        anyNonTaxablePayment,
-                        anyPaymentDate.toString(),
-                        anyWeekPayNumber,
-                        anyMonthPayNumber,
-                        null));
-
-        Map<String, String> p = client.createEmployerPaymentRefMap(employments);
-
-        assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(null);
-
-        client.addPaymentFrequency(incomes, p);
-
-        assertThat(incomes.get(0).getPaymentFrequency()).isEqualTo(somePayFrequency);
+    @Before
+    public void setUp() {
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient);
     }
 
     @Test
     @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void shouldGetSelfEmployment() {
-        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient);
+        given(mockIncomeSummaryContext.needsSelfAssessmentSelfEmploymentIncome()).willReturn(true);
+        given(mockIncomeSummaryContext.getSelfAssessmentLink(any(String.class))).willReturn(anyLink);
 
-        IncomeSummaryContext mockIncomeSummaryContext = mock(IncomeSummaryContext.class);
-        when(mockIncomeSummaryContext.needsSelfAssessmentSelfEmploymentIncome()).thenReturn(true);
-        when(mockIncomeSummaryContext.getSelfAssessmentLink(any(String.class))).thenReturn(mock(Link.class));
+        hmrcClient.populateIncomeSummary("some access token", anyIndividual, LocalDate.now(), LocalDate.now(), mockIncomeSummaryContext);
 
-        hmrcClient.getIncomeSummary("some access token", mock(Individual.class), LocalDate.now(), LocalDate.now(), mockIncomeSummaryContext);
+        then(mockIncomeSummaryContext).should().needsSelfAssessmentSelfEmploymentIncome();
+        then(mockHmrcHateoasClient).should().getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
+    }
 
-        verify(mockIncomeSummaryContext).needsSelfAssessmentSelfEmploymentIncome();
-        verify(mockHmrcHateoasClient).getSelfAssessmentSelfEmploymentIncome(anyString(), any(Link.class));
+    @Test
+    public void populateIncomeSummary_givenDates_requestSelfAssessmentByTaxYear() {
+        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
+        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
+
+        LocalDate fromDate = LocalDate.of(2018, Month.JANUARY, 1);
+        LocalDate toDate = LocalDate.of(2019, Month.JANUARY, 1);
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
+
+        then(mockHmrcHateoasClient)
+                .should()
+                .getSelfAssessmentResource(anyString(), eq("2017-18"), eq("2018-19"), any(Link.class));
     }
 }
