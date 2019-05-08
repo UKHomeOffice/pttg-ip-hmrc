@@ -205,11 +205,11 @@ public class RequestHeaderData implements HandlerInterceptor {
         return requestStartTimestamp() + serviceMaxDuration();
     }
 
-    void proceed() {
-        proceed(MIN_RESPONSE_TIME);
+    public void abortIfTakingTooLong() {
+        abortIfLikelyToTakeLongerThan(MIN_RESPONSE_TIME);
     }
 
-    void proceed(long minResponseTime) {
+    void abortIfLikelyToTakeLongerThan(long minResponseTime) {
         long remainingTime = responseRequiredBy() - timestamp();
         if (remainingTime < minResponseTime) {
             log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minResponseTime, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));

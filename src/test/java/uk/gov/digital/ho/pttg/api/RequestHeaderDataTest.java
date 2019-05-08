@@ -199,7 +199,7 @@ public class RequestHeaderDataTest {
 
         given_requestDataPrehandleCalled();
 
-        assertThatExceptionNotThrownBy(() -> requestData.proceed());
+        assertThatExceptionNotThrownBy(() -> requestData.abortIfTakingTooLong());
     }
 
     @Test
@@ -211,7 +211,7 @@ public class RequestHeaderDataTest {
         given_requestDataPrehandleCalled();
 
         assertThatExceptionOfType(InsuffienctTimeException.class)
-            .isThrownBy(() -> requestData.proceed());
+            .isThrownBy(() -> requestData.abortIfTakingTooLong());
     }
 
     @Test
@@ -222,7 +222,7 @@ public class RequestHeaderDataTest {
         given_requestDataPrehandleCalled();
 
         try {
-            requestData.proceed();
+            requestData.abortIfTakingTooLong();
         } catch (Exception e) {}
 
         then(mockAppender)
