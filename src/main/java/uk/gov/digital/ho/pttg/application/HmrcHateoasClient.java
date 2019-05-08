@@ -78,6 +78,8 @@ public class HmrcHateoasClient {
 
     List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
+        requestHeaderData.abortIfTakingTooLong();
+
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
         Long requestStartTimeStamp = Instant.now().toEpochMilli();
@@ -91,6 +93,8 @@ public class HmrcHateoasClient {
 
     List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
+        requestHeaderData.abortIfTakingTooLong();
+
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
         log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
@@ -103,6 +107,8 @@ public class HmrcHateoasClient {
     }
 
     List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSelfEmploymentIncome(String accessToken, Link link) {
+
+        requestHeaderData.abortIfTakingTooLong();
 
         if (link == null) {
             return emptyList();
@@ -178,6 +184,8 @@ public class HmrcHateoasClient {
 
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
 
+        requestHeaderData.abortIfTakingTooLong();
+
         HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         HmrcIndividual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
         checkForEmptyNormalizedName(normalizedIndividual);
@@ -197,6 +205,8 @@ public class HmrcHateoasClient {
 
     Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
 
+        requestHeaderData.abortIfTakingTooLong();
+
         String url = asAbsolute(link.getHref());
         log.debug("GET Individual Resource from {}", url);
         log.info("About to GET individual resource from HMRC at {}", url, value(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
@@ -213,6 +223,8 @@ public class HmrcHateoasClient {
     }
 
     Resource<String> getIncomeResource(String accessToken, Link link) {
+
+        requestHeaderData.abortIfTakingTooLong();
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Income Resource from {}", url);
@@ -231,6 +243,8 @@ public class HmrcHateoasClient {
 
     Resource<String> getEmploymentResource(String accessToken, Link link) {
 
+        requestHeaderData.abortIfTakingTooLong();
+
         String url = asAbsolute(link.getHref());
         log.debug("GET Employment Resource from {}", url);
         log.info("About to GET employment resource from HMRC at {}", url, value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
@@ -247,6 +261,8 @@ public class HmrcHateoasClient {
     }
 
     Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
+
+        requestHeaderData.abortIfTakingTooLong();
 
         if (link == null) {
             log.debug("No SA Resource");
