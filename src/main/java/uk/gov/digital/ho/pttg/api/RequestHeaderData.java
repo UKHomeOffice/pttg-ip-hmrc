@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +35,8 @@ public class RequestHeaderData implements HandlerInterceptor {
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
+
+    static final long MIN_RESPONSE_TIME = 50;
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -200,5 +203,17 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     public long responseRequiredBy() {
         return requestStartTimestamp() + serviceMaxDuration();
+    }
+
+    void proceed() {
+        proceed(MIN_RESPONSE_TIME);
+    }
+
+    void proceed(long minResponseTime) {
+        long remainingTime = responseRequiredBy() - timestamp();
+        if (remainingTime < minResponseTime) {
+            log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minResponseTime, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
+            throw new InsuffienctTimeException("Insufficient time to complete the Response");
+        }
     }
 }

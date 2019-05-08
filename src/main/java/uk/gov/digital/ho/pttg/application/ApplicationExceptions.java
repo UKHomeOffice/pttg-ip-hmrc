@@ -44,7 +44,13 @@ public interface ApplicationExceptions {
     }
 
     class ProxyForbiddenException extends RuntimeException {
-        public ProxyForbiddenException(String s) {
+        ProxyForbiddenException(String s) {
+            super(s);
+        }
+    }
+
+    class InsuffienctTimeException extends RuntimeException {
+        public InsuffienctTimeException(String s) {
             super(s);
         }
     }
