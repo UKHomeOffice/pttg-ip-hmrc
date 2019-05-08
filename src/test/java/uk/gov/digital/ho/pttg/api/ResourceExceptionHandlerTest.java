@@ -159,7 +159,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        assertErrorLog("Fault Detected:", HMRC_SERVICE_RESPONSE_ERROR, 1);
+        assertErrorLog("Fault Detected: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
@@ -223,7 +223,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockRestClientException);
 
-        assertErrorLog("RestClientException:", HMRC_SERVICE_RESPONSE_ERROR, 1);
+        assertErrorLog("RestClientException: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
