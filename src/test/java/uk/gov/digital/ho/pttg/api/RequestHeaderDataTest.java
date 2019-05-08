@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +27,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static uk.gov.digital.ho.pttg.Failable.assertThatExceptionNotThrownBy;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MAX_DURATION_MS_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MIN_RESPONSE_TIME;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -67,7 +72,7 @@ public class RequestHeaderDataTest {
 
     @Test
     public void shouldDefaultRequestData() {
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         assertThat(requestData.deploymentName()).isNull();
         assertThat(requestData.deploymentNamespace()).isNull();
@@ -81,7 +86,7 @@ public class RequestHeaderDataTest {
         given(mockHttpServletRequest.getHeader("x-session-id"))
                 .willReturn("some session id");
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         assertThat(requestData.sessionId()).isEqualTo("some session id");
     }
@@ -91,7 +96,7 @@ public class RequestHeaderDataTest {
         given(mockHttpServletRequest.getHeader("x-correlation-id"))
                 .willReturn("some correlation id");
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         assertThat(requestData.correlationId()).isEqualTo("some correlation id");
     }
@@ -101,7 +106,7 @@ public class RequestHeaderDataTest {
         given(mockHttpServletRequest.getHeader("x-auth-userid"))
                 .willReturn("some user id");
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         assertThat(requestData.userId()).isEqualTo("some user id");
     }
@@ -111,7 +116,7 @@ public class RequestHeaderDataTest {
         given(mockHttpServletRequest.getHeader("x-max-duration"))
                 .willReturn(null);
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         // This is not a Spring test, so the default value is zero
         assertThat(MDC.get("max_duration")).isEqualTo("0");
@@ -133,7 +138,7 @@ public class RequestHeaderDataTest {
         given(mockHttpServletRequest.getHeader("x-max-duration"))
                 .willReturn("76543");
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         assertThat(MDC.get("max_duration")).isEqualTo("76543");
     }
@@ -143,7 +148,7 @@ public class RequestHeaderDataTest {
         given(mockHttpServletRequest.getHeader("x-correlation-id"))
                 .willReturn(null);
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         then(mockAppender)
                 .should()
@@ -157,36 +162,81 @@ public class RequestHeaderDataTest {
 
     @Test
     public void shouldAddRequestTimeStampToMDC() {
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
         assertThat(MDC.get("request-timestamp")).isNotNull();
     }
 
     @Test
     public void shouldReturnRequestDuration() {
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
         assertThat(requestData.calculateRequestDuration()).isNotNegative();
     }
 
     @Test
     public void shouldReturnPoolSize() {
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
         assertThat(requestData.poolSize()).isNotNegative();
     }
 
     @Test
     public void shouldCalculateTimeOfResponseRequiredBy() {
 
-        given(mockHttpServletRequest.getHeader(RequestHeaderData.MAX_DURATION_MS_HEADER))
+        given(mockHttpServletRequest.getHeader(MAX_DURATION_MS_HEADER))
                 .willReturn("777");
 
-        when_requestDataPrehandleCalled();
+        given_requestDataPrehandleCalled();
 
         long responseRequiredBy = requestData.responseRequiredBy();
 
         assertThat(responseRequiredBy).isEqualTo(2999);
     }
 
-    private boolean when_requestDataPrehandleCalled() {
-        return requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+    @Test
+    public void proceed_whenRequestDurationAtThreshold_noException() {
+
+        given(mockHttpServletRequest.getHeader("x-max-duration"))
+                .willReturn(Long.toString(MIN_RESPONSE_TIME));
+
+        given_requestDataPrehandleCalled();
+
+        assertThatExceptionNotThrownBy(() -> requestData.proceed());
     }
+
+    @Test
+    public void proceed_whenRequestDurationBeyondThreshold_exceptionThrown() {
+
+        given(mockHttpServletRequest.getHeader("x-max-duration"))
+                .willReturn(Long.toString(MIN_RESPONSE_TIME - 1));
+
+        given_requestDataPrehandleCalled();
+
+        assertThatExceptionOfType(InsuffienctTimeException.class)
+            .isThrownBy(() -> requestData.proceed());
+    }
+
+    @Test
+    public void proceed_whenRequestDurationBeyondThreshold_log() {
+        given(mockHttpServletRequest.getHeader("x-max-duration"))
+                .willReturn(Long.toString(MIN_RESPONSE_TIME - 1));
+
+        given_requestDataPrehandleCalled();
+
+        try {
+            requestData.proceed();
+        } catch (Exception e) {}
+
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(argument -> {
+                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+                    return loggingEvent.getFormattedMessage().equals("Insufficient time to complete the Response - 49 ms remaining and expected duration is 50") &&
+                                   loggingEvent.getArgumentArray()[2].equals(new ObjectAppendingMarker("event_id", HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
+                }));
+    }
+
+    private void given_requestDataPrehandleCalled() {
+        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+    }
+
 }
