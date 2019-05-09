@@ -6,15 +6,18 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
+import uk.gov.digital.ho.pttg.application.LogEvent;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +31,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static uk.gov.digital.ho.pttg.Failable.assertThatExceptionNotThrownBy;
+import static uk.gov.digital.ho.pttg.Failable.when_ExceptionThrownBy;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MAX_DURATION_MS_HEADER;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MIN_RESPONSE_TIME;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
@@ -152,12 +156,10 @@ public class RequestHeaderDataTest {
 
         then(mockAppender)
                 .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-                    return loggingEvent.getFormattedMessage().equals("Generated new correlation id as not passed in request header") &&
-                    loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker("event_id", HMRC_SERVICE_GENERATED_CORRELATION_ID));
-                }));
+                .doAppend(argThat(isALogMessageWith(
+                        "Generated new correlation id as not passed in request header",
+                        0,
+                        HMRC_SERVICE_GENERATED_CORRELATION_ID)));
     }
 
     @Test
@@ -216,27 +218,34 @@ public class RequestHeaderDataTest {
 
     @Test
     public void proceed_whenRequestDurationBeyondThreshold_log() {
+
         given(mockHttpServletRequest.getHeader("x-max-duration"))
                 .willReturn(Long.toString(MIN_RESPONSE_TIME - 1));
 
         given_requestDataPrehandleCalled();
 
-        try {
-            requestData.abortIfTakingTooLong();
-        } catch (Exception e) {}
+        when_ExceptionThrownBy(() -> requestData.abortIfTakingTooLong());
 
         then(mockAppender)
                 .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-                    return loggingEvent.getFormattedMessage().equals("Insufficient time to complete the Response - 49 ms remaining and expected duration is 50") &&
-                                   loggingEvent.getArgumentArray()[2].equals(new ObjectAppendingMarker("event_id", HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
-                }));
+                .doAppend(argThat(isALogMessageWith(
+                        "Insufficient time to complete the Response - 49 ms remaining and expected duration is 50",
+                        2,
+                        HMRC_INSUFFICIENT_TIME_TO_COMPLETE)));
     }
 
     private void given_requestDataPrehandleCalled() {
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
+    }
+
+    @NotNull
+    private ArgumentMatcher<ILoggingEvent> isALogMessageWith(String message, int eventArgIndex, LogEvent event) {
+        return (argument) -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals(message) &&
+                           loggingEvent.getArgumentArray()[eventArgIndex].equals(new ObjectAppendingMarker("event_id", event));
+        };
     }
 
 }

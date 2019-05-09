@@ -13,4 +13,13 @@ public interface Failable {
             fail("expected action not to throw, but it did!", ex);
         }
     }
+
+    static void when_ExceptionThrownBy(Failable action) {
+        try {
+            action.run();
+            fail("expected action to throw, but it did not!");
+        } catch (Exception e) {
+            // This method is supposed to swallow this exception.
+        }
+    }
 }
