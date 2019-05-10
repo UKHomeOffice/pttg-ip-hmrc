@@ -9,22 +9,29 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.Boolean.TRUE;
-import static java.util.Collections.singletonMap;
 
 @AllArgsConstructor
 @Slf4j
 public class HmrcRetryTemplateFactory {
 
+    private Clock clock;
     private int retryAttempts;
     private int retryDelay;
 
-    public RetryTemplate createInstance(int maxDurationInMs) {
+    public RetryTemplate createInstance(long responseRequiredBy) {
 
         CompositeRetryPolicy compositeRetryPolicy = compositeRetryPolicy(
                 simpleRetryPolicy(retryAttempts),
-                timeoutRetryPolicy(maxDurationInMs));
+                timeoutRetryPolicy(responseRequiredBy)
+        );
 
         RetryTemplate retryTemplate = new RetryTemplate();
         retryTemplate.setRetryPolicy(compositeRetryPolicy);
@@ -39,24 +46,30 @@ public class HmrcRetryTemplateFactory {
         return backOffPolicy;
     }
 
-    private CompositeRetryPolicy compositeRetryPolicy(SimpleRetryPolicy simpleRetryPolicy, TimeoutRetryPolicy timeoutRetryPolicy) {
-        CompositeRetryPolicy retryPolicy = new CompositeRetryPolicy();
-        retryPolicy.setPolicies(new RetryPolicy[]{simpleRetryPolicy, timeoutRetryPolicy});
-
-        return retryPolicy;
+    private CompositeRetryPolicy compositeRetryPolicy(RetryPolicy... retryPolicies) {
+        CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
+        compositeRetryPolicy.setPolicies(retryPolicies);
+        return compositeRetryPolicy;
     }
 
     private SimpleRetryPolicy simpleRetryPolicy(int attempts) {
+
         log.debug("Retry policy has {} attempts", attempts);
+
+        Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
+        retryableExceptions.put(HttpServerErrorException.class, TRUE);
+        retryableExceptions.put(InsuffienctTimeException.class, TRUE);
+
         return new SimpleRetryPolicy(
                 attempts,
-                singletonMap(HttpServerErrorException.class, TRUE));
+                retryableExceptions);
     }
 
-    private TimeoutRetryPolicy timeoutRetryPolicy(int maxDurationInMs) {
-        log.debug("Retry policy has max duration of {} milliseconds", maxDurationInMs);
+    private TimeoutRetryPolicy timeoutRetryPolicy(long responseRequiredBy) {
+        long maxDuration = Math.max(0, responseRequiredBy - Instant.now(clock).toEpochMilli());
+        log.info("Retry policy has max duration of {} milliseconds", maxDuration);
         TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-        timeoutRetryPolicy.setTimeout(maxDurationInMs);
+        timeoutRetryPolicy.setTimeout(maxDuration);
         return timeoutRetryPolicy;
     }
 

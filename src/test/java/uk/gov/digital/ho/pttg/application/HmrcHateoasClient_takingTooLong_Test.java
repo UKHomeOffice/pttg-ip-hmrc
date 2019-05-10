@@ -10,6 +10,7 @@ import org.springframework.hateoas.Link;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
+import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class HmrcHateoasClient_takingTooLong_Test {
     private String anyNino = "any nino";
     private LocalDate anyDob = LocalDate.MAX;
     private String anyTaxYear = "any tax year";
+    private Individual anyIndividual = new Individual("any firstname", "any lastname", "any nino", LocalDate.MAX, "any alias");
 
     @Before
     public void setup() {
@@ -40,6 +42,12 @@ public class HmrcHateoasClient_takingTooLong_Test {
 
         willThrow(new InsuffienctTimeException("Some reason"))
             .given(mockRequestHeaderData).abortIfTakingTooLong();
+    }
+
+    @Test
+    public void getMatchResource_whenTakingTooLong_aborts() {
+        assertThatExceptionOfType(InsuffienctTimeException.class)
+                .isThrownBy(() -> client.getMatchResource(anyIndividual, anyAccessToken));
     }
 
     @Test

@@ -143,6 +143,8 @@ public class HmrcHateoasClient {
 
     Resource<String> getMatchResource(Individual individual, String accessToken) {
 
+        requestHeaderData.abortIfTakingTooLong();
+
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
         List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName(), individual.getAliasSurnames());

@@ -25,15 +25,13 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static uk.gov.digital.ho.pttg.Failable.assertThatExceptionNotThrownBy;
 import static uk.gov.digital.ho.pttg.Failable.when_ExceptionThrownBy;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.EXPECTED_REMAINING_TIME_TO_COMPLETE;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MAX_DURATION_MS_HEADER;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MIN_RESPONSE_TIME;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
 
@@ -197,18 +195,19 @@ public class RequestHeaderDataTest {
     public void proceed_whenRequestDurationAtThreshold_noException() {
 
         given(mockHttpServletRequest.getHeader("x-max-duration"))
-                .willReturn(Long.toString(MIN_RESPONSE_TIME));
+                .willReturn(Long.toString(EXPECTED_REMAINING_TIME_TO_COMPLETE));
 
         given_requestDataPrehandleCalled();
 
-        assertThatExceptionNotThrownBy(() -> requestData.abortIfTakingTooLong());
+        assertThatCode(() -> requestData.abortIfTakingTooLong())
+                .doesNotThrowAnyException();
     }
 
     @Test
     public void proceed_whenRequestDurationBeyondThreshold_exceptionThrown() {
 
         given(mockHttpServletRequest.getHeader("x-max-duration"))
-                .willReturn(Long.toString(MIN_RESPONSE_TIME - 1));
+                .willReturn(Long.toString(EXPECTED_REMAINING_TIME_TO_COMPLETE - 1));
 
         given_requestDataPrehandleCalled();
 
@@ -220,7 +219,7 @@ public class RequestHeaderDataTest {
     public void proceed_whenRequestDurationBeyondThreshold_log() {
 
         given(mockHttpServletRequest.getHeader("x-max-duration"))
-                .willReturn(Long.toString(MIN_RESPONSE_TIME - 1));
+                .willReturn(Long.toString(EXPECTED_REMAINING_TIME_TO_COMPLETE - 1));
 
         given_requestDataPrehandleCalled();
 
@@ -229,7 +228,7 @@ public class RequestHeaderDataTest {
         then(mockAppender)
                 .should()
                 .doAppend(argThat(isALogMessageWith(
-                        "Insufficient time to complete the Response - 49 ms remaining and expected duration is 50",
+                        "Insufficient time to complete the Response - -1 ms remaining and expected duration is 0",
                         2,
                         HMRC_INSUFFICIENT_TIME_TO_COMPLETE)));
     }
