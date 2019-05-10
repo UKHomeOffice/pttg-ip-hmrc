@@ -14,6 +14,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HmrcRetryTemplateFactoryTest {
@@ -22,17 +26,19 @@ public class HmrcRetryTemplateFactoryTest {
 
     @Before
     public void setup() {
-        HmrcRetryTemplateFactory factory = new HmrcRetryTemplateFactory(123, 456);
-        retryTemplate = factory.createInstance(789);
+        Clock testClock =  Clock.fixed(Instant.ofEpochMilli(222), ZoneId.of("Z"));
+
+        HmrcRetryTemplateFactory factory = new HmrcRetryTemplateFactory(testClock, 123, 456);
+        retryTemplate = factory.createInstance(999);
     }
 
     @Test
-    public void createInstance_anyMaxDuration_shouldProduceHmrcSpecificRetryPolicy() {
+    public void createInstance_anyResponseRequiredBy_shouldProduceHmrcSpecificRetryPolicy() {
 
-        CompositeRetryPolicy retryPolicy = (CompositeRetryPolicy) ReflectionTestUtils.getField(retryTemplate, "retryPolicy");
-        assertThat(retryPolicy).isNotNull();
+        CompositeRetryPolicy compositeRetryPolicy = (CompositeRetryPolicy) ReflectionTestUtils.getField(retryTemplate, "retryPolicy");
+        assertThat(compositeRetryPolicy).isNotNull();
 
-        RetryPolicy[] policies = (RetryPolicy[]) ReflectionTestUtils.getField(retryPolicy, "policies");
+        RetryPolicy[] policies = (RetryPolicy[]) ReflectionTestUtils.getField(compositeRetryPolicy, "policies");
         assertThat(policies).isNotNull();
 
         assertThat(policies.length).isEqualTo(2);
@@ -44,14 +50,15 @@ public class HmrcRetryTemplateFactoryTest {
         assertThat(binaryExceptionClassifier).isNotNull();
 
         assertThat(binaryExceptionClassifier.classify(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR))).isTrue();
+        assertThat(binaryExceptionClassifier.classify(new ApplicationExceptions.InsuffienctTimeException("Insufficient time to complete the Response"))).isTrue();
         assertThat(binaryExceptionClassifier.classify(new HttpClientErrorException(HttpStatus.BAD_REQUEST))).isFalse();
 
         assertThat(policies[1]).isInstanceOf(TimeoutRetryPolicy.class);
-        assertThat(((TimeoutRetryPolicy)policies[1]).getTimeout()).isEqualTo(789);
+        assertThat(((TimeoutRetryPolicy)policies[1]).getTimeout()).isEqualTo(777);
     }
 
     @Test
-    public void createInstance_anyMaxDuration_shouldProduceHmrcSpecificBackoffPolicy() {
+    public void createInstance_anyResponseRequiredBy_shouldProduceHmrcSpecificBackoffPolicy() {
 
         FixedBackOffPolicy backOffPolicy = (FixedBackOffPolicy) ReflectionTestUtils.getField(retryTemplate, "backOffPolicy");
         assertThat(backOffPolicy).isNotNull();

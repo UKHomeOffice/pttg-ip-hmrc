@@ -28,15 +28,15 @@ public class RequestHeaderData implements HandlerInterceptor {
     private static final String THREAD_COUNT = "thread_count";
     private static final String MAX_DURATION = "max_duration";
 
-    static final String MAX_DURATION_MS_HEADER = "x-max-duration";
     static final String REQUEST_DURATION_MS = "request_duration_ms";
     static final String POOL_SIZE = "pool_size";
 
+    public static final String MAX_DURATION_MS_HEADER = "x-max-duration";
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
 
-    static final long MIN_RESPONSE_TIME = 50;
+    static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -206,13 +206,13 @@ public class RequestHeaderData implements HandlerInterceptor {
     }
 
     public void abortIfTakingTooLong() {
-        abortIfLikelyToTakeLongerThan(MIN_RESPONSE_TIME);
+        abortIfLikelyToTakeLongerThan(EXPECTED_REMAINING_TIME_TO_COMPLETE);
     }
 
-    void abortIfLikelyToTakeLongerThan(long minResponseTime) {
+    void abortIfLikelyToTakeLongerThan(long minTimeToRespond) {
         long remainingTime = responseRequiredBy() - timestamp();
-        if (remainingTime < minResponseTime) {
-            log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minResponseTime, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
+        if (remainingTime < minTimeToRespond) {
+            log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minTimeToRespond, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
             throw new InsuffienctTimeException("Insufficient time to complete the Response");
         }
     }
