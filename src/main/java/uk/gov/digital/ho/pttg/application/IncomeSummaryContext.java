@@ -124,7 +124,7 @@ public class IncomeSummaryContext {
     }
 
 
-    public void enrichIncomeData() {
+    void enrichIncomeData() {
         Map<String, String> employerPaymentRefMap = createEmployerPaymentRefMap();
         addPaymentFrequency(employerPaymentRefMap);
     }

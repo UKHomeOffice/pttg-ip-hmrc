@@ -94,7 +94,8 @@ public class RequestHeaderDataTest {
 
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
-        assertThat(MDC.get("max_duration")).isEqualTo("60000");
+        // This is not a Spring test, so the default value is zero
+        assertThat(MDC.get("max_duration")).isEqualTo("0");
     }
 
     @Test

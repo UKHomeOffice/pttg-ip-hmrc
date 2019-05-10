@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
@@ -13,6 +14,7 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonMap;
 
 @AllArgsConstructor
+@Slf4j
 public class HmrcRetryTemplateFactory {
 
     private int retryAttempts;
@@ -45,12 +47,16 @@ public class HmrcRetryTemplateFactory {
     }
 
     private SimpleRetryPolicy simpleRetryPolicy(int attempts) {
+        log.debug("Retry policy has {} attempts", attempts);
+        log.info("Retry policy has {} attempts", attempts);
         return new SimpleRetryPolicy(
                 attempts,
                 singletonMap(HttpServerErrorException.class, TRUE));
     }
 
     private TimeoutRetryPolicy timeoutRetryPolicy(int maxDurationInMs) {
+        log.debug("Retry policy has max duration of {} milliseconds", maxDurationInMs);
+        log.info("Retry policy has max duration of {} milliseconds", maxDurationInMs);
         TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
         timeoutRetryPolicy.setTimeout(maxDurationInMs);
         return timeoutRetryPolicy;

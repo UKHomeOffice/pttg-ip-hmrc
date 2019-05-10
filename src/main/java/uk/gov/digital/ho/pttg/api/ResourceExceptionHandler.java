@@ -65,19 +65,19 @@ class ResourceExceptionHandler {
 
     @ExceptionHandler
     ResponseEntity handle(RestClientException e) {
-        log.error("RestClientException:", e,
+        log.error("RestClientException: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
                 value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()),
-                value(POOL_SIZE, requestHeaderData.poolSize()));
+                value(POOL_SIZE, requestHeaderData.poolSize()), e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler
     ResponseEntity handle(Exception e) {
-        log.error("Fault Detected:", e,
+        log.error("Fault Detected: {}", e.getMessage(),
                 value(EVENT, HMRC_SERVICE_RESPONSE_ERROR),
                 value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()),
-                value(POOL_SIZE, requestHeaderData.poolSize()));
+                value(POOL_SIZE, requestHeaderData.poolSize()), e);
         return new ResponseEntity<>(e.getMessage(), INTERNAL_SERVER_ERROR);
     }
 
