@@ -76,9 +76,8 @@ public class HmrcHateoasClient {
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
+    @AbortIfBeyondMaxResponseDuration
     List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
@@ -91,9 +90,8 @@ public class HmrcHateoasClient {
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
 
+    @AbortIfBeyondMaxResponseDuration
     List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
@@ -106,9 +104,8 @@ public class HmrcHateoasClient {
         return employmentsResource.getContent().getEmployments();
     }
 
+    @AbortIfBeyondMaxResponseDuration
     List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSelfEmploymentIncome(String accessToken, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         if (link == null) {
             return emptyList();
@@ -141,9 +138,8 @@ public class HmrcHateoasClient {
                 .collect(Collectors.toList());
     }
 
+    @AbortIfBeyondMaxResponseDuration
     Resource<String> getMatchResource(Individual individual, String accessToken) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
@@ -183,10 +179,8 @@ public class HmrcHateoasClient {
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
 
-
+    @AbortIfBeyondMaxResponseDuration
     private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         HmrcIndividual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
@@ -205,9 +199,8 @@ public class HmrcHateoasClient {
         }
     }
 
+    @AbortIfBeyondMaxResponseDuration
     Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Individual Resource from {}", url);
@@ -224,9 +217,8 @@ public class HmrcHateoasClient {
         return resource;
     }
 
+    @AbortIfBeyondMaxResponseDuration
     Resource<String> getIncomeResource(String accessToken, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Income Resource from {}", url);
@@ -243,9 +235,8 @@ public class HmrcHateoasClient {
         return resource;
     }
 
+    @AbortIfBeyondMaxResponseDuration
     Resource<String> getEmploymentResource(String accessToken, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         String url = asAbsolute(link.getHref());
         log.debug("GET Employment Resource from {}", url);
@@ -262,9 +253,8 @@ public class HmrcHateoasClient {
         return resource;
     }
 
+    @AbortIfBeyondMaxResponseDuration
     Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
-
-        requestHeaderData.abortIfTakingTooLong();
 
         if (link == null) {
             log.debug("No SA Resource");

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,6 +49,7 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME
         "hmrc.retry.attempts=1",
         "hmrc.retry.delay=0"
 })
+@ActiveProfiles("logtoconsole")
 public class HmrcResourceTimeoutIntegrationTest_timeoutWhenDelayedCalls {
 
     private static final String MATCH_ID = "87654321";
