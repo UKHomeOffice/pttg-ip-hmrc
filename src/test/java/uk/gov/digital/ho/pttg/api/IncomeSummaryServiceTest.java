@@ -18,6 +18,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.HmrcRetryTemplateFactory;
@@ -29,10 +30,7 @@ import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
 import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.UUID;
 
 import static java.time.Month.*;
@@ -51,7 +49,6 @@ public class IncomeSummaryServiceTest {
     private static final int REAUTHORISING_RETRY_ATTEMPTS = 2;
     private static final int MAX_API_CALL_ATTEMPTS = 5;
     private static final int BACK_OFF_PERIOD = 1;
-    private static final int MAX_DURATION_IN_MS = 10000;
 
     private static final String SOME_ACCESS_CODE = "SomeAccessCode";
     private static final LocalDate SOME_FROM_DATE = LocalDate.of(2018, JANUARY, 1);
@@ -69,17 +66,14 @@ public class IncomeSummaryServiceTest {
     @Captor private ArgumentCaptor<AuditIndividualData> auditDataCaptor;
 
     private IncomeSummaryService incomeSummaryService;
-    private Clock clock;
 
     @Before
     public void setUp() {
 
-        clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Europe/London"));
-
         RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
                                                                .retryHmrcUnauthorisedException()
                                                                .build();
-        HmrcRetryTemplateFactory hmrcRetryTemplateFactory = new HmrcRetryTemplateFactory(clock, MAX_API_CALL_ATTEMPTS, BACK_OFF_PERIOD);
+        HmrcRetryTemplateFactory hmrcRetryTemplateFactory = new HmrcRetryTemplateFactory(MAX_API_CALL_ATTEMPTS, BACK_OFF_PERIOD);
 
         incomeSummaryService = new IncomeSummaryService(
                 mockHmrcClient,
@@ -92,9 +86,6 @@ public class IncomeSummaryServiceTest {
 
         given(mockAccessCodeClient.getAccessCode())
                 .willReturn(SOME_ACCESS_CODE);
-
-        given(mockRequestHeaderData.responseRequiredBy())
-                .willReturn(clock.millis() + MAX_DURATION_IN_MS);
     }
 
     @Test
@@ -292,8 +283,8 @@ public class IncomeSummaryServiceTest {
         RetryTemplate reauthorisingRetryTemplate = new RetryTemplateBuilder(REAUTHORISING_RETRY_ATTEMPTS)
                                                            .retryHmrcUnauthorisedException()
                                                            .build();
-        HmrcRetryTemplateFactory hmrcRetryTemplateFactory = new HmrcRetryTemplateFactory(clock, Integer.MAX_VALUE, BACK_OFF_PERIOD);
-        RetryTemplate retryTemplate = hmrcRetryTemplateFactory.createInstance(100);
+        HmrcRetryTemplateFactory hmrcRetryTemplateFactory = new HmrcRetryTemplateFactory(Integer.MAX_VALUE, BACK_OFF_PERIOD);
+        RetryTemplate retryTemplate = hmrcRetryTemplateFactory.createInstance();
 
         HmrcRetryTemplateFactory mockHmrcRetryTemplateFactory = mock(HmrcRetryTemplateFactory.class);
 
@@ -313,21 +304,19 @@ public class IncomeSummaryServiceTest {
 
         LocalDate someDate = LocalDate.of(2018, JANUARY, 1);
 
-        given(mockRequestHeaderData.responseRequiredBy())
-                .willReturn(100L);
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
-                .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
-        given(mockHmrcRetryTemplateFactory.createInstance(100))
+                .willThrow(new InsuffienctTimeException("Simulating insufficient time as part of test"));
+        given(mockHmrcRetryTemplateFactory.createInstance())
                 .willReturn(retryTemplate);
 
-        assertThatExceptionOfType(HttpServerErrorException.class)
+        assertThatExceptionOfType(InsuffienctTimeException.class)
                 .isThrownBy(() -> incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, someDate, someDate));
 
         then(mockAppender)
                 .should(never())
                 .doAppend(argThat(argument -> {
                     LoggingEvent loggingEvent = (LoggingEvent) argument;
-                    return loggingEvent.getFormattedMessage().equals("HMRC call attempt " + Integer.MAX_VALUE);
+                    return loggingEvent.getFormattedMessage().equals("HMRC call attempt 2");
                 }));
     }
 
@@ -338,7 +327,7 @@ public class IncomeSummaryServiceTest {
                                                            .retryHmrcUnauthorisedException()
                                                            .build();
 
-        HmrcRetryTemplateFactory hmrcRetryTemplateFactory = new HmrcRetryTemplateFactory(clock, MAX_API_CALL_ATTEMPTS, BACK_OFF_PERIOD);
+        HmrcRetryTemplateFactory hmrcRetryTemplateFactory = new HmrcRetryTemplateFactory(MAX_API_CALL_ATTEMPTS, BACK_OFF_PERIOD);
 
         incomeSummaryService = new IncomeSummaryService(
                 mockHmrcClient,

@@ -288,7 +288,7 @@ public class ResourceExceptionHandlerTest {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-        return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms") &&
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms") &&
                 ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("pool_size");
 
         }));
