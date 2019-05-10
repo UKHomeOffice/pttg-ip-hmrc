@@ -6,13 +6,9 @@ import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,15 +18,13 @@ import static java.lang.Boolean.TRUE;
 @Slf4j
 public class HmrcRetryTemplateFactory {
 
-    private Clock clock;
     private int retryAttempts;
     private int retryDelay;
 
-    public RetryTemplate createInstance(long responseRequiredBy) {
+    public RetryTemplate createInstance() {
 
         CompositeRetryPolicy compositeRetryPolicy = compositeRetryPolicy(
-                simpleRetryPolicy(retryAttempts),
-                timeoutRetryPolicy(responseRequiredBy)
+                simpleRetryPolicy(retryAttempts)
         );
 
         RetryTemplate retryTemplate = new RetryTemplate();
@@ -58,19 +52,10 @@ public class HmrcRetryTemplateFactory {
 
         Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
         retryableExceptions.put(HttpServerErrorException.class, TRUE);
-        retryableExceptions.put(InsuffienctTimeException.class, TRUE);
 
         return new SimpleRetryPolicy(
                 attempts,
                 retryableExceptions);
-    }
-
-    private TimeoutRetryPolicy timeoutRetryPolicy(long responseRequiredBy) {
-        long maxDuration = Math.max(0, responseRequiredBy - Instant.now(clock).toEpochMilli());
-        log.info("Retry policy has max duration of {} milliseconds", maxDuration);
-        TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-        timeoutRetryPolicy.setTimeout(maxDuration);
-        return timeoutRetryPolicy;
     }
 
 }

@@ -1,14 +1,19 @@
 package uk.gov.digital.ho.pttg.api;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatcher;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.application.LogEvent;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 
 import java.io.IOException;
@@ -101,6 +106,16 @@ class HmrcResourceTimeoutIntegrationTestUtils {
     @NotNull
     static String responseMessage(HttpStatus httpStatus) {
         return httpStatus + " " + httpStatus.getReasonPhrase();
+    }
+
+    @NotNull
+    static ArgumentMatcher<ILoggingEvent> isALogMessageWith(String message, int eventArgIndex, LogEvent event) {
+        return (argument) -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals(message) &&
+                           loggingEvent.getArgumentArray()[eventArgIndex].equals(new ObjectAppendingMarker("event_id", event));
+        };
     }
 }
 

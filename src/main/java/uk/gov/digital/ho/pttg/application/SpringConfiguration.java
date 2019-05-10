@@ -203,7 +203,7 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public HmrcRetryTemplateFactory hmrcRetryTemplateFactory() {
-        return new HmrcRetryTemplateFactory(createClock(), retryProperties.getAttempts(), retryProperties.getDelay());
+        return new HmrcRetryTemplateFactory(retryProperties.getAttempts(), retryProperties.getDelay());
     }
 
 }

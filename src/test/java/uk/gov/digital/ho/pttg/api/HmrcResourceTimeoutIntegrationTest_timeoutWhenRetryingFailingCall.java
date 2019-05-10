@@ -1,15 +1,19 @@
 package uk.gov.digital.ho.pttg.api;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -22,16 +26,19 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.ExpectedCount.manyTimes;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static uk.gov.digital.ho.pttg.api.HmrcResourceTimeoutIntegrationTestUtils.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -41,13 +48,13 @@ import static uk.gov.digital.ho.pttg.api.HmrcResourceTimeoutIntegrationTestUtils
         "hmrc.retry.attempts=99",
         "hmrc.retry.delay=0"
 })
-@ActiveProfiles("logtoconsole")
 public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
     private static final String MATCH_ID = "87654321";
     private static final String ACCESS_ID = "987987987";
 
     private MockRestServiceServer hmrcApiMockService;
+    private Appender<ILoggingEvent> mockAppender;
 
     @Autowired
     private RestTemplate auditRestTemplate;
@@ -84,6 +91,11 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
                 .andRespond(withSuccess(buildOauthResponse(mapper, ACCESS_ID), APPLICATION_JSON));
 
         ReflectionTestUtils.setField(hmrcAccessCodeClient, "accessCode", Optional.empty());
+
+        mockAppender = mock(Appender.class);
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        rootLogger.setLevel(Level.INFO);
+        rootLogger.addAppender(mockAppender);
     }
 
     @Test
@@ -100,8 +112,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -118,8 +130,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -136,8 +148,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -154,8 +166,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -172,8 +184,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -190,8 +202,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -208,8 +220,8 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
     @Test
@@ -226,9 +238,22 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
 
         ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
-        assertThat(responseEntity.getBody()).isEqualTo(responseMessage(INTERNAL_SERVER_ERROR));
+        validateResponse(responseEntity);
+        validateLogging();
     }
 
+    private void validateResponse(ResponseEntity<String> responseEntity) {
+        assertThat(responseEntity.getStatusCode()).isEqualTo(GATEWAY_TIMEOUT);
+        assertThat(responseEntity.getBody()).isEqualTo("Insufficient time to complete the Response");
+    }
+
+    private void validateLogging() {
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(isALogMessageWith(
+                        "The Service could not produce a response in time: Insufficient time to complete the Response",
+                        1,
+                        HMRC_INSUFFICIENT_TIME_TO_COMPLETE)));
+    }
 }
 

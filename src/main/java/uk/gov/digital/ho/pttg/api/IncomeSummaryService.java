@@ -87,7 +87,7 @@ public class IncomeSummaryService {
 
         IncomeSummaryContext incomeSummaryContext = new IncomeSummaryContext();
 
-        RetryTemplate retryTemplate = hmrcRetryTemplateFactory.createInstance(requestHeaderData.responseRequiredBy());
+        RetryTemplate retryTemplate = hmrcRetryTemplateFactory.createInstance();
 
         return retryTemplate.execute(retryContext -> {
             log.info("HMRC call attempt {}",
