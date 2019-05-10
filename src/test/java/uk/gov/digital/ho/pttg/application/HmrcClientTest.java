@@ -21,6 +21,8 @@ import static org.mockito.Mockito.eq;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
+    private static final LocalDate DEFAULT_PAYE_EPOCH = LocalDate.of(2013, Month.MARCH, 31);
+
     @Mock private Link anyLink;
     @Mock private Individual anyIndividual;
     @Mock private HmrcHateoasClient mockHmrcHateoasClient;
@@ -30,7 +32,7 @@ public class HmrcClientTest {
 
     @Before
     public void setUp() {
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient);
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient, DEFAULT_PAYE_EPOCH);
     }
 
     @Test
