@@ -22,6 +22,8 @@ import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcClientTest {
 
+    private static final LocalDate DEFAULT_PAYE_EPOCH = LocalDate.of(2013, Month.MARCH, 31);
+
     @Mock private Link anyLink;
     @Mock private Individual anyIndividual;
     @Mock private HmrcHateoasClient mockHmrcHateoasClient;
@@ -31,7 +33,7 @@ public class HmrcClientTest {
 
     @Before
     public void setUp() {
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6);
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, DEFAULT_PAYE_EPOCH);
     }
 
     @Test
@@ -121,7 +123,7 @@ public class HmrcClientTest {
         LocalDate toDate = LocalDate.of(2019, Month.JANUARY, 1); // Tax year 2018-19
         LocalDate fromDate = LocalDate.of(2000, Month.JANUARY, 1); // Tax year 1999-00
 
-        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, 1000);
+        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, 1000, DEFAULT_PAYE_EPOCH);
 
         hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
 
