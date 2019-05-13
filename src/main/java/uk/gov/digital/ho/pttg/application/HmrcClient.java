@@ -15,6 +15,7 @@ import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
 public class HmrcClient {
 
     private final HmrcHateoasClient hateoasClient;
+    private final int maximumTaxYearHistory;
     private final LocalDate payeDataEpoch;
 
     /*
@@ -29,8 +30,10 @@ public class HmrcClient {
     private static final String SA_SELF_EMPLOYMENTS = "selfEmployments";
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
+                      @Value("${hmrc.self-assessment.tax-years.history.maximum:1000}") int maximumSelfAssessmentTaxYearHistory,
                       @Value("#{T(java.time.LocalDate).parse('${hmrc.paye.data.epoch}')}") LocalDate payeDataEpoch) {
         this.hateoasClient = hateoasClient;
+        this.maximumTaxYearHistory = maximumSelfAssessmentTaxYearHistory;
         this.payeDataEpoch = payeDataEpoch;
     }
 
@@ -117,6 +120,9 @@ public class HmrcClient {
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         String toTaxYear = getTaxYear(toDate);
         String fromTaxYear = getTaxYear(fromDate);
+        if (isTooLongAgo(fromTaxYear)) {
+            fromTaxYear = earliestAllowedTaxYear();
+        }
 
         storeSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context);
     }
@@ -125,5 +131,13 @@ public class HmrcClient {
         if (context.needsSelfAssessmentResource()) {
             context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context.getIncomeLink(SELF_ASSESSMENT)));
         }
+    }
+
+    private String earliestAllowedTaxYear() {
+        return getTaxYear(LocalDate.now().minusYears(maximumTaxYearHistory));
+    }
+
+    private boolean isTooLongAgo(String taxYear) {
+        return Integer.parseInt(taxYear.substring(0, 4)) < Integer.parseInt(earliestAllowedTaxYear().substring(0, 4));
     }
 }

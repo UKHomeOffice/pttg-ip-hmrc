@@ -46,7 +46,7 @@ public class HmrcClientPayeEpochTest {
         given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
         given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
 
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient, epoch);
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, epoch);
     }
 
     @Parameterized.Parameters(name = "When requesting a fromDate of {0}, with and epoch of {1} the date of {2} will actually be used")
