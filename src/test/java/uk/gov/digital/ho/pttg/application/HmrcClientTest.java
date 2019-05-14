@@ -114,21 +114,4 @@ public class HmrcClientTest {
                 .should()
                 .getSelfAssessmentResource(anyString(), eq(expectedFromTaxYear), eq(expectedToTaxYear), any(Link.class));
     }
-
-    @Test
-    public void populateIncomeSummary_maximumHistoryIs1000_doNotRestrictTaxYears() {
-        given(mockIncomeSummaryContext.needsSelfAssessmentResource()).willReturn(true);
-        given(mockIncomeSummaryContext.getIncomeLink(anyString())).willReturn(anyLink);
-
-        LocalDate toDate = LocalDate.of(2019, Month.JANUARY, 1); // Tax year 2018-19
-        LocalDate fromDate = LocalDate.of(2000, Month.JANUARY, 1); // Tax year 1999-00
-
-        HmrcClient hmrcClient = new HmrcClient(mockHmrcHateoasClient, 1000, DEFAULT_PAYE_EPOCH);
-
-        hmrcClient.populateIncomeSummary("any access token", anyIndividual, fromDate, toDate, mockIncomeSummaryContext);
-
-        then(mockHmrcHateoasClient)
-                .should()
-                .getSelfAssessmentResource(anyString(), eq("1999-00"), eq("2018-19"), any(Link.class));
-    }
 }
