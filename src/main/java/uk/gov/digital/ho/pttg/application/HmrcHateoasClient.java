@@ -180,7 +180,7 @@ public class HmrcHateoasClient {
     }
 
     @AbortIfBeyondMaxResponseDuration
-    private Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
+    Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
 
         HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
         HmrcIndividual normalizedIndividual = nameNormalizer.normalizeNames(individualToMatch);
@@ -203,7 +203,6 @@ public class HmrcHateoasClient {
     Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
-        log.debug("GET Individual Resource from {}", url);
         log.info("About to GET individual resource from HMRC at {}", url, value(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
         Long requestStartTimeStamp = Instant.now().toEpochMilli();
 
@@ -212,7 +211,6 @@ public class HmrcHateoasClient {
         log.info("Individual resource response received",
                 value(EVENT, HMRC_INDIVIDUAL_RESPONSE_RECEIVED),
                 value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
-        log.debug("Individual Response has been received");
 
         return resource;
     }
@@ -221,7 +219,6 @@ public class HmrcHateoasClient {
     Resource<String> getIncomeResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
-        log.debug("GET Income Resource from {}", url);
         log.info("About to GET income resource from HMRC at {}", url, value(EVENT, HMRC_INCOME_REQUEST_SENT));
         Long requestStartTimeStamp = Instant.now().toEpochMilli();
 
@@ -230,7 +227,6 @@ public class HmrcHateoasClient {
         log.info("Income resource response received",
                 value(EVENT, HMRC_INCOME_RESPONSE_RECEIVED),
                 value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
-        log.debug("Income Response has been received");
 
         return resource;
     }
@@ -239,7 +235,6 @@ public class HmrcHateoasClient {
     Resource<String> getEmploymentResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
-        log.debug("GET Employment Resource from {}", url);
         log.info("About to GET employment resource from HMRC at {}", url, value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
         Long requestStartTimeStamp = Instant.now().toEpochMilli();
 
@@ -248,7 +243,6 @@ public class HmrcHateoasClient {
         log.info("Employment resource response received",
                 value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED),
                 value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
-        log.debug("Employment Response has been received");
 
         return resource;
     }
@@ -264,7 +258,6 @@ public class HmrcHateoasClient {
         String baseUrl = asAbsolute(link.getHref());
         String url = buildLinkWithTaxYearRangeQueryParams(fromTaxYear, toTaxYear, baseUrl);
 
-        log.debug("GET SA Resource from {}", url);
         log.info("About to get self assessment resource from HMRC at {}", url, value(EVENT, HMRC_SA_REQUEST_SENT));
         Long requestStartTimeStamp = Instant.now().toEpochMilli();
 
@@ -272,7 +265,6 @@ public class HmrcHateoasClient {
         log.info("Self assessment resource response received",
                 value(EVENT, HMRC_SA_RESPONSE_RECEIVED),
                 value(REQUEST_DURATION_TIMESTAMP, calculateRequestDuration(requestStartTimeStamp)));
-        log.debug("SA Response has been received");
 
         return resource;
     }
