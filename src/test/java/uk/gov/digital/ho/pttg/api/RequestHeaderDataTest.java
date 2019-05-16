@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.test.util.ReflectionTestUtils;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsufficientTimeException;
 import uk.gov.digital.ho.pttg.application.LogEvent;
 
 import javax.servlet.http.HttpServletRequest;
@@ -211,7 +211,7 @@ public class RequestHeaderDataTest {
 
         given_requestDataPrehandleCalled();
 
-        assertThatExceptionOfType(InsuffienctTimeException.class)
+        assertThatExceptionOfType(InsufficientTimeException.class)
             .isThrownBy(() -> requestData.abortIfTakingTooLong());
     }
 

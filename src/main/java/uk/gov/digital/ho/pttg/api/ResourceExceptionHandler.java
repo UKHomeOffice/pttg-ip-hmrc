@@ -82,11 +82,11 @@ class ResourceExceptionHandler {
     }
 
     @ExceptionHandler
-    ResponseEntity handle(InsuffienctTimeException e) {
+    ResponseEntity handle(InsufficientTimeException e) {
         log.error("The Service could not produce a response in time: {}", e.getMessage(),
                 value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE),
                 value(REQUEST_DURATION_MS, requestHeaderData.calculateRequestDuration()),
-                value(POOL_SIZE, requestHeaderData.poolSize()), e);
+                value(POOL_SIZE, requestHeaderData.poolSize()));
         return new ResponseEntity<>(e.getMessage(), GATEWAY_TIMEOUT);
     }
 

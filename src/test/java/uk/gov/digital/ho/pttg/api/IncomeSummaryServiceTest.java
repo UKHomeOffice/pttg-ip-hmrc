@@ -18,7 +18,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsufficientTimeException;
 import uk.gov.digital.ho.pttg.application.HmrcAccessCodeClient;
 import uk.gov.digital.ho.pttg.application.HmrcClient;
 import uk.gov.digital.ho.pttg.application.HmrcRetryTemplateFactory;
@@ -305,11 +305,11 @@ public class IncomeSummaryServiceTest {
         LocalDate someDate = LocalDate.of(2018, JANUARY, 1);
 
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(someDate), eq(someDate), any(IncomeSummaryContext.class)))
-                .willThrow(new InsuffienctTimeException("Simulating insufficient time as part of test"));
+                .willThrow(new InsufficientTimeException("Simulating insufficient time as part of test"));
         given(mockHmrcRetryTemplateFactory.createInstance())
                 .willReturn(retryTemplate);
 
-        assertThatExceptionOfType(InsuffienctTimeException.class)
+        assertThatExceptionOfType(InsufficientTimeException.class)
                 .isThrownBy(() -> incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, someDate, someDate));
 
         then(mockAppender)

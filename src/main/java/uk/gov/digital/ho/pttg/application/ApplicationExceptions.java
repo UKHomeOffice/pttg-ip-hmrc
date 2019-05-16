@@ -49,8 +49,8 @@ public interface ApplicationExceptions {
         }
     }
 
-    class InsuffienctTimeException extends RuntimeException {
-        public InsuffienctTimeException(String s) {
+    class InsufficientTimeException extends RuntimeException {
+        public InsufficientTimeException(String s) {
             super(s);
         }
     }

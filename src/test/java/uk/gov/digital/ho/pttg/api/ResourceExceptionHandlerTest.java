@@ -184,6 +184,27 @@ public class ResourceExceptionHandlerTest {
     }
 
     @Test
+    public void shouldProduceGatewayTimeoutForInsufficientTimeException() {
+        InsufficientTimeException mockInsufficientTimeException = mock(InsufficientTimeException.class);
+        when(mockInsufficientTimeException.getMessage()).thenReturn("any message");
+
+        ResponseEntity responseEntity = handler.handle(mockInsufficientTimeException);
+
+        assertThat(responseEntity.getBody()).isEqualTo("any message");
+        assertThat(responseEntity.getStatusCode()).isEqualTo(GATEWAY_TIMEOUT);
+    }
+
+    @Test
+    public void shouldLogMessageForInsufficientTimeException() {
+        InsufficientTimeException mockInsufficientTimeException = mock(InsufficientTimeException.class);
+        when(mockInsufficientTimeException.getMessage()).thenReturn("any message");
+
+        handler.handle(mockInsufficientTimeException);
+
+        assertErrorLog("The Service could not produce a response in time: any message", HMRC_INSUFFICIENT_TIME_TO_COMPLETE, 1);
+    }
+
+    @Test
     public void shouldProduceInternalServerErrorForHmrcNotFoundException() {
         HmrcNotFoundException mockHmrcNotFoundException = mock(HmrcNotFoundException.class);
         when(mockHmrcNotFoundException.getMessage()).thenReturn("any message");
@@ -193,7 +214,6 @@ public class ResourceExceptionHandlerTest {
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(NOT_FOUND);
     }
-
 
     @Test
     public void shouldLogMessageForHmrcNotFoundException() {

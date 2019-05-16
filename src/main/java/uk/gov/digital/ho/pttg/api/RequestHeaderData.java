@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsuffienctTimeException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsufficientTimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -213,7 +213,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         long remainingTime = responseRequiredBy() - timestamp();
         if (remainingTime < minTimeToRespond) {
             log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minTimeToRespond, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
-            throw new InsuffienctTimeException("Insufficient time to complete the Response");
+            throw new InsufficientTimeException("Insufficient time to complete the Response");
         }
     }
 }
