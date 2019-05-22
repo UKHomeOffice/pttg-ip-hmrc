@@ -162,7 +162,3 @@ task updateChart() {
 }
 
 tasks.preTagCommit.dependsOn updateChart
-
-tasks.withType(Test) {
-  maxHeapSize '256m' // Stop Jenkins jobs failing with OutOfMemoryError
-}
