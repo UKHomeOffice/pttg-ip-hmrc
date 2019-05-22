@@ -7,6 +7,7 @@ import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
@@ -98,6 +99,25 @@ public class HmrcResourceTimeoutIntegrationTest_timeoutWhenRetryingFailingCall {
         rootLogger.addAppender(mockAppender);
     }
 
+    @Test
+    public void shouldExhaustTimeoutWhenRetryingFailingCall_get_matchResponse() {
+
+        resourceRequest(hmrcApiMockService, manyTimes(), "/individuals/matching/", MATCH_ID, POST, 200, "matchResponse", OK);
+        resourceRequest(hmrcApiMockService, manyTimes(), "/individuals/matching/" + MATCH_ID, MATCH_ID, GET, 0, "individualMatchResponse", INTERNAL_SERVER_ERROR);
+        resourceRequest(hmrcApiMockService, "/individuals/income/?matchId=" + MATCH_ID, MATCH_ID, GET, 0, "incomeResponse", OK);
+        resourceRequest(hmrcApiMockService, "/individuals/employments/?matchId=" + MATCH_ID, MATCH_ID, GET, 0, "employmentsResponse", OK);
+        resourceRequest(hmrcApiMockService, "/individuals/employments/paye?matchId=" + MATCH_ID, MATCH_ID, GET, 0, "employmentsPayeResponse", OK);
+        resourceRequest(hmrcApiMockService, "/individuals/income/paye?matchId=" + MATCH_ID, MATCH_ID, GET, 0, "incomePayeResponse", OK);
+        resourceRequest(hmrcApiMockService, "/individuals/income/sa?matchId=" + MATCH_ID, MATCH_ID, GET, 0, "incomeSAResponse", OK);
+        resourceRequest(hmrcApiMockService, "/individuals/income/sa/self-employments?matchId=" + MATCH_ID, MATCH_ID, GET, 0, "incomeSASelfEmploymentsResponse", OK);
+
+        ResponseEntity<String> responseEntity = performHmrcRequest(restTemplate, 500);
+
+        validateResponse(responseEntity);
+        validateLogging();
+    }
+
+    @Ignore
     @Test
     public void shouldExhaustTimeoutWhenRetryingFailingCall_matchResponse() {
 

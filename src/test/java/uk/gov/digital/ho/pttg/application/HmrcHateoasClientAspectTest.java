@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +103,7 @@ public class HmrcHateoasClientAspectTest {
     }
 
     @Test
+    @Ignore
     public void getMatchResource_aspectApplied() {
 
         try {
