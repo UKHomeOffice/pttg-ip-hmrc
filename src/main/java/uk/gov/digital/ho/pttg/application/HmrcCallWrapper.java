@@ -31,6 +31,7 @@ public class HmrcCallWrapper {
         this.traversonFollower = traversonFollower;
     }
 
+    @AbortIfBeyondMaxResponseDuration
     public <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
         try {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
@@ -42,6 +43,7 @@ public class HmrcCallWrapper {
         }
     }
 
+    @AbortIfBeyondMaxResponseDuration
     <T> Resource<T> followTraverson(String link, String accessToken, ParameterizedTypeReference<Resource<T>> reference) {
         try {
             return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
@@ -54,21 +56,20 @@ public class HmrcCallWrapper {
     }
 
     private RuntimeException handleClientErrorExceptions(HttpClientErrorException ex) {
+
         HttpStatus statusCode = ex.getStatusCode();
 
         if (isHmrcMatchFailedError(ex)) {
             return new HmrcNotFoundException("Received MATCHING_FAILED from HMRC");
-
         } else if (statusCode.equals(FORBIDDEN)) {
             return new ProxyForbiddenException("Received a 403 Forbidden response from proxy");
-
         } else if (statusCode.equals(UNAUTHORIZED)) {
             return new HmrcUnauthorisedException(ex.getMessage(), ex);
         } else if (statusCode.equals(TOO_MANY_REQUESTS)) {
             return new HmrcOverRateLimitException("Too many requests to HMRC");
-        } else {
-            return ex;
         }
+
+        return ex;
     }
 
     private boolean isHmrcMatchFailedError(HttpClientErrorException exception) {

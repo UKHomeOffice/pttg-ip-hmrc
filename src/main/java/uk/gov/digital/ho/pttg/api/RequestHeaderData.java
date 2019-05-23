@@ -212,8 +212,6 @@ public class RequestHeaderData implements HandlerInterceptor {
     void abortIfLikelyToTakeLongerThan(long minTimeToRespond) {
         long remainingTime = responseRequiredBy() - timestamp();
 
-        log.info("deciding whether to abortIfLikelyToTakeLongerThan {} - remainingTime is {}", minTimeToRespond, remainingTime);
-
         if (remainingTime < minTimeToRespond) {
             log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minTimeToRespond, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
             throw new InsufficientTimeException("Insufficient time to complete the Response");

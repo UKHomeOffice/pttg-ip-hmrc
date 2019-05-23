@@ -76,12 +76,11 @@ public class HmrcHateoasClient {
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
         log.info("Sending PAYE request to HMRC", value(EVENT, HMRC_PAYE_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
         Resource<PayeIncome> incomeResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, payeIncomesResourceTypeRef);
         log.info("PAYE response received from HMRC",
                     value(EVENT, HMRC_PAYE_RESPONSE_RECEIVED),
@@ -90,13 +89,12 @@ public class HmrcHateoasClient {
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
 
         log.info("Sending Employments request to HMRC", value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
         Resource<Employments> employmentsResource = hmrcCallWrapper.followTraverson(linkHref, accessToken, employmentsResourceTypeRef);
         log.info("Employments response received from HMRC",
                     value(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED),
@@ -104,7 +102,6 @@ public class HmrcHateoasClient {
         return employmentsResource.getContent().getEmployments();
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSelfEmploymentIncome(String accessToken, Link link) {
 
         if (link == null) {
@@ -112,7 +109,7 @@ public class HmrcHateoasClient {
         }
 
         log.info("Sending Self Assessment self employment request to HMRC", value(EVENT, HMRC_SA_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
         Resource<SelfEmploymentSelfAssessment> selfEmploymentsResource =
                 hmrcCallWrapper.followTraverson(asAbsolute(link.getHref()), accessToken, saSelfEmploymentsResourceTypeRef);
         log.info("Self Assessment self employment response received from HMRC",
@@ -138,7 +135,6 @@ public class HmrcHateoasClient {
                 .collect(Collectors.toList());
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getMatchResource(Individual individual, String accessToken) {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
@@ -179,7 +175,6 @@ public class HmrcHateoasClient {
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
 
         HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
@@ -199,12 +194,11 @@ public class HmrcHateoasClient {
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
         log.info("About to GET individual resource from HMRC at {}", url, value(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
 
         Resource<EmbeddedIndividual> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), individualResourceTypeRef).getBody();
 
@@ -215,12 +209,11 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getIncomeResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
         log.info("About to GET income resource from HMRC at {}", url, value(EVENT, HMRC_INCOME_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
 
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
 
@@ -231,12 +224,11 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getEmploymentResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
         log.info("About to GET employment resource from HMRC at {}", url, value(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
 
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
 
@@ -247,7 +239,6 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
 
         if (link == null) {
@@ -259,7 +250,7 @@ public class HmrcHateoasClient {
         String url = buildLinkWithTaxYearRangeQueryParams(fromTaxYear, toTaxYear, baseUrl);
 
         log.info("About to get self assessment resource from HMRC at {}", url, value(EVENT, HMRC_SA_REQUEST_SENT));
-        Long requestStartTimeStamp = Instant.now().toEpochMilli();
+        long requestStartTimeStamp = timestamp();
 
         Resource<String> resource = hmrcCallWrapper.exchange(URI.create(url), GET, createEntityWithHeadersWithoutBody(accessToken), linksResourceTypeRef).getBody();
         log.info("Self assessment resource response received",
@@ -309,9 +300,12 @@ public class HmrcHateoasClient {
         return headers;
     }
 
-    private Long calculateRequestDuration(Long requestStartTimeStamp) {
-        Long timeStamp = Instant.now().toEpochMilli();
-        return timeStamp - requestStartTimeStamp;
+    private long calculateRequestDuration(long requestStartTimeStamp) {
+        return timestamp() - requestStartTimeStamp;
+    }
+
+    private long timestamp() {
+        return Instant.now().toEpochMilli();
     }
 
 }
