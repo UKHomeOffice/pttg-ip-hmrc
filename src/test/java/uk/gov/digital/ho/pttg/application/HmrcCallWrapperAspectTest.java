@@ -30,7 +30,7 @@ public class HmrcCallWrapperAspectTest {
 
     @Autowired HmrcCallWrapper hmrcCallWrapper;
 
-    private ParameterizedTypeReference anyReference = ParameterizedTypeReference.forType(null);
+    private ParameterizedTypeReference anyReference = ParameterizedTypeReference.forType(Integer.class);
 
     @Test
     public void exchange_aspectApplied() {
