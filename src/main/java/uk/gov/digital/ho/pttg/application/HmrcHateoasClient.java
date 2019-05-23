@@ -138,6 +138,7 @@ public class HmrcHateoasClient {
                 .collect(Collectors.toList());
     }
 
+    @AbortIfBeyondMaxResponseDuration
     Resource<String> getMatchResource(Individual individual, String accessToken) {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
