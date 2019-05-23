@@ -37,7 +37,6 @@ public class HmrcClient {
         this.payeDataEpoch = payeDataEpoch;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
 
         log.debug("Attempt to retrieve HMRC data for {}", suppliedIndividual.getNino());
@@ -57,7 +56,6 @@ public class HmrcClient {
         return incomeSummary;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         storeMatchResource(suppliedIndividual, accessToken, context);
 
@@ -70,7 +68,6 @@ public class HmrcClient {
         storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storePayeData(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         LocalDate payeFromDate = fromDate.isAfter(payeDataEpoch) ? fromDate : payeDataEpoch;
 
@@ -78,56 +75,48 @@ public class HmrcClient {
         storeEmployments(payeFromDate, toDate, accessToken, context);
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
         if (context.needsEmployments()) {
             context.employments(hateoasClient.getEmployments(fromDate, toDate, accessToken, context.getEmploymentLink(PAYE_EMPLOYMENT)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storePayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, IncomeSummaryContext context) {
         if (context.needsPayeIncome()) {
             context.payeIncome(hateoasClient.getPayeIncome(fromDate, toDate, accessToken, context.getIncomeLink(PAYE_INCOME)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeSelfAssessmentSelfEmploymentIncome(String accessToken, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentSelfEmploymentIncome()) {
             context.selfAssessmentSelfEmploymentIncome(hateoasClient.getSelfAssessmentSelfEmploymentIncome(accessToken, context.getSelfAssessmentLink(SA_SELF_EMPLOYMENTS)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeMatchResource(Individual individual, String accessToken, IncomeSummaryContext context) {
         if (context.needsMatchResource()) {
             context.matchResource(hateoasClient.getMatchResource(individual, accessToken));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeIndividualResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsIndividualResource()) {
             context.individualResource(hateoasClient.getIndividualResource(accessToken, context.getMatchLink(INDIVIDUAL)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeIncomeResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsIncomeResource()) {
             context.incomeResource(hateoasClient.getIncomeResource(accessToken, context.getIndividualLink(INCOME)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeEmploymentResource(String accessToken, IncomeSummaryContext context) {
         if (context.needsEmploymentResource()) {
             context.employmentResource(hateoasClient.getEmploymentResource(accessToken, context.getIndividualLink(EMPLOYMENTS)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeSelfAssessmentResource(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         String toTaxYear = getTaxYear(toDate);
         String fromTaxYear = getTaxYear(fromDate);
@@ -138,19 +127,16 @@ public class HmrcClient {
         storeSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context);
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private void storeSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, IncomeSummaryContext context) {
         if (context.needsSelfAssessmentResource()) {
             context.selfAssessmentResource(hateoasClient.getSelfAssessmentResource(accessToken, fromTaxYear, toTaxYear, context.getIncomeLink(SELF_ASSESSMENT)));
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private String earliestAllowedTaxYear() {
         return getTaxYear(LocalDate.now().minusYears(maximumTaxYearHistory));
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private boolean isTooLongAgo(String taxYear) {
         return Integer.parseInt(taxYear.substring(0, 4)) < Integer.parseInt(earliestAllowedTaxYear().substring(0, 4));
     }

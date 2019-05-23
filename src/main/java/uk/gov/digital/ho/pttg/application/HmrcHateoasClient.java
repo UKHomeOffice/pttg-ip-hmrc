@@ -76,7 +76,6 @@ public class HmrcHateoasClient {
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<Income> getPayeIncome(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
@@ -90,7 +89,6 @@ public class HmrcHateoasClient {
         return DataCleanser.clean(incomeResource.getContent().getPaye().getIncome());
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<Employment> getEmployments(LocalDate fromDate, LocalDate toDate, String accessToken, Link link) {
 
         final String linkHref = buildLinkWithDateRangeQueryParams(fromDate, toDate, asAbsolute(link.getHref()));
@@ -104,7 +102,6 @@ public class HmrcHateoasClient {
         return employmentsResource.getContent().getEmployments();
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<AnnualSelfAssessmentTaxReturn> getSelfAssessmentSelfEmploymentIncome(String accessToken, Link link) {
 
         if (link == null) {
@@ -124,7 +121,6 @@ public class HmrcHateoasClient {
         return groupSelfEmploymentIncomes(taxReturns);
     }
 
-    @AbortIfBeyondMaxResponseDuration
     List<AnnualSelfAssessmentTaxReturn> groupSelfEmploymentIncomes(List<SelfEmploymentTaxReturn> taxReturns) {
 
         return taxReturns
@@ -139,7 +135,6 @@ public class HmrcHateoasClient {
                 .collect(Collectors.toList());
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getMatchResource(Individual individual, String accessToken) {
 
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
@@ -180,7 +175,6 @@ public class HmrcHateoasClient {
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
 
         HmrcIndividual individualToMatch = new HmrcIndividual(candidateNames.firstName(), candidateNames.lastName(), nino, dateOfBirth);
@@ -200,7 +194,6 @@ public class HmrcHateoasClient {
         }
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<EmbeddedIndividual> getIndividualResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
@@ -216,7 +209,6 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getIncomeResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
@@ -232,7 +224,6 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getEmploymentResource(String accessToken, Link link) {
 
         String url = asAbsolute(link.getHref());
@@ -248,7 +239,6 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     Resource<String> getSelfAssessmentResource(String accessToken, String fromTaxYear, String toTaxYear, Link link) {
 
         if (link == null) {
@@ -270,7 +260,6 @@ public class HmrcHateoasClient {
         return resource;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private String asAbsolute(String uri) {
 
         if (uri.startsWith("http")) {
@@ -280,7 +269,6 @@ public class HmrcHateoasClient {
         return hmrcUrl + uri;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private HttpEntity<HmrcIndividual> createEntity(HmrcIndividual individual, String accessToken) {
 
         HttpHeaders headers = generateHeaders();
@@ -290,7 +278,6 @@ public class HmrcHateoasClient {
         return new HttpEntity<>(individual, headers);
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private HttpEntity createEntityWithHeadersWithoutBody(String accessToken) {
 
         HttpHeaders headers = generateHeaders();
@@ -300,7 +287,6 @@ public class HmrcHateoasClient {
         return new HttpEntity<>(null, headers);
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private HttpHeaders generateHeaders() {
 
         HttpHeaders headers = new HttpHeaders();
@@ -314,12 +300,10 @@ public class HmrcHateoasClient {
         return headers;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private long calculateRequestDuration(long requestStartTimeStamp) {
         return timestamp() - requestStartTimeStamp;
     }
 
-    @AbortIfBeyondMaxResponseDuration
     private long timestamp() {
         return Instant.now().toEpochMilli();
     }
