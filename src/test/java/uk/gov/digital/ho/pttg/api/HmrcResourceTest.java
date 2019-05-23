@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ public class HmrcResourceTest {
     private static final LocalDate FROM_DATE = LocalDate.of(2018, JANUARY, 1);
     private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1990, DECEMBER, 25);
     private static final String ALIAS_SURNAMES = "Alias Surnames";
+    private static final String LOG_TEST_APPENDER = "tester";
 
     @Mock private IncomeSummaryService mockIncomeSummaryService;
     @Mock private NinoUtils mockNinoUtils;
@@ -54,9 +56,16 @@ public class HmrcResourceTest {
         when(mockIncomeSummaryService.getIncomeSummary(eq(new Individual(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, ALIAS_SURNAMES)), eq(FROM_DATE), eq(TO_DATE))).thenReturn(mockIncomeSummary);
         when(mockNinoUtils.sanitise(NINO)).thenReturn(NINO);
 
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcResource.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcResource.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcResource.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test

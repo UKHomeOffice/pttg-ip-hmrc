@@ -7,6 +7,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,8 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceExceptionHandlerTest {
 
+    private static final String LOG_TEST_APPENDER = "tester";
+
     private ResourceExceptionHandler handler;
 
     @Mock
@@ -40,11 +43,20 @@ public class ResourceExceptionHandlerTest {
 
     @Before
     public void setup() {
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
 
         handler = new ResourceExceptionHandler(mockRequestHeaderData);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test

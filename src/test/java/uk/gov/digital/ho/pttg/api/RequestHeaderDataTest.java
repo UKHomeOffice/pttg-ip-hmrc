@@ -7,6 +7,7 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +39,8 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED
 @RunWith(MockitoJUnitRunner.class)
 public class RequestHeaderDataTest {
 
+    private static final String LOG_TEST_APPENDER = "tester";
+
     @Mock private HttpServletRequest mockHttpServletRequest;
     @Mock private HttpServletResponse mockHttpServletResponse;
     @Mock private Object mockHandler;
@@ -51,9 +54,17 @@ public class RequestHeaderDataTest {
         requestData = new RequestHeaderData(testClock);
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
 
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(RequestHeaderData.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(RequestHeaderData.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(RequestHeaderData.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test

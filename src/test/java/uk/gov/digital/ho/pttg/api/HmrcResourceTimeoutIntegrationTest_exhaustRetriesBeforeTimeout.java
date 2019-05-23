@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +53,7 @@ public class HmrcResourceTimeoutIntegrationTest_exhaustRetriesBeforeTimeout {
 
     private static final String MATCH_ID = "87654321";
     private static final String ACCESS_ID = "987987987";
+    private static final String LOG_TEST_APPENDER = "tester";
 
     private MockRestServiceServer hmrcApiMockService;
     private Appender<ILoggingEvent> mockAppender;
@@ -93,9 +95,17 @@ public class HmrcResourceTimeoutIntegrationTest_exhaustRetriesBeforeTimeout {
         ReflectionTestUtils.setField(hmrcAccessCodeClient, "accessCode", Optional.empty());
 
         mockAppender = mock(Appender.class);
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test

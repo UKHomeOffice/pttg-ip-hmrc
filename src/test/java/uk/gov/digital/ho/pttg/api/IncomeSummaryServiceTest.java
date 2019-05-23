@@ -54,6 +54,7 @@ public class IncomeSummaryServiceTest {
     private static final LocalDate SOME_FROM_DATE = LocalDate.of(2018, JANUARY, 1);
     private static final LocalDate SOME_TO_DATE = LocalDate.of(2018, MAY, 1);
     private static final Individual SOME_INDIVIDUAL = new Individual("some first name", "some last name", "some nino", LocalDate.now(), "");
+    private static final String LOG_TEST_APPENDER = "tester";
 
     @Mock private HmrcClient mockHmrcClient;
     @Mock private HmrcAccessCodeClient mockAccessCodeClient;
@@ -264,9 +265,11 @@ public class IncomeSummaryServiceTest {
         given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class)))
                 .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
 
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(IncomeSummaryService.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(IncomeSummaryService.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
 
         when_getIncomeSummary_throws(HttpServerErrorException.class);
 
@@ -275,6 +278,8 @@ public class IncomeSummaryServiceTest {
         then_verifyHmrcCallMessage("HMRC call attempt 3");
         then_verifyHmrcCallMessage("HMRC call attempt 4");
         then_verifyHmrcCallMessage("HMRC call attempt 5");
+
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test
@@ -288,9 +293,11 @@ public class IncomeSummaryServiceTest {
 
         HmrcRetryTemplateFactory mockHmrcRetryTemplateFactory = mock(HmrcRetryTemplateFactory.class);
 
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(IncomeSummaryService.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(IncomeSummaryService.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
 
         incomeSummaryService = new IncomeSummaryService(
                 mockHmrcClient,
@@ -318,6 +325,8 @@ public class IncomeSummaryServiceTest {
                     LoggingEvent loggingEvent = (LoggingEvent) argument;
                     return loggingEvent.getFormattedMessage().equals("HMRC call attempt 2");
                 }));
+
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test
