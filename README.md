@@ -68,6 +68,13 @@ HMRC provide a Sandbox into which we can seed data. Tools for seeding the HMRC s
 
 There is also a stub providing canned data from HMRC. The stub project can be found at [HMRC stub]. 
 
+## Dependencies
+
+This service depends upon:
+
+* [pttg-ip-hmrc-access-code]
+* [pttg-ip-audit]
+
 ## Versioning
 
 For the versions available, see the [tags on this repository].
