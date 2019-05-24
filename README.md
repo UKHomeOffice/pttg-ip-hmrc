@@ -101,7 +101,7 @@ file for details.
 [tags on this repository]:          https://github.com/UKHomeOffice/pttg-ip-hmrc/tags
 [LICENCE.md]:                       LICENCE.md
 [GitHub]:                           https://github.com/orgs/UKHomeOffice/teams/pttg
-[Drone]:                            https://drone.acp.homeoffice.gov.uk/UKHomeOffice/pttg-ip-api
+[Drone]:                            https://drone.acp.homeoffice.gov.uk/UKHomeOffice/pttg-ip-hmrc
 [Jenkins]:                          https://eue-pttg-jenkins-dtzo-kops1.service.ops.iptho.co.uk/job/build_eue_api_hmrc_service/             
 [build Jenkinsfile]:                https://bitbucket.ipttools.info/projects/EUE-API/repos/eue-api-shared-services-toolset/browse/Jenkinsfile.pttg_ip_hmrc
 [deploy Jenkinsfile]:               https://eue-pttg-jenkins-dtzo-kops1.service.ops.iptho.co.uk/job/deploy_np_dev_push_eue_api_project_tiller/
