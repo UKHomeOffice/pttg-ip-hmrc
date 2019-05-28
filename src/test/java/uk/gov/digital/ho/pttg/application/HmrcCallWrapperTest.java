@@ -1,10 +1,19 @@
 package uk.gov.digital.ho.pttg.application;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
@@ -18,22 +27,43 @@ import java.net.URI;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_REQUEST_FOLLOWS;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_RESPONSE_RECEIVED;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcCallWrapperTest {
 
-    @InjectMocks
+    private static final String LOG_TEST_APPENDER = "HmrcCallWrapperAppender";
     private HmrcCallWrapper hmrcCallWrapper;
 
-    @Mock
-    private RestTemplate mockRestTemplate;
-    @Mock
-    private TraversonFollower mockTraversonFollower;
+    @Mock private RestTemplate mockRestTemplate;
+    @Mock private TraversonFollower mockTraversonFollower;
+
+    private Appender<ILoggingEvent> mockAppender;
+
+    @Before
+    public void setup() {
+        hmrcCallWrapper = new HmrcCallWrapper(mockRestTemplate, mockTraversonFollower);
+
+        mockAppender = mock(Appender.class);
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcCallWrapper.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcCallWrapper.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
+    }
 
     @Test
     public void shouldThrowCustomExceptionForHttpForbidden() {
@@ -131,4 +161,50 @@ public class HmrcCallWrapperTest {
                 .isInstanceOf(NullPointerException.class);
     }
 
+    @Test
+    public void shouldLogEventsAroundRestTemplate_exchange() {
+
+        hmrcCallWrapper.exchange(null, null, null, null);
+
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(isALogMessageWith(
+                        "HMRC exchange request follows",
+                        0,
+                        HMRC_REQUEST_FOLLOWS)));
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(isALogMessageWith(
+                        "HMRC exchange response received",
+                        0,
+                        HMRC_RESPONSE_RECEIVED)));
+    }
+
+    @Test
+    public void shouldLogEventsAroundRestTemplate_followTraverson() {
+
+        hmrcCallWrapper.followTraverson(null, null, null);
+
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(isALogMessageWith(
+                        "HMRC traverson request follows",
+                        0,
+                        HMRC_REQUEST_FOLLOWS)));
+        then(mockAppender)
+                .should()
+                .doAppend(argThat(isALogMessageWith(
+                        "HMRC traverson response received",
+                        0,
+                        HMRC_RESPONSE_RECEIVED)));
+    }
+
+    private ArgumentMatcher<ILoggingEvent> isALogMessageWith(String message, int eventArgIndex, LogEvent event) {
+        return (argument) -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getFormattedMessage().equals(message) &&
+                           loggingEvent.getArgumentArray()[eventArgIndex].equals(new ObjectAppendingMarker("event_id", event));
+        };
+    }
 }
