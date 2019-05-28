@@ -16,8 +16,10 @@ import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Service
 @Slf4j
@@ -33,23 +35,31 @@ public class HmrcCallWrapper {
 
     public <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
         try {
-            return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
+            log.info("HMRC exchange request follows", value(EVENT, HMRC_REQUEST_FOLLOWS));
+            ResponseEntity<Resource<T>> response = restTemplate.exchange(uri, httpMethod, httpEntity, reference);
+            log.info("HMRC exchange response received", value(EVENT, HMRC_RESPONSE_RECEIVED));
+            return response;
         } catch (HttpServerErrorException e) {
             log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
             throw e;
         } catch (HttpClientErrorException e) {
+            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
             throw handleClientErrorExceptions(e);
         }
     }
 
     <T> Resource<T> followTraverson(String link, String accessToken, ParameterizedTypeReference<Resource<T>> reference) {
         try {
-            return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
+            log.info("HMRC traverson request follows", value(EVENT, HMRC_REQUEST_FOLLOWS));
+            Resource<T> response = traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
+            log.info("HMRC traverson response received", value(EVENT, HMRC_RESPONSE_RECEIVED));
+            return response;
         } catch (HttpServerErrorException e) {
             log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
             throw e;
-        } catch (HttpClientErrorException ex) {
-            throw handleClientErrorExceptions(ex);
+        } catch (HttpClientErrorException e) {
+            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
+            throw handleClientErrorExceptions(e);
         }
     }
 
