@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,6 +56,7 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 public class HmrcHateoasClientTest {
 
     private static final LocalDate SOME_DOB = LocalDate.now();
+    private static final String LOG_TEST_APPENDER = "tester";
 
     @Mock private HmrcCallWrapper mockHmrcCallWrapper;
     @Mock private NameNormalizer mockNameNormalizer;
@@ -69,14 +71,22 @@ public class HmrcHateoasClientTest {
 
     @Before
     public void setup() {
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+
         when(mockNameNormalizer.normalizeNames(any(HmrcIndividual.class))).thenReturn(individualForMatching);
         List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
         when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(defaultCandidateNames);
 
         client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test

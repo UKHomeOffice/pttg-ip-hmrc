@@ -8,7 +8,7 @@ import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.HttpHostConnectException;
-import org.joda.time.LocalDate;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +29,6 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 import java.net.ConnectException;
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,11 +43,13 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcAccessCodeClientTest {
+
     private static final String ACCESS_CODE_URL = "https://localhost:9876";
     private static final int MAX_RETRY_ATTEMPTS = 5;
     private static final long RETRY_DELAY_IN_MILLIS = 0L;
     private static final String SOME_ACCESS_CODE_VALUE = "Some Access Code";
     private static final AccessCode SOME_ACCESS_CODE = new AccessCode(SOME_ACCESS_CODE_VALUE, LocalDateTime.MAX, LocalDateTime.MAX);
+    private static final String LOG_TEST_APPENDER = "tester";
 
     @Mock
     private RestTemplate mockRestTemplate;
@@ -70,9 +71,17 @@ public class HmrcAccessCodeClientTest {
     @Before
     public void setUp() {
         accessCodeClient = new HmrcAccessCodeClient(mockRestTemplate, mockRequestHeaderData, ACCESS_CODE_URL, MAX_RETRY_ATTEMPTS, RETRY_DELAY_IN_MILLIS);
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcAccessCodeClient.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcAccessCodeClient.class);
+        mockAppender.setName(LOG_TEST_APPENDER);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcAccessCodeClient.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test
