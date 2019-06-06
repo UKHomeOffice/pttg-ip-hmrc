@@ -93,6 +93,7 @@ public class NameMatchingSteps {
     private static final WireMockServer AUDIT_MOCK_SERVICE = new WireMockServer(options().port(1111));
     private static final WireMockServer HMRC_MOCK_SERVICE = new WireMockServer(options().port(2222));
     private static final WireMockServer ACCESS_KEY_MOCK_SERVICE = new WireMockServer(options().port(3333));
+    private static final String LOG_TEST_APPENDER = "tester";
 
     private static boolean isSetup = false;
 
@@ -126,16 +127,20 @@ public class NameMatchingSteps {
 
     private void setupLogCapture() {
         mockAppender = Mockito.mock(Appender.class);
+        mockAppender.setName(LOG_TEST_APPENDER);
 
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
     }
 
     @After
     public static void teardown() {
         Serenity.clearCurrentSession();
         HMRC_MOCK_SERVICE.resetAll();
+
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     private static void setupAuditStub() {

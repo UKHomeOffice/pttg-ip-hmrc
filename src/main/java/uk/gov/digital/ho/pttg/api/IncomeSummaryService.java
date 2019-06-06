@@ -87,7 +87,7 @@ public class IncomeSummaryService {
 
         IncomeSummaryContext incomeSummaryContext = new IncomeSummaryContext();
 
-        RetryTemplate retryTemplate = hmrcRetryTemplateFactory.createInstance(requestHeaderData.serviceMaxDuration());
+        RetryTemplate retryTemplate = hmrcRetryTemplateFactory.createInstance();
 
         return retryTemplate.execute(retryContext -> {
             log.info("HMRC call attempt {}",
@@ -95,6 +95,7 @@ public class IncomeSummaryService {
                     value(EVENT, HMRC_API_CALL_ATTEMPT));
             return hmrcClient.populateIncomeSummary(accessCode, individual, fromDate, toDate, incomeSummaryContext);
         });
+
     }
 
     private String requestAccessCode() {

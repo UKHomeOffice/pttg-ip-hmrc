@@ -87,6 +87,7 @@ dependencies {
   compile group: 'org.springframework.boot',  name: 'spring-boot-starter-jetty'
   compile group: 'org.springframework.boot',  name: 'spring-boot-starter-actuator'
   compile group: 'org.springframework.boot',  name: 'spring-boot-starter-hateoas'
+  compile group: 'org.springframework.boot',  name: 'spring-boot-starter-aop'
   compile group: 'org.springframework',       name: 'spring-aspects'
   compile group: 'org.springframework.retry', name: 'spring-retry'
   compile group: "org.springframework.boot",  name: "spring-boot-configuration-processor"

@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.InsufficientTimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
@@ -22,7 +24,6 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 @Slf4j
 public class RequestHeaderData implements HandlerInterceptor {
 
-    private static final String MAX_DURATION_MS_HEADER = "x-max-duration";
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
     private static final String THREAD_COUNT = "thread_count";
     private static final String MAX_DURATION = "max_duration";
@@ -30,9 +31,12 @@ public class RequestHeaderData implements HandlerInterceptor {
     static final String REQUEST_DURATION_MS = "request_duration_ms";
     static final String POOL_SIZE = "pool_size";
 
+    public static final String MAX_DURATION_MS_HEADER = "x-max-duration";
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
+
+    static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -40,6 +44,15 @@ public class RequestHeaderData implements HandlerInterceptor {
     @Value("${audit.service.auth}") private String auditBasicAuth;
     @Value("${hmrc.api.version}") private String hmrcApiVersion;
     @Value("${service.max.duration:60000}") private int defaultMaxDuration;
+    private Clock clock;
+
+    public RequestHeaderData() {
+        this(Clock.systemUTC());
+    }
+
+    public RequestHeaderData(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -129,14 +142,19 @@ public class RequestHeaderData implements HandlerInterceptor {
     }
 
     private void inititaliseRequestStart() {
-        long requestStartTimeStamp = Instant.now().toEpochMilli();
-        MDC.put(REQUEST_START_TIMESTAMP, Long.toString(requestStartTimeStamp));
-
+        MDC.put(REQUEST_START_TIMESTAMP, Long.toString(timestamp()));
     }
 
     long calculateRequestDuration() {
-        long timeStamp = Instant.now().toEpochMilli();
-        return timeStamp - Long.parseLong(MDC.get(REQUEST_START_TIMESTAMP));
+        return timestamp() - requestStartTimestamp();
+    }
+
+    private long timestamp() {
+        return Instant.now(clock).toEpochMilli();
+    }
+
+    private long requestStartTimestamp() {
+        return Long.parseLong(MDC.get(REQUEST_START_TIMESTAMP));
     }
 
     public String deploymentName() {
@@ -183,4 +201,20 @@ public class RequestHeaderData implements HandlerInterceptor {
         return Integer.parseInt(MDC.get(MAX_DURATION));
     }
 
+    public long responseRequiredBy() {
+        return requestStartTimestamp() + serviceMaxDuration();
+    }
+
+    public void abortIfTakingTooLong() {
+        abortIfLikelyToTakeLongerThan(EXPECTED_REMAINING_TIME_TO_COMPLETE);
+    }
+
+    void abortIfLikelyToTakeLongerThan(long minTimeToRespond) {
+        long remainingTime = responseRequiredBy() - timestamp();
+
+        if (remainingTime < minTimeToRespond) {
+            log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minTimeToRespond, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
+            throw new InsufficientTimeException("Insufficient time to complete the Response");
+        }
+    }
 }

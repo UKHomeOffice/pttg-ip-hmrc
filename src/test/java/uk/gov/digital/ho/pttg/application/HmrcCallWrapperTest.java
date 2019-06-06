@@ -21,16 +21,20 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverRateLimitException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
+import uk.gov.digital.ho.pttg.application.ApplicationExceptions.ProxyForbiddenException;
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_REQUEST_FOLLOWS;
@@ -67,98 +71,105 @@ public class HmrcCallWrapperTest {
 
     @Test
     public void shouldThrowCustomExceptionForHttpForbidden() {
-        when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(FORBIDDEN));
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(FORBIDDEN));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
+        assertThatExceptionOfType(ProxyForbiddenException.class)
+                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHttpUnauthorised() {
-        when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(UNAUTHORIZED));
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(UNAUTHORIZED));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.HmrcUnauthorisedException.class);
-
+        assertThatExceptionOfType(HmrcUnauthorisedException.class)
+                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHmrcMatchingFailed() {
         byte[] responseBody = "blah blahMATCHING_FAILEDblah blah".getBytes(UTF_8);
 
-        when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.HmrcNotFoundException.class);
-
+        assertThatExceptionOfType(HmrcNotFoundException.class)
+                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHmrcOverRateLimit() {
-        when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(HttpStatus.TOO_MANY_REQUESTS));
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(HttpStatus.TOO_MANY_REQUESTS));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.HmrcOverRateLimitException.class);
+        assertThatExceptionOfType(HmrcOverRateLimitException.class)
+                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldRethrowOtherExceptions() {
-        when(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new NullPointerException());
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new NullPointerException());
 
-        assertThatThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(NullPointerException.class);
-
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHttpForbiddenWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(FORBIDDEN));
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(FORBIDDEN));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.ProxyForbiddenException.class);
+        assertThatExceptionOfType(ProxyForbiddenException.class)
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHttpUnauthorisedWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(UNAUTHORIZED));
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(UNAUTHORIZED));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.HmrcUnauthorisedException.class);
+        assertThatExceptionOfType(HmrcUnauthorisedException.class)
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHmrcNotFoundWithTraverson() {
         byte[] responseBody = "blah blahMATCHING_FAILEDblah blah".getBytes(UTF_8);
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.HmrcNotFoundException.class);
+        assertThatExceptionOfType(HmrcNotFoundException.class)
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
     public void shouldThrowCustomExceptionForHmrcOverRateLimitWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new HttpClientErrorException(TOO_MANY_REQUESTS));
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(TOO_MANY_REQUESTS));
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(ApplicationExceptions.HmrcOverRateLimitException.class);
+        assertThatExceptionOfType(HmrcOverRateLimitException.class)
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test
-    public void shouldRethrowCOtherExceptionsWithTraverson() {
-        when(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
-                .thenThrow(new NullPointerException());
+    public void shouldRethrowOtherExceptionsWithTraverson() {
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new NullPointerException());
 
-        assertThatThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {}))
-                .isInstanceOf(NullPointerException.class);
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+                }));
     }
 
     @Test

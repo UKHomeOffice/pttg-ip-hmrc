@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.hal.Jackson2HalModule;
 import org.springframework.http.MediaType;
@@ -37,6 +38,7 @@ import java.util.List;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Configuration
+@EnableAspectJAutoProxy
 @EnableRetry
 public class SpringConfiguration implements WebMvcConfigurer {
 

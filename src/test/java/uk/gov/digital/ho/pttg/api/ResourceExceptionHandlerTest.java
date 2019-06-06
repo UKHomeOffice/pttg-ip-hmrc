@@ -7,6 +7,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,8 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceExceptionHandlerTest {
 
+    private static final String LOG_TEST_APPENDER = "tester";
+
     private ResourceExceptionHandler handler;
 
     @Mock
@@ -40,11 +43,20 @@ public class ResourceExceptionHandlerTest {
 
     @Before
     public void setup() {
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
 
         handler = new ResourceExceptionHandler(mockRequestHeaderData);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(ResourceExceptionHandler.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test
@@ -184,6 +196,27 @@ public class ResourceExceptionHandlerTest {
     }
 
     @Test
+    public void shouldProduceGatewayTimeoutForInsufficientTimeException() {
+        InsufficientTimeException mockInsufficientTimeException = mock(InsufficientTimeException.class);
+        when(mockInsufficientTimeException.getMessage()).thenReturn("any message");
+
+        ResponseEntity responseEntity = handler.handle(mockInsufficientTimeException);
+
+        assertThat(responseEntity.getBody()).isEqualTo("any message");
+        assertThat(responseEntity.getStatusCode()).isEqualTo(GATEWAY_TIMEOUT);
+    }
+
+    @Test
+    public void shouldLogMessageForInsufficientTimeException() {
+        InsufficientTimeException mockInsufficientTimeException = mock(InsufficientTimeException.class);
+        when(mockInsufficientTimeException.getMessage()).thenReturn("any message");
+
+        handler.handle(mockInsufficientTimeException);
+
+        assertErrorLog("The Service could not produce a response in time: any message", HMRC_INSUFFICIENT_TIME_TO_COMPLETE, 1);
+    }
+
+    @Test
     public void shouldProduceInternalServerErrorForHmrcNotFoundException() {
         HmrcNotFoundException mockHmrcNotFoundException = mock(HmrcNotFoundException.class);
         when(mockHmrcNotFoundException.getMessage()).thenReturn("any message");
@@ -193,7 +226,6 @@ public class ResourceExceptionHandlerTest {
         assertThat(responseEntity.getBody()).isEqualTo("any message");
         assertThat(responseEntity.getStatusCode()).isEqualTo(NOT_FOUND);
     }
-
 
     @Test
     public void shouldLogMessageForHmrcNotFoundException() {
@@ -288,7 +320,7 @@ public class ResourceExceptionHandlerTest {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-        return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms") &&
+            return ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("request_duration_ms") &&
                 ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("pool_size");
 
         }));

@@ -61,7 +61,7 @@ public class HmrcResourceIntegrationTest {
     private static final String ACCESS_ID = "987987987";
 
     private MockRestServiceServer auditMockService;
-    private MockRestServiceServer hmrcAccecssCodeMockService;
+    private MockRestServiceServer hmrcAccessCodeMockService;
     private MockRestServiceServer hmrcApiMockService;
 
     @Autowired
@@ -85,7 +85,7 @@ public class HmrcResourceIntegrationTest {
     @Before
     public void setup() throws JsonProcessingException {
         auditMockService = buildMockService(auditRestTemplate);
-        hmrcAccecssCodeMockService = buildMockService(hmrcAccessCodeRestTemplate);
+        hmrcAccessCodeMockService = buildMockService(hmrcAccessCodeRestTemplate);
         hmrcApiMockService = buildMockService(hmrcApiRestTemplate);
 
         auditMockService
@@ -93,18 +93,18 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
 
-        ReflectionTestUtils.setField(hmrcAccessCodeClient, "accessCode", Optional.ofNullable(null));
+        ReflectionTestUtils.setField(hmrcAccessCodeClient, "accessCode", Optional.empty());
     }
 
     private MockRestServiceServer buildMockService(RestTemplate restTemplate) {
-        MockRestServiceServerBuilder auditBuilder = bindTo(restTemplate);
-        auditBuilder.ignoreExpectOrder(true);
-        return auditBuilder.build();
+        MockRestServiceServerBuilder serverBuilder = bindTo(restTemplate);
+        serverBuilder.ignoreExpectOrder(true);
+        return serverBuilder.build();
     }
 
     @Test
@@ -123,11 +123,12 @@ public class HmrcResourceIntegrationTest {
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
-        //verifies all services were called.
+
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
+        assertThat(responseEntity.getBody().getPaye()).isNotNull();
         assertThat(responseEntity.getBody().getPaye().size()).isEqualTo(7);
         assertThat(responseEntity.getBody().getPaye().get(0).getWeekPayNumber()).isEqualTo(49);
         assertThat(responseEntity.getBody().getEmployments().size()).isEqualTo(2);
@@ -203,7 +204,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withBadRequest());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         hmrcApiMockService.verify();
 
@@ -218,7 +219,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withStatus(I_AM_A_TEAPOT));
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         hmrcApiMockService.verify();
 
@@ -229,7 +230,7 @@ public class HmrcResourceIntegrationTest {
     public void accessCodeServiceUnavailable() {
 
         auditMockService.reset();
-        hmrcAccecssCodeMockService.reset();
+        hmrcAccessCodeMockService.reset();
         hmrcApiMockService.reset();
 
         auditMockService
@@ -237,7 +238,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         auditMockService.verify();
 
@@ -248,22 +249,22 @@ public class HmrcResourceIntegrationTest {
     public void accessCodeServiceThrowsClientError() {
 
         auditMockService.reset();
-        hmrcAccecssCodeMockService.reset();
+        hmrcAccessCodeMockService.reset();
         hmrcApiMockService.reset();
 
         auditMockService
                 .expect(requestTo(containsString("/audit")))
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withBadRequest());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
     }
@@ -272,30 +273,30 @@ public class HmrcResourceIntegrationTest {
     public void accessCodeServiceWithRetriesThrowsServerError() {
 
         auditMockService.reset();
-        hmrcAccecssCodeMockService.reset();
+        hmrcAccessCodeMockService.reset();
         hmrcApiMockService.reset();
 
         auditMockService
                 .expect(requestTo(containsString("/audit")))
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withServerError());
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withServerError());
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withServerError());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
     }
@@ -304,26 +305,26 @@ public class HmrcResourceIntegrationTest {
     public void accessCodeServiceGetsResponseAfterRetry() {
 
         auditMockService.reset();
-        hmrcAccecssCodeMockService.reset();
+        hmrcAccessCodeMockService.reset();
         hmrcApiMockService.reset();
 
         auditMockService
                 .expect(requestTo(containsString("/audit")))
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withServerError());
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withBadRequest());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(BAD_REQUEST);
     }
@@ -387,7 +388,7 @@ public class HmrcResourceIntegrationTest {
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
@@ -418,10 +419,10 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withServerError());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
@@ -440,12 +441,12 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
 
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access/" + ACCESS_ID + "/report")))
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
@@ -466,7 +467,7 @@ public class HmrcResourceIntegrationTest {
 
         // then
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
@@ -488,12 +489,12 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withUnauthorizedRequest());
 
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access/" + ACCESS_ID + "/report")))
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(), APPLICATION_JSON));
@@ -508,11 +509,11 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withUnauthorizedRequest());
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         // then
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(UNAUTHORIZED);
@@ -522,7 +523,7 @@ public class HmrcResourceIntegrationTest {
     public void shouldRetryAccessCallIfConnectionRefused() {
         // given
         auditMockService.reset();
-        hmrcAccecssCodeMockService.reset();
+        hmrcAccessCodeMockService.reset();
         hmrcApiMockService.reset();
 
         auditMockService
@@ -530,7 +531,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withSuccess());
 
-        hmrcAccecssCodeMockService
+        hmrcAccessCodeMockService
                 .expect(times(3), requestTo(containsString("/access")))
                 .andExpect(method(GET))
                 .andRespond(request -> {
@@ -538,11 +539,11 @@ public class HmrcResourceIntegrationTest {
                     throw new ResourceAccessException("ExceptionMessage", httpHostConnectException);
                 });
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         // then
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
@@ -569,7 +570,7 @@ public class HmrcResourceIntegrationTest {
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
@@ -585,10 +586,10 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(POST))
                 .andRespond(withStatus(HttpStatus.FORBIDDEN));
 
-        ResponseEntity<String> responseEntity = anyResponseEntity();
+        ResponseEntity<String> responseEntity = performHmrcRequest();
 
         auditMockService.verify();
-        hmrcAccecssCodeMockService.verify();
+        hmrcAccessCodeMockService.verify();
         hmrcApiMockService.verify();
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(INTERNAL_SERVER_ERROR);
@@ -690,7 +691,7 @@ public class HmrcResourceIntegrationTest {
                 .replace("${matchId}", MATCH_ID);
     }
 
-    private ResponseEntity<String> anyResponseEntity() {
+    private ResponseEntity<String> performHmrcRequest() {
         IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
                 LocalDate.of(1992, 3, 1),
                 LocalDate.of(2017, 1, 1),

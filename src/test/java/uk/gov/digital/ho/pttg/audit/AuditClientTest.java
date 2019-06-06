@@ -8,6 +8,7 @@ import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +31,7 @@ import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
@@ -44,6 +43,7 @@ public class AuditClientTest {
 
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final int RETRY_DELAY = 1;
+    private static final String LOG_TEST_APPENDER = "tester";
 
     @Mock private RequestHeaderData mockRequestHeaderData;
     @Mock private RestTemplate mockRestTemplate;
@@ -61,10 +61,16 @@ public class AuditClientTest {
         client = new AuditClient(clock, mockRestTemplate, mockRequestHeaderData, "endpoint", mockMapper,
                 MAX_RETRY_ATTEMPTS, RETRY_DELAY);
 
-        Logger rootLogger = (Logger) LoggerFactory.getLogger(AuditClient.class);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(mockAppender);
+        mockAppender.setName(LOG_TEST_APPENDER);
+        Logger logger = (Logger) LoggerFactory.getLogger(AuditClient.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+    }
 
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(AuditClient.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 
     @Test
@@ -121,7 +127,7 @@ public class AuditClientTest {
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
         client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
-        
+
         verifyLogMessage("Retrying audit attempt 1 of 2");
         verifyLogMessage("Retrying audit attempt 2 of 2");
     }
