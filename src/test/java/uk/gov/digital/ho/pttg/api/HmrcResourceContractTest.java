@@ -1,11 +1,13 @@
 package uk.gov.digital.ho.pttg.api;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.rule.OutputCapture;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,6 +35,9 @@ public class HmrcResourceContractTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Rule
+    public OutputCapture outputCapture = new OutputCapture();
 
     @Test
     public void validRequestShouldRespondOk() throws Exception {
@@ -165,6 +170,25 @@ public class HmrcResourceContractTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(USER_ID_HEADER, "unknown"));
+    }
+
+    @Test
+    public void retryCountShouldBeLogged() throws Exception {
+        mockMvc.perform(post("/income")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getDefaultRequest())
+            .header(RETRY_COUNT_HEADER, "2"));
+
+        outputCapture.expect(containsString("Retry count."));
+    }
+
+    @Test
+    public void retryCountShouldNotBeLogged() throws Exception {
+        mockMvc.perform(post("/income")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getDefaultRequest()));
+
+        outputCapture.expect(not(containsString("Retry count.")));
     }
 
 }
