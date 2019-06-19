@@ -31,8 +31,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static uk.gov.digital.ho.pttg.Failable.when_ExceptionThrownBy;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.EXPECTED_REMAINING_TIME_TO_COMPLETE;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MAX_DURATION_MS_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
 
@@ -242,6 +241,30 @@ public class RequestHeaderDataTest {
                         "Insufficient time to complete the Response - -1 ms remaining and expected duration is 0",
                         2,
                         HMRC_INSUFFICIENT_TIME_TO_COMPLETE)));
+    }
+
+    @Test
+    public void retryCount_notPassed_returnsNegative() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("");
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isLessThan(0);
+    }
+
+    @Test
+    public void retryCount_invalid_returnsNegative() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("NOT_A_NUMBER");
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isLessThan(0);
+    }
+
+    @Test
+    public void retryCount_validCount_returnsCount() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("1");
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isEqualTo(1);
     }
 
     private void given_requestDataPrehandleCalled() {

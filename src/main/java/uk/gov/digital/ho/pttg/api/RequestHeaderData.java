@@ -35,6 +35,7 @@ public class RequestHeaderData implements HandlerInterceptor {
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
+    public static final String RETRY_COUNT_HEADER = "x-retry-count";
 
     static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
@@ -63,6 +64,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseCorrelationId(request);
         initialiseUserName(request);
         initialiseMaxDuration(request);
+        initialiseRetryCount(request);
 
         inititaliseRequestStart();
         initialiseThreadCount();
@@ -123,6 +125,10 @@ public class RequestHeaderData implements HandlerInterceptor {
         log.info("Hmrc service response required in {} ms", maxDuration, value(EVENT, HMRC_SERVICE_MAX_RESPONSE_TIME));
 
         MDC.put(MAX_DURATION, Integer.toString(maxDuration));
+    }
+
+    private void initialiseRetryCount(HttpServletRequest request) {
+        MDC.put(RETRY_COUNT_HEADER, request.getHeader(RETRY_COUNT_HEADER));
     }
 
     private int maxDuration(String header) {
@@ -199,6 +205,17 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     int serviceMaxDuration() {
         return Integer.parseInt(MDC.get(MAX_DURATION));
+    }
+
+    public Integer retryCount() {
+        String retryCountString = MDC.get(RETRY_COUNT_HEADER);
+        int retryCount = -1;
+        try {
+            retryCount = Integer.parseInt(retryCountString);
+        } catch(NumberFormatException ne) {
+            // noop
+        }
+        return retryCount;
     }
 
     public long responseRequiredBy() {
