@@ -69,7 +69,7 @@ class HmrcResource {
     private void logRetryCount() {
         int retryCount = requestHeaderData.retryCount();
         if (retryCount >= 0) {
-            log.info("Retry count.",
+            log.info("Retry count",
                     value(EVENT, HMRC_RETRY_EVENT),
                     value(RETRY_COUNT_HEADER, retryCount));
         }

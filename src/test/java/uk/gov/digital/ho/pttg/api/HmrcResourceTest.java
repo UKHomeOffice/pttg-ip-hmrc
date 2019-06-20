@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.RETRY_COUNT_HEADER;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_RETRY_EVENT;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -133,9 +134,8 @@ public class HmrcResourceTest {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Retry count.") &&
-                    loggingEvent.getLevel().equals(Level.INFO) &&
-                    loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker("event_id", HMRC_RETRY_EVENT)) &&
+            return loggingEvent.getLevel().equals(Level.INFO) &&
+                    loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker(EVENT, HMRC_RETRY_EVENT)) &&
                     loggingEvent.getArgumentArray()[1].equals(new ObjectAppendingMarker(RETRY_COUNT_HEADER, someRetryCount));
         }));
     }
@@ -150,9 +150,7 @@ public class HmrcResourceTest {
         verify(mockAppender, times(0)).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Retry count.") &&
-                    loggingEvent.getLevel().equals(Level.INFO) &&
-                    loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker("event_id", HMRC_RETRY_EVENT));
+            return loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker(EVENT, HMRC_RETRY_EVENT));
         }));
     }
 }

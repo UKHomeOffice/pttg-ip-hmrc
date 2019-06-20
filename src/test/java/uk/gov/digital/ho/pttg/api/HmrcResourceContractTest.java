@@ -24,6 +24,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_RETRY_EVENT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -179,7 +181,8 @@ public class HmrcResourceContractTest {
             .content(getDefaultRequest())
             .header(RETRY_COUNT_HEADER, "2"));
 
-        outputCapture.expect(containsString("Retry count."));
+        String expectedLogOutput = String.format("\"%s\":\"%s\"", EVENT, HMRC_RETRY_EVENT);
+        outputCapture.expect(containsString(expectedLogOutput));
     }
 
     @Test
@@ -188,7 +191,8 @@ public class HmrcResourceContractTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(getDefaultRequest()));
 
-        outputCapture.expect(not(containsString("Retry count.")));
+        String unexpectedLogOutput = String.format("\"%s\":\"%s\"", EVENT, HMRC_RETRY_EVENT);
+        outputCapture.expect(not(containsString(unexpectedLogOutput)));
     }
 
 }

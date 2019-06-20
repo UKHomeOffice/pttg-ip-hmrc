@@ -245,6 +245,14 @@ public class RequestHeaderDataTest {
 
     @Test
     public void retryCount_notPassed_returnsNegative() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn(null);
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isLessThan(0);
+    }
+
+    @Test
+    public void retryCount_passedButEmpty_returnsNegative() {
         given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("");
         given_requestDataPrehandleCalled();
 
