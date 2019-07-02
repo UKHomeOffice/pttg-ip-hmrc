@@ -495,13 +495,11 @@ public class HmrcHateoasClientTest {
 
         then(mockAppender)
                 .should(atLeastOnce())
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Skipped HMRC call due to Invalid Identity: Normalized name contains a blank name") &&
-                            loggingEvent.getLevel().equals(Level.INFO) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-                }));
+        LoggingEvent loggingEvent = findLog("Skipped HMRC call due to Invalid Identity: Normalized name contains a blank name");
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
+        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_ATTEMPT_SKIPPED));
     }
 
     @Test
