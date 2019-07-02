@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -104,8 +105,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("Match Individual NR123456C via a POST to http://localhost/individuals/matching/").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_REQUEST_SENT));
+        assertThat(findLog(HMRC_MATCHING_REQUEST_SENT).getFormattedMessage())
+                .contains("NR123456C", "http://localhost/individuals/matching/");
     }
 
     @Test
@@ -118,13 +119,13 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Successfully matched individual NR123456C");
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_SUCCESS_RECEIVED);
+
+        assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
 
         assertThat(loggingEvent.getArgumentArray())
-                .contains(new ObjectAppendingMarker("combination", "1 of 2"),
-                          new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
-
-        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isNameMatchingAnalysis);
+                .contains(new ObjectAppendingMarker("combination", "1 of 2"))
+                .anyMatch(this::isNameMatchingAnalysis);
 
     }
 
@@ -143,10 +144,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Failed to match individual NR123456C");
-
-        assertThat(loggingEvent.getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_FAILURE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_FAILURE_RECEIVED);
+        assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
     }
 
     @Test
@@ -164,6 +163,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
+        // TODO OJR EE-15233 This probably requires a findLogs method to work by Event
         assertThat(findLog("Match attempt 1 of 2").getArgumentArray())
                 .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_ATTEMPTS));
         assertThat(findLog("Match attempt 2 of 2").getArgumentArray())
@@ -201,8 +201,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("Sending PAYE request to HMRC").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_PAYE_REQUEST_SENT));
+        assertThat(findLog(HMRC_PAYE_REQUEST_SENT)).isNotNull();
     }
 
     @Test
@@ -216,9 +215,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("PAYE response received from HMRC");
-        assertThat(loggingEvent.getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_PAYE_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_PAYE_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -233,8 +230,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("Sending Self Assessment self employment request to HMRC").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
+        assertThat(findLog(HMRC_SA_REQUEST_SENT)).isNotNull();
     }
 
     @Test
@@ -248,8 +244,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Self Assessment self employment response received from HMRC");
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_SA_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -264,8 +259,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("Sending Employments request to HMRC").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
+        assertThat(findLog(HMRC_EMPLOYMENTS_REQUEST_SENT)).isNotNull();
     }
 
     @Test
@@ -279,8 +273,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Employments response received from HMRC");
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_EMPLOYMENTS_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -294,8 +287,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("About to GET individual resource from HMRC at http://something.com/anyurl").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
+        assertThat(findLog(HMRC_INDIVIDUAL_REQUEST_SENT).getFormattedMessage())
+                .contains("http://something.com/anyurl");
     }
 
     @Test
@@ -308,8 +301,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Individual resource response received");
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_INDIVIDUAL_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -323,8 +315,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("About to GET income resource from HMRC at http://something.com/anyurl").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_INCOME_REQUEST_SENT));
+        assertThat(findLog(HMRC_INCOME_REQUEST_SENT).getFormattedMessage())
+                .contains("http://something.com/anyurl");
     }
 
     @Test
@@ -337,8 +329,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Income resource response received");
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_INCOME_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_INCOME_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -352,8 +343,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("About to GET employment resource from HMRC at http://something.com/anyurl").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
+        assertThat(findLog(HMRC_EMPLOYMENTS_REQUEST_SENT).getFormattedMessage())
+                .contains("http://something.com/anyurl");
     }
 
     @Test
@@ -366,8 +357,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Employment resource response received");
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_EMPLOYMENTS_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -380,9 +370,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("About to get self assessment resource from HMRC at http://something.com/anyurl?fromTaxYear=2010-11&toTaxYear=2011-12");
-        assertThat(loggingEvent.getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
+        assertThat(findLog(HMRC_SA_REQUEST_SENT).getFormattedMessage())
+                .contains("http://something.com/anyurl?fromTaxYear=2010-11&toTaxYear=2011-12");
     }
 
     @Test
@@ -395,8 +384,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Self assessment resource response received");
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED));
+        LoggingEvent loggingEvent = findLog(HMRC_SA_RESPONSE_RECEIVED);
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
@@ -497,9 +485,9 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog("Skipped HMRC call due to Invalid Identity: Normalized name contains a blank name");
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_ATTEMPT_SKIPPED);
         assertThat(loggingEvent.getLevel()).isEqualTo(Level.INFO);
-        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_ATTEMPT_SKIPPED));
+        assertThat(loggingEvent.getFormattedMessage()).contains("Normalized name contains a blank name");
     }
 
     @Test
@@ -538,8 +526,8 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog("Unsuccessfully matched individual NR123456C").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
+        assertThat(findLog(HMRC_MATCHING_UNSUCCESSFUL).getFormattedMessage())
+                .contains("NR123456C");
     }
 
     private LoggingEvent findLog(String message) {
@@ -548,6 +536,18 @@ public class HmrcHateoasClientTest {
                                                                .findFirst();
         if (!matchedEvent.isPresent()) {
             fail("No captured logs with message=" + message);
+        }
+        return matchedEvent.get();
+    }
+
+    private LoggingEvent findLog(LogEvent logEvent) {
+        Optional<LoggingEvent> matchedEvent = logArgumentCaptor.getAllValues().stream()
+                                                               .filter(loggingEvent -> ArrayUtils.contains(loggingEvent.getArgumentArray(),
+                                                                                                           new ObjectAppendingMarker(EVENT, logEvent)))
+                                                               .findFirst();
+
+        if (!matchedEvent.isPresent()) {
+            fail("No log captured with event=" + logEvent);
         }
         return matchedEvent.get();
     }
