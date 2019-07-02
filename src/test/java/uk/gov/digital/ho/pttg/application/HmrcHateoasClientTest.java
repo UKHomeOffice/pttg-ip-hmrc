@@ -41,7 +41,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.*;
@@ -144,8 +144,9 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_FAILURE_RECEIVED);
-        assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
+        List<LoggingEvent> matchFailureEvents = findLogs(HMRC_MATCHING_FAILURE_RECEIVED);
+        assertThat(matchFailureEvents).hasSize(2);
+        assertThat(matchFailureEvents).allMatch(loggingEvent -> loggingEvent.getFormattedMessage().contains("NR123456C"));
     }
 
     @Test
@@ -163,11 +164,10 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        // TODO OJR EE-15233 This probably requires a findLogs method to work by Event
-        assertThat(findLog("Match attempt 1 of 2").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_ATTEMPTS));
-        assertThat(findLog("Match attempt 2 of 2").getArgumentArray())
-                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_ATTEMPTS));
+        List<LoggingEvent> matchingAttemptLogs = findLogs(HMRC_MATCHING_ATTEMPTS);
+        assertThat(matchingAttemptLogs).hasSize(2)
+                                       .anyMatch(loggingEvent -> loggingEvent.getFormattedMessage().contains("1 of 2"))
+                                       .anyMatch(loggingEvent -> loggingEvent.getFormattedMessage().contains("2 of 2"));
     }
 
     @Test(expected = HttpClientErrorException.class)
@@ -530,26 +530,21 @@ public class HmrcHateoasClientTest {
                 .contains("NR123456C");
     }
 
-    private LoggingEvent findLog(String message) {
-        Optional<LoggingEvent> matchedEvent = logArgumentCaptor.getAllValues().stream()
-                                                               .filter(log -> log.getFormattedMessage().equals(message))
-                                                               .findFirst();
-        if (!matchedEvent.isPresent()) {
-            fail("No captured logs with message=" + message);
-        }
-        return matchedEvent.get();
-    }
-
     private LoggingEvent findLog(LogEvent logEvent) {
-        Optional<LoggingEvent> matchedEvent = logArgumentCaptor.getAllValues().stream()
-                                                               .filter(loggingEvent -> ArrayUtils.contains(loggingEvent.getArgumentArray(),
-                                                                                                           new ObjectAppendingMarker(EVENT, logEvent)))
-                                                               .findFirst();
-
-        if (!matchedEvent.isPresent()) {
+        List<LoggingEvent> loggingEvents = findLogs(logEvent);
+        if (loggingEvents.isEmpty()) {
             fail("No log captured with event=" + logEvent);
         }
-        return matchedEvent.get();
+        if (loggingEvents.size() > 1) {
+            fail("Matched multiple logs with event=" + logEvent);
+        }
+        return loggingEvents.get(0);
+    }
+
+    private List<LoggingEvent> findLogs(LogEvent logEvent) {
+        return logArgumentCaptor.getAllValues().stream()
+                                .filter(loggingEvent -> ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, logEvent)))
+                                .collect(Collectors.toList());
     }
 
     private boolean isNameMatchingAnalysis(Object logArgument) {
