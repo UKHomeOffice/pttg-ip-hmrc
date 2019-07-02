@@ -261,13 +261,11 @@ public class HmrcHateoasClientTest {
         client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3), "token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Sending Employments request to HMRC") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-                }));
+        assertThat(findLog("Sending Employments request to HMRC").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_EMPLOYMENTS_REQUEST_SENT));
     }
 
     @Test
@@ -278,14 +276,12 @@ public class HmrcHateoasClientTest {
         client.getEmployments(LocalDate.of(2018, 8, 3), LocalDate.of(2018, 8, 3), "token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Employments response received from HMRC") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
+        LoggingEvent loggingEvent = findLog("Employments response received from HMRC");
+        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker("event_id", HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
     @Test
@@ -295,13 +291,11 @@ public class HmrcHateoasClientTest {
         client.getIndividualResource("token", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("About to GET individual resource from HMRC at http://something.com/anyurl") &&
-                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_REQUEST_SENT));
-                }));
+        assertThat(findLog("About to GET individual resource from HMRC at http://something.com/anyurl").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_INDIVIDUAL_REQUEST_SENT));
     }
 
     @Test
@@ -311,14 +305,12 @@ public class HmrcHateoasClientTest {
         client.getIndividualResource("token", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Individual resource response received") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_INDIVIDUAL_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
+        LoggingEvent loggingEvent = findLog("Individual resource response received");
+        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker("event_id", HMRC_INDIVIDUAL_RESPONSE_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
     @Test
@@ -328,13 +320,11 @@ public class HmrcHateoasClientTest {
         client.getIncomeResource("token", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("About to GET income resource from HMRC at http://something.com/anyurl") &&
-                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_INCOME_REQUEST_SENT));
-                }));
+        assertThat(findLog("About to GET income resource from HMRC at http://something.com/anyurl").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_INCOME_REQUEST_SENT));
     }
 
     @Test
@@ -344,14 +334,12 @@ public class HmrcHateoasClientTest {
         client.getIncomeResource("token", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Income resource response received") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_INCOME_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
+        LoggingEvent loggingEvent = findLog("Income resource response received");
+        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker("event_id", HMRC_INCOME_RESPONSE_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
     @Test
@@ -361,13 +349,11 @@ public class HmrcHateoasClientTest {
         client.getEmploymentResource("token", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("About to GET employment resource from HMRC at http://something.com/anyurl") &&
-                            (loggingEvent.getArgumentArray()[1]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_REQUEST_SENT));
-                }));
+        assertThat(findLog("About to GET employment resource from HMRC at http://something.com/anyurl").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_EMPLOYMENTS_REQUEST_SENT));
     }
 
     @Test
@@ -377,14 +363,12 @@ public class HmrcHateoasClientTest {
         client.getEmploymentResource("token", new Link("http://something.com/anyurl"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Employment resource response received") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_EMPLOYMENTS_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
+        LoggingEvent loggingEvent = findLog("Employment resource response received");
+        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker("event_id", HMRC_EMPLOYMENTS_RESPONSE_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
     @Test
