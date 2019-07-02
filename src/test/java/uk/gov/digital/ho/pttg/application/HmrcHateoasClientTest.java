@@ -161,22 +161,13 @@ public class HmrcHateoasClientTest {
         }
 
         then(mockAppender)
-                .should(atLeast(1))
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Match attempt 1 of 2") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-                }));
-
-        then(mockAppender)
-                .should(atLeast(1))
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-                    return loggingEvent.getFormattedMessage().equals("Match attempt 2 of 2") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
-                }));
+        assertThat(findLog("Match attempt 1 of 2").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_MATCHING_ATTEMPTS));
+        assertThat(findLog("Match attempt 2 of 2").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_MATCHING_ATTEMPTS));
     }
 
     @Test(expected = HttpClientErrorException.class)
@@ -207,13 +198,11 @@ public class HmrcHateoasClientTest {
         client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
-                .should().
-                doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Sending PAYE request to HMRC") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_PAYE_REQUEST_SENT));
-                }));
+        assertThat(findLog("Sending PAYE request to HMRC").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_PAYE_REQUEST_SENT));
     }
 
     @Test
@@ -224,14 +213,13 @@ public class HmrcHateoasClientTest {
         client.getPayeIncome(LocalDate.of(2018, 8, 1), LocalDate.of(2018, 8, 1), "token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("PAYE response received from HMRC") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_PAYE_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
+        LoggingEvent loggingEvent = findLog("PAYE response received from HMRC");
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_PAYE_RESPONSE_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
     @Test
@@ -242,13 +230,11 @@ public class HmrcHateoasClientTest {
         client.getSelfAssessmentSelfEmploymentIncome("token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Sending Self Assessment self employment request to HMRC") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_REQUEST_SENT));
-                }));
+        assertThat(findLog("Sending Self Assessment self employment request to HMRC").getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_SA_REQUEST_SENT));
     }
 
     @Test
@@ -259,14 +245,12 @@ public class HmrcHateoasClientTest {
         client.getSelfAssessmentSelfEmploymentIncome("token", new Link("http://foo.com/bar"));
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Self Assessment self employment response received from HMRC") &&
-                            (loggingEvent.getArgumentArray()[0]).equals(new ObjectAppendingMarker(EVENT, HMRC_SA_RESPONSE_RECEIVED)) &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("request_duration_ms");
-                }));
+        LoggingEvent loggingEvent = findLog("Self Assessment self employment response received from HMRC");
+        assertThat(loggingEvent.getArgumentArray()).contains(new ObjectAppendingMarker("event_id", HMRC_SA_RESPONSE_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isRequestDurationLog);
     }
 
     @Test
@@ -573,5 +557,9 @@ public class HmrcHateoasClientTest {
 
     private boolean isNameMatchingAnalysis(Object logArgument) {
         return logArgument instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArgument).getFieldName().equals("name-matching-analysis");
+    }
+
+    private boolean isRequestDurationLog(Object logArgument) {
+        return logArgument instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArgument).getFieldName().equals("request_duration_ms");
     }
 }
