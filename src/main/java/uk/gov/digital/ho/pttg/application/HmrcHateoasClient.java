@@ -150,10 +150,11 @@ public class HmrcHateoasClient {
                 final Resource<String> matchedIndividual = performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
 
                 log.info("Successfully matched individual {}",
-                        individual.getNino(),
-                        value("combination", String.format("%d of %d", retries + 1, candidateNames.size())),
-                        value("name-matching-analysis", candidateNames.get(retries).derivation()),
-                        value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+                         individual.getNino(),
+                         value("attempt", retries + 1),
+                         value("max_attempts", candidateNames.size()),
+                         value("name-matching-analysis", candidateNames.get(retries).derivation()),
+                         value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
 
                 return matchedIndividual;
 
@@ -167,10 +168,10 @@ public class HmrcHateoasClient {
         }
 
         log.info("Unsuccessfully matched individual {}",
-                individual.getNino(),
-                value("combination", String.format("Attempted all %d", candidateNames.size())),
-                value("name-matching-analysis", candidateNames.get(0).derivation().inputNames()),
-                value(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
+                 individual.getNino(),
+                 value("max_attempts", candidateNames.size()),
+                 value("name-matching-analysis", candidateNames.get(0).derivation().inputNames()),
+                 value(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }

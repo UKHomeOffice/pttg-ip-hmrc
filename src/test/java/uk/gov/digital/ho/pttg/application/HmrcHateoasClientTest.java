@@ -124,7 +124,8 @@ public class HmrcHateoasClientTest {
         assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
 
         assertThat(loggingEvent.getArgumentArray())
-                .contains(new ObjectAppendingMarker("combination", "1 of 2"))
+                .contains(new ObjectAppendingMarker("attempt", 1),
+                          new ObjectAppendingMarker("max_attempts", 2))
                 .anyMatch(this::isNameMatchingAnalysis);
 
     }
@@ -526,8 +527,11 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog(HMRC_MATCHING_UNSUCCESSFUL).getFormattedMessage())
-                .contains("NR123456C");
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_UNSUCCESSFUL);
+
+        assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("max_attempts", 2));
     }
 
     private LoggingEvent findLog(LogEvent logEvent) {
