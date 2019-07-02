@@ -13,7 +13,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.omg.CORBA.portable.ApplicationException;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
@@ -115,15 +114,16 @@ public class HmrcHateoasClientTest {
 
         client.getMatchResource(individual, "");
 
-        then(mockAppender).should(atLeastOnce())
-                          .doAppend(logArgumentCaptor.capture());
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-        LoggingEvent loggingEvent = logArgumentCaptor.getValue();
+        LoggingEvent loggingEvent = findLog("Successfully matched individual NR123456C");
 
-        assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Successfully matched individual NR123456C");
         assertThat(loggingEvent.getArgumentArray())
                 .contains(new ObjectAppendingMarker("combination", "1 of 2"),
                           new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+
         assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isNameMatchingAnalysis);
 
     }
@@ -139,8 +139,9 @@ public class HmrcHateoasClientTest {
             // Swallowed as not of interest for this test.
         }
 
-        then(mockAppender).should(atLeastOnce())
-                          .doAppend(logArgumentCaptor.capture());
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
         LoggingEvent loggingEvent = findLog("Failed to match individual NR123456C");
 
