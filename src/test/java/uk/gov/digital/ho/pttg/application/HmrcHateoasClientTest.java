@@ -10,6 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
@@ -39,10 +40,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -69,12 +70,15 @@ public class HmrcHateoasClientTest {
     private final HmrcIndividual individualForMatching = new HmrcIndividual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30));
     private HmrcHateoasClient client;
 
+    private ArgumentCaptor<LoggingEvent> logArgumentCaptor;
+
     @Before
     public void setup() {
         mockAppender.setName(LOG_TEST_APPENDER);
         Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
         logger.setLevel(Level.INFO);
         logger.addAppender(mockAppender);
+        logArgumentCaptor = ArgumentCaptor.forClass(LoggingEvent.class);
 
         when(mockNameNormalizer.normalizeNames(any(HmrcIndividual.class))).thenReturn(individualForMatching);
         List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
@@ -102,7 +106,7 @@ public class HmrcHateoasClientTest {
                     LoggingEvent loggingEvent = (LoggingEvent) argument;
 
                     return loggingEvent.getFormattedMessage().equals("Match Individual NR123456C via a POST to http://localhost/individuals/matching/") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("event_id");
+                            loggingEvent.getArgumentArray()[2].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_REQUEST_SENT));
                 }));
     }
 
@@ -112,16 +116,17 @@ public class HmrcHateoasClientTest {
 
         client.getMatchResource(individual, "");
 
-        then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender).should(atLeastOnce())
+                          .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Successfully matched individual NR123456C") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("combination") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("name-matching-analysis") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("event_id");
-                }));
+        LoggingEvent loggingEvent = logArgumentCaptor.getValue();
+
+        assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Successfully matched individual NR123456C");
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("combination", "1 of 2"),
+                          new ObjectAppendingMarker("event_id", HMRC_MATCHING_SUCCESS_RECEIVED));
+        assertThat(loggingEvent.getArgumentArray()).anyMatch(this::isNameMatchingAnalysis);
+
     }
 
     @Test
@@ -135,14 +140,13 @@ public class HmrcHateoasClientTest {
             // Swallowed as not of interest for this test.
         }
 
-        then(mockAppender)
-                .should(atLeast(1))
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+        then(mockAppender).should(atLeastOnce())
+                          .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Failed to match individual NR123456C") &&
-                            ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[1]).getFieldName().equals("event_id");
-                }));
+        LoggingEvent loggingEvent = findLog("Failed to match individual NR123456C");
+
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("event_id", HMRC_MATCHING_FAILURE_RECEIVED));
     }
 
     @Test
@@ -555,5 +559,19 @@ public class HmrcHateoasClientTest {
 
         assertThatThrownBy(() -> client.getMatchResource(individual, "some access token"))
                 .isEqualTo(hmrcOverRateLimitException);
+    }
+
+    private LoggingEvent findLog(String message) {
+        Optional<LoggingEvent> matchedEvent = logArgumentCaptor.getAllValues().stream()
+                                                               .filter(log -> log.getFormattedMessage().equals(message))
+                                                               .findFirst();
+        if (!matchedEvent.isPresent()) {
+            fail("No caputred logs with message=" + message);
+        }
+        return matchedEvent.get();
+    }
+
+    private boolean isNameMatchingAnalysis(Object logArgument) {
+        return logArgument instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArgument).getFieldName().equals("name-matching-analysis");
     }
 }
