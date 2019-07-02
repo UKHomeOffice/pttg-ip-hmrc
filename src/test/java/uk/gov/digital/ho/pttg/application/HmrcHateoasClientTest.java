@@ -101,13 +101,11 @@ public class HmrcHateoasClientTest {
         client.getMatchResource(individual, "");
 
         then(mockAppender)
-                .should()
-                .doAppend(argThat(argument -> {
-                    LoggingEvent loggingEvent = (LoggingEvent) argument;
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
 
-                    return loggingEvent.getFormattedMessage().equals("Match Individual NR123456C via a POST to http://localhost/individuals/matching/") &&
-                            loggingEvent.getArgumentArray()[2].equals(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_REQUEST_SENT));
-                }));
+        assertThat(findLog("Match Individual NR123456C via a POST to http://localhost/individuals/matching/").getArgumentArray())
+                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_REQUEST_SENT));
     }
 
     @Test
@@ -528,7 +526,7 @@ public class HmrcHateoasClientTest {
                                                                .filter(log -> log.getFormattedMessage().equals(message))
                                                                .findFirst();
         if (!matchedEvent.isPresent()) {
-            fail("No caputred logs with message=" + message);
+            fail("No captured logs with message=" + message);
         }
         return matchedEvent.get();
     }
