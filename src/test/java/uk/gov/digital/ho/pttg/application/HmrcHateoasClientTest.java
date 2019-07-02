@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.omg.CORBA.portable.ApplicationException;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Link;
@@ -519,6 +520,25 @@ public class HmrcHateoasClientTest {
 
         assertThatThrownBy(() -> client.getMatchResource(individual, "some access token"))
                 .isEqualTo(hmrcOverRateLimitException);
+    }
+
+    @Test
+    public void getMatchResource_noMatch_logUnsuccessful() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // swallowed as not of interest to test
+        }
+
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
+
+        assertThat(findLog("Unsuccessfully matched individual NR123456C").getArgumentArray())
+                .contains(new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
     }
 
     private LoggingEvent findLog(String message) {
