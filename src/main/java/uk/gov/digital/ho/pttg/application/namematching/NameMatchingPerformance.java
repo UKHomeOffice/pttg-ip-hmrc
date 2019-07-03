@@ -1,5 +1,8 @@
 package uk.gov.digital.ho.pttg.application.namematching;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class NameMatchingPerformance {
 
     public HasAliases hasAliases(InputNames inputNames) {

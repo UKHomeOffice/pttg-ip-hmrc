@@ -48,13 +48,13 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 @Slf4j
 public class HmrcHateoasClient {
 
-    private final NameMatchingPerformance nameMatchingPerformance;
     private final String hmrcUrl;
     private final RequestHeaderData requestHeaderData;
     private final NameNormalizer nameNormalizer;
     private final String matchUrl;
     private final HmrcCallWrapper hmrcCallWrapper;
     private final NameMatchingCandidatesService nameMatchingCandidatesService;
+    private final NameMatchingPerformance nameMatchingPerformance;
 
     private static final ParameterizedTypeReference<Resource<String>> linksResourceTypeRef = new ParameterizedTypeReference<Resource<String>>() {};
     private static final ParameterizedTypeReference<Resource<EmbeddedIndividual>> individualResourceTypeRef = new ParameterizedTypeReference<Resource<EmbeddedIndividual>>() {};

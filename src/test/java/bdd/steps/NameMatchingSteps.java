@@ -810,27 +810,31 @@ public class NameMatchingSteps {
     }
 
     private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> combinationLogArgument = getLogArgument(loggingEvent, "combination");
+        Optional<ObjectAppendingMarker> maxAttemptsLogArgument = getLogArgument(loggingEvent, "max_attempts");
 
-        if (!combinationLogArgument.isPresent()) {
-            log.error("Expected: {} but no combination found", expected);
+        if (!maxAttemptsLogArgument.isPresent()) {
+            log.error("Expected: {} but max_attempts not found", expected);
             return false;
         }
 
-        String actual = (String) ReflectionTestUtils.getField(combinationLogArgument.get(), "object");
-        log.error("Expected: {} Actual: {}", String.format("%d of %d", expected, expected), actual);
+        Integer actual = (Integer) ReflectionTestUtils.getField(maxAttemptsLogArgument.get(), "object");
+        log.error("Expected max_attempts: {} Actual max_attempts: {}", expected, actual);
         return false;
     }
 
-    private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> combinationLogArgument = getLogArgument(loggingEvent, "combination");
+    private boolean metaDataRecordsMatchingAttempts(Integer expectedMaxAttempts, LoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> maxAttemptsLogArgument = getLogArgument(loggingEvent, "max_attempts");
 
-        if (!combinationLogArgument.isPresent()) {
+        if (!maxAttemptsLogArgument.isPresent()) {
             return false;
         }
 
-        String attemptsString = (String) ReflectionTestUtils.getField(combinationLogArgument.get(), "object");
-        return attemptsString != null && attemptsString.equals(String.format("%d of %d", combination, combination));
+        Integer maxAttempts = (Integer) ReflectionTestUtils.getField(maxAttemptsLogArgument.get(), "object");
+        if (maxAttempts == null) {
+            return false;
+        }
+
+        return maxAttempts.equals(expectedMaxAttempts);
     }
 
     private Optional<ObjectAppendingMarker> getLogArgument(LoggingEvent loggingEvent, String fieldName) {
