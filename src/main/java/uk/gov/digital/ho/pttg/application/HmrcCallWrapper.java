@@ -39,7 +39,7 @@ public class HmrcCallWrapper {
         try {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
         } catch (HttpServerErrorException e) {
-            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText(),
+            log.warn("Received {} - {}", e.getStatusCode(), e.getStatusText(),
                     value(EVENT, HMRC_SERVER_ERROR));
             throw e;
         } catch (HttpClientErrorException e) {
@@ -52,7 +52,7 @@ public class HmrcCallWrapper {
         try {
             return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
         } catch (HttpServerErrorException e) {
-            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText(),
+            log.warn("Received {} - {}", e.getStatusCode(), e.getStatusText(),
                     value(EVENT, HMRC_SERVER_ERROR));
             throw e;
         } catch (HttpClientErrorException ex) {
