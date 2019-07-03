@@ -622,6 +622,7 @@ public class NameMatchingSteps {
         return Arrays.stream(loggingEvent.getArgumentArray())
                      .anyMatch(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"));
     }
+
     private boolean metaDataHasExpectedNumberOfInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
 
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
@@ -815,26 +816,26 @@ public class NameMatchingSteps {
     }
 
     private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> combinationArgument = getCombinationLogArgument(loggingEvent);
+        Optional<ObjectAppendingMarker> combinationLogArgument = getCombinationLogArgument(loggingEvent);
 
-        if (!combinationArgument.isPresent()) {
+        if (!combinationLogArgument.isPresent()) {
             log.error("Expected: {} but no combination found", expected);
             return false;
         }
 
-        String actual = (String) ReflectionTestUtils.getField(combinationArgument.get(), "object");
+        String actual = (String) ReflectionTestUtils.getField(combinationLogArgument.get(), "object");
         log.error("Expected: {} Actual: {}", String.format("%d of %d", expected, expected), actual);
         return false;
     }
 
-    private boolean metaDataRecordsMatchingAttempts(int combination, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> combinationArgument = getCombinationLogArgument(loggingEvent);
+    private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> combinationLogArgument = getCombinationLogArgument(loggingEvent);
 
-        if (!combinationArgument.isPresent()) {
+        if (!combinationLogArgument.isPresent()) {
             return false;
         }
 
-        String attemptsString = (String) ReflectionTestUtils.getField(combinationArgument.get(), "object");
+        String attemptsString = (String) ReflectionTestUtils.getField(combinationLogArgument.get(), "object");
         return attemptsString != null && attemptsString.equals(String.format("%d of %d", combination, combination));
     }
 
