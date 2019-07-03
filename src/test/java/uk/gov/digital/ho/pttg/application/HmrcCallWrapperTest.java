@@ -194,6 +194,7 @@ public class HmrcCallWrapperTest {
             assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Received 500 - INTERNAL_SERVER_ERROR");
             assertThat(loggingEvent.getArgumentArray()[0]).isEqualTo(HttpStatus.valueOf("INTERNAL_SERVER_ERROR"));
             assertThat(loggingEvent.getArgumentArray()[1]).isEqualTo("INTERNAL_SERVER_ERROR");
+            assertThat(loggingEvent.getArgumentArray()[2]).isEqualTo(new ObjectAppendingMarker("event_id", HMRC_SERVER_ERROR));
         }
     }
 
@@ -212,6 +213,7 @@ public class HmrcCallWrapperTest {
             assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Received 502 - BAD_GATEWAY");
             assertThat(loggingEvent.getArgumentArray()[0]).isEqualTo(HttpStatus.valueOf("BAD_GATEWAY"));
             assertThat(loggingEvent.getArgumentArray()[1]).isEqualTo("BAD_GATEWAY");
+            assertThat(loggingEvent.getArgumentArray()[2]).isEqualTo(new ObjectAppendingMarker("event_id", HMRC_SERVER_ERROR));
         }
     }
 
