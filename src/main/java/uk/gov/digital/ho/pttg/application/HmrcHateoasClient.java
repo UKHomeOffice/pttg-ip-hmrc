@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
-import net.logstash.logback.argument.StructuredArgument;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;

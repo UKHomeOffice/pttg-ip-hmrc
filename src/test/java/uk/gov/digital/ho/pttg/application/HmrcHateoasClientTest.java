@@ -43,6 +43,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -568,10 +569,8 @@ public class HmrcHateoasClientTest {
         given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
         InputNames someInputNames = new InputNames("some name", "some name");
-        List<NameMatchingCandidateGenerator.Generator> anyGenerators = emptyList();
-        NameDerivation anyDerivation = new NameDerivation(someInputNames.firstNames().get(0));
         given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
-                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators, anyDerivation, anyDerivation))));
+                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators(), anyNameDerivation(), anyNameDerivation()))));
 
         client.getMatchResource(individual, "any access token");
 
@@ -605,10 +604,8 @@ public class HmrcHateoasClientTest {
                 .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
 
         InputNames someInputNames = new InputNames("some name", "some name");
-        List<NameMatchingCandidateGenerator.Generator> anyGenerators = emptyList();
-        NameDerivation anyDerivation = new NameDerivation(someInputNames.firstNames().get(0));
         given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
-                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators, anyDerivation, anyDerivation))));
+                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators(), anyNameDerivation(), anyNameDerivation()))));
 
         try {
             client.getMatchResource(individual, "any access token");
@@ -619,8 +616,6 @@ public class HmrcHateoasClientTest {
         then(mockNameMatchingPerformance).should().hasAliases(someInputNames);
         then(mockNameMatchingPerformance).should().hasSpecialCharacters(someInputNames);
     }
-
-
     @Test
     public void getMatchResource_noMatch_logPerformance() {
         given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
@@ -646,7 +641,6 @@ public class HmrcHateoasClientTest {
                           new ObjectAppendingMarker("special_characters", HasSpecialCharacters.FIRST_ONLY));
     }
 
-
     private LoggingEvent findLog(LogEvent logEvent) {
         List<LoggingEvent> loggingEvents = findLogs(logEvent);
         if (loggingEvents.isEmpty()) {
@@ -670,5 +664,13 @@ public class HmrcHateoasClientTest {
 
     private boolean isRequestDurationLog(Object logArgument) {
         return logArgument instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArgument).getFieldName().equals("request_duration_ms");
+    }
+
+    private List<NameMatchingCandidateGenerator.Generator> anyGenerators() {
+        return emptyList();
+    }
+
+    private NameDerivation anyNameDerivation() {
+        return new NameDerivation(new Name(Optional.empty(), NameType.FIRST, 0, "any name"));
     }
 }

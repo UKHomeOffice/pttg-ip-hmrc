@@ -830,11 +830,8 @@ public class NameMatchingSteps {
         }
 
         Integer maxAttempts = (Integer) ReflectionTestUtils.getField(maxAttemptsLogArgument.get(), "object");
-        if (maxAttempts == null) {
-            return false;
-        }
+        return maxAttempts != null && maxAttempts.equals(expectedMaxAttempts);
 
-        return maxAttempts.equals(expectedMaxAttempts);
     }
 
     private Optional<ObjectAppendingMarker> getLogArgument(LoggingEvent loggingEvent, String fieldName) {
