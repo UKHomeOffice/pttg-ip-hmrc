@@ -1,16 +1,27 @@
 package uk.gov.digital.ho.pttg.application;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import net.logstash.logback.marker.ObjectAppendingMarker;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
@@ -18,15 +29,20 @@ import uk.gov.digital.ho.pttg.application.ApplicationExceptions.ProxyForbiddenEx
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverRateLimitException;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVER_ERROR;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcCallWrapperTest {
@@ -38,6 +54,27 @@ public class HmrcCallWrapperTest {
     private RestTemplate mockRestTemplate;
     @Mock
     private TraversonFollower mockTraversonFollower;
+
+    private static final String LOG_TEST_APPENDER = "tester";
+    private ArgumentCaptor<LoggingEvent> logArgumentCaptor;
+    @Mock
+    private Appender<ILoggingEvent> mockAppender;
+
+
+    @Before
+    public void setup() {
+        mockAppender.setName(LOG_TEST_APPENDER);
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcCallWrapper.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockAppender);
+        logArgumentCaptor = ArgumentCaptor.forClass(LoggingEvent.class);
+    }
+
+    @After
+    public void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcCallWrapper.class);
+        logger.detachAppender(LOG_TEST_APPENDER);
+    }
 
     @Test
     public void shouldThrowCustomExceptionForHttpForbidden() {
@@ -142,4 +179,77 @@ public class HmrcCallWrapperTest {
                 }));
     }
 
+    @Test
+    public void shouldLogWhenInternalServerErrorException() {
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
+
+        try {
+            hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+            });
+        } catch (HttpServerErrorException | URISyntaxException e) {
+
+            then(mockAppender).should(times(1)).doAppend(logArgumentCaptor.capture());
+            LoggingEvent loggingEvent = logArgumentCaptor.getValue();
+            assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Received 500 - INTERNAL_SERVER_ERROR");
+            assertThat(loggingEvent.getArgumentArray()[0]).isEqualTo(HttpStatus.valueOf("INTERNAL_SERVER_ERROR"));
+            assertThat(loggingEvent.getArgumentArray()[1]).isEqualTo("INTERNAL_SERVER_ERROR");
+        }
+    }
+
+    @Test
+    public void shouldLogWhenBadGatewayException() {
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpServerErrorException(BAD_GATEWAY));
+
+        try {
+            hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
+            });
+        } catch (HttpServerErrorException | URISyntaxException e) {
+
+            then(mockAppender).should(times(1)).doAppend(logArgumentCaptor.capture());
+            LoggingEvent loggingEvent = logArgumentCaptor.getValue();
+            assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Received 502 - BAD_GATEWAY");
+            assertThat(loggingEvent.getArgumentArray()[0]).isEqualTo(HttpStatus.valueOf("BAD_GATEWAY"));
+            assertThat(loggingEvent.getArgumentArray()[1]).isEqualTo("BAD_GATEWAY");
+        }
+    }
+
+    @Test
+    public void shouldLogWhenInternalServerErrorExceptionWithTraverson() {
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
+
+        try {
+            hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+            });
+        } catch (HttpServerErrorException e) {
+
+            then(mockAppender).should(times(1)).doAppend(logArgumentCaptor.capture());
+            LoggingEvent loggingEvent = logArgumentCaptor.getValue();
+            assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Received 500 - INTERNAL_SERVER_ERROR");
+            assertThat(loggingEvent.getArgumentArray()[0]).isEqualTo(HttpStatus.valueOf("INTERNAL_SERVER_ERROR"));
+            assertThat(loggingEvent.getArgumentArray()[1]).isEqualTo("INTERNAL_SERVER_ERROR");
+            assertThat(loggingEvent.getArgumentArray()[2]).isEqualTo(new ObjectAppendingMarker("event_id", HMRC_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void shouldLogWhenBadGatewayExceptionWithTraverson() {
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpServerErrorException(BAD_GATEWAY));
+
+        try {
+            hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
+            });
+        } catch (HttpServerErrorException e) {
+
+            then(mockAppender).should(times(1)).doAppend(logArgumentCaptor.capture());
+            LoggingEvent loggingEvent = logArgumentCaptor.getValue();
+            assertThat(loggingEvent.getFormattedMessage()).isEqualTo("Received 502 - BAD_GATEWAY");
+            assertThat(loggingEvent.getArgumentArray()[0]).isEqualTo(HttpStatus.valueOf("BAD_GATEWAY"));
+            assertThat(loggingEvent.getArgumentArray()[1]).isEqualTo("BAD_GATEWAY");
+            assertThat(loggingEvent.getArgumentArray()[2]).isEqualTo(new ObjectAppendingMarker("event_id", HMRC_SERVER_ERROR));
+        }
+    }
 }

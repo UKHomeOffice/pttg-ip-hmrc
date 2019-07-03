@@ -16,8 +16,11 @@ import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVER_ERROR;
 
 @Service
 @Slf4j
@@ -36,7 +39,8 @@ public class HmrcCallWrapper {
         try {
             return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
         } catch (HttpServerErrorException e) {
-            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
+            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText(),
+                    value(EVENT, HMRC_SERVER_ERROR));
             throw e;
         } catch (HttpClientErrorException e) {
             throw handleClientErrorExceptions(e);
@@ -48,7 +52,8 @@ public class HmrcCallWrapper {
         try {
             return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
         } catch (HttpServerErrorException e) {
-            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
+            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText(),
+                    value(EVENT, HMRC_SERVER_ERROR));
             throw e;
         } catch (HttpClientErrorException ex) {
             throw handleClientErrorExceptions(ex);
