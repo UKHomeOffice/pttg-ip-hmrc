@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
@@ -565,6 +566,7 @@ public class HmrcHateoasClientTest {
     }
 
     @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void getMatchResource_matched_callsNameMatchingPerformance() {
         given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
 
@@ -599,6 +601,7 @@ public class HmrcHateoasClientTest {
     }
 
     @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void getMatchResource_noMatch_callsNameMatchingPerformance() {
         given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
                 .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
