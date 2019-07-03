@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.pttg.application;
 
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.argument.StructuredArgument;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
+import uk.gov.digital.ho.pttg.application.namematching.InputNames;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingPerformance;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
@@ -144,6 +146,7 @@ public class HmrcHateoasClient {
         log.info("Match Individual {} via a POST to {}", individual.getNino(), matchUrl, value(EVENT, HMRC_MATCHING_REQUEST_SENT));
 
         List<CandidateName> candidateNames = nameMatchingCandidatesService.generateCandidateNames(individual.getFirstName(), individual.getLastName(), individual.getAliasSurnames());
+        InputNames inputNames = candidateNames.get(0).derivation().inputNames();
 
         int retries = 0;
 
@@ -157,8 +160,8 @@ public class HmrcHateoasClient {
                          value("attempt", retries + 1),
                          value("max_attempts", candidateNames.size()),
                          value("name-matching-analysis", candidateNames.get(retries).derivation()),
-                         value("has_aliases", nameMatchingPerformance.hasAliases(candidateNames.get(retries).derivation().inputNames())),
-                         value("special_characters", nameMatchingPerformance.hasSpecialCharacters(candidateNames.get(retries).derivation().inputNames())),
+                         value("has_aliases", nameMatchingPerformance.hasAliases(inputNames)),
+                         value("special_characters", nameMatchingPerformance.hasSpecialCharacters(inputNames)),
                          value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
 
                 return matchedIndividual;
@@ -176,8 +179,8 @@ public class HmrcHateoasClient {
                  individual.getNino(),
                  value("max_attempts", candidateNames.size()),
                  value("name-matching-analysis", candidateNames.get(0).derivation().inputNames()),
-                 value("has_aliases", nameMatchingPerformance.hasAliases(candidateNames.get(0).derivation().inputNames())),
-                 value("special_characters", nameMatchingPerformance.hasSpecialCharacters(candidateNames.get(0).derivation().inputNames())),
+                 value("has_aliases", nameMatchingPerformance.hasAliases(inputNames)),
+                 value("special_characters", nameMatchingPerformance.hasSpecialCharacters(inputNames)),
                  value(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
