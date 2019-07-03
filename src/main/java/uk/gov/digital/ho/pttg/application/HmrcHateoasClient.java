@@ -14,6 +14,7 @@ import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
 import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
+import uk.gov.digital.ho.pttg.application.namematching.NameMatchingPerformance;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
 import uk.gov.digital.ho.pttg.dto.saselfemployment.SelfEmployment;
@@ -45,6 +46,7 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 @Slf4j
 public class HmrcHateoasClient {
 
+    private final NameMatchingPerformance nameMatchingPerformance;
     private final String hmrcUrl;
     private final RequestHeaderData requestHeaderData;
     private final NameNormalizer nameNormalizer;
@@ -66,12 +68,14 @@ public class HmrcHateoasClient {
             NameNormalizer nameNormalizer,
             HmrcCallWrapper hmrcCallWrapper,
             NameMatchingCandidatesService nameMatchingCandidatesService,
+            NameMatchingPerformance nameMatchingPerformance,
             @Value("${hmrc.endpoint}") String hmrcUrl) {
 
         this.requestHeaderData = requestHeaderData;
         this.nameNormalizer = nameNormalizer;
         this.hmrcCallWrapper = hmrcCallWrapper;
         this.nameMatchingCandidatesService = nameMatchingCandidatesService;
+        this.nameMatchingPerformance = nameMatchingPerformance;
         this.hmrcUrl = hmrcUrl;
         this.matchUrl = hmrcUrl + INDIVIDUALS_MATCHING_PATH;
     }
@@ -148,12 +152,13 @@ public class HmrcHateoasClient {
 
             try {
                 final Resource<String> matchedIndividual = performMatchedIndividualRequest(matchUrl, accessToken, candidateNames.get(retries), individual.getNino(), individual.getDateOfBirth());
-
                 log.info("Successfully matched individual {}",
                          individual.getNino(),
                          value("attempt", retries + 1),
                          value("max_attempts", candidateNames.size()),
                          value("name-matching-analysis", candidateNames.get(retries).derivation()),
+                         value("has_aliases", nameMatchingPerformance.hasAliases(candidateNames.get(retries).derivation().inputNames())),
+                         value("special_characters", nameMatchingPerformance.hasSpecialCharacters(candidateNames.get(retries).derivation().inputNames())),
                          value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
 
                 return matchedIndividual;

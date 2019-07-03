@@ -31,12 +31,12 @@ public class NameMatchingPerformance {
                    .anyMatch(unicodeBlock -> !unicodeBlock.equals(Character.UnicodeBlock.BASIC_LATIN));
     }
 
-    enum HasAliases {
+    public enum HasAliases {
         HAS_ALIASES,
         NO_ALIASES;
     }
 
-    enum HasSpecialCharacters {
+    public enum HasSpecialCharacters {
         FIRST_ONLY,
         LAST_ONLY,
         FIRST_AND_LAST,
