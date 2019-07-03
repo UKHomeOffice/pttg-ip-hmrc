@@ -642,10 +642,8 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataIsSolelyInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> nameMatchingAnalysisLogArg = Arrays.stream(loggingEvent.getArgumentArray())
-                                                                           .filter(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"))
-                                                                           .map(logArg -> (ObjectAppendingMarker) logArg)
-                                                                           .findFirst();
+        Optional<ObjectAppendingMarker> nameMatchingAnalysisLogArg = getLogArgument(loggingEvent, "name-matching-analysis");
+
         if (!nameMatchingAnalysisLogArg.isPresent()) {
             return false;
         }
@@ -722,11 +720,7 @@ public class NameMatchingSteps {
     }
 
     private CandidateDerivation getCandidateDerivation(LoggingEvent loggingEvent) {
-        ObjectAppendingMarker nameMatchingAnalysisLogArg = Arrays.stream(loggingEvent.getArgumentArray())
-                                                                 .filter(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"))
-                                                                 .map(logArg -> (ObjectAppendingMarker) logArg)
-                                                                 .findFirst()
-                                                                 .orElseThrow(AssertionError::new);
+        ObjectAppendingMarker nameMatchingAnalysisLogArg = getLogArgument(loggingEvent, "name-matching-analysis").orElseThrow(AssertionError::new);
 
         return (CandidateDerivation) ReflectionTestUtils.getField(nameMatchingAnalysisLogArg, "object");
     }
@@ -816,7 +810,7 @@ public class NameMatchingSteps {
     }
 
     private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> combinationLogArgument = getCombinationLogArgument(loggingEvent);
+        Optional<ObjectAppendingMarker> combinationLogArgument = getLogArgument(loggingEvent, "combination");
 
         if (!combinationLogArgument.isPresent()) {
             log.error("Expected: {} but no combination found", expected);
@@ -829,7 +823,7 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> combinationLogArgument = getCombinationLogArgument(loggingEvent);
+        Optional<ObjectAppendingMarker> combinationLogArgument = getLogArgument(loggingEvent, "combination");
 
         if (!combinationLogArgument.isPresent()) {
             return false;
@@ -839,9 +833,9 @@ public class NameMatchingSteps {
         return attemptsString != null && attemptsString.equals(String.format("%d of %d", combination, combination));
     }
 
-    private Optional<ObjectAppendingMarker> getCombinationLogArgument(LoggingEvent loggingEvent) {
+    private Optional<ObjectAppendingMarker> getLogArgument(LoggingEvent loggingEvent, String fieldName) {
         return Arrays.stream(loggingEvent.getArgumentArray())
-                     .filter(logArg -> loggedFieldEquals(logArg, "combination"))
+                     .filter(logArg -> loggedFieldEquals(logArg, fieldName))
                      .map(logArg -> (ObjectAppendingMarker) logArg)
                      .findFirst();
     }
