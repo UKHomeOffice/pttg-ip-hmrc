@@ -599,6 +599,54 @@ public class HmrcHateoasClientTest {
                           new ObjectAppendingMarker("special_characters", HasSpecialCharacters.FIRST_ONLY));
     }
 
+    @Test
+    public void getMatchResource_noMatch_callsNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+
+        InputNames someInputNames = new InputNames("some name", "some name");
+        List<NameMatchingCandidateGenerator.Generator> anyGenerators = emptyList();
+        NameDerivation anyDerivation = new NameDerivation(someInputNames.firstNames().get(0));
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators, anyDerivation, anyDerivation))));
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // swallowed as not of interest to test
+        }
+
+        then(mockNameMatchingPerformance).should().hasAliases(someInputNames);
+        then(mockNameMatchingPerformance).should().hasSpecialCharacters(someInputNames);
+    }
+
+
+    @Test
+    public void getMatchResource_noMatch_logPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+        given(mockNameMatchingPerformance.hasAliases(any()))
+                .willReturn(HasAliases.HAS_ALIASES);
+        given(mockNameMatchingPerformance.hasSpecialCharacters(any()))
+                .willReturn(HasSpecialCharacters.FIRST_ONLY);
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // swallowed as not of interest to test
+        }
+
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
+
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_UNSUCCESSFUL);
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("has_aliases", HasAliases.HAS_ALIASES),
+                          new ObjectAppendingMarker("special_characters", HasSpecialCharacters.FIRST_ONLY));
+    }
+
+
     private LoggingEvent findLog(LogEvent logEvent) {
         List<LoggingEvent> loggingEvents = findLogs(logEvent);
         if (loggingEvents.isEmpty()) {

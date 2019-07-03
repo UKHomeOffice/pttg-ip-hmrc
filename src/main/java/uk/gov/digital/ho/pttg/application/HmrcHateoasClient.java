@@ -176,6 +176,8 @@ public class HmrcHateoasClient {
                  individual.getNino(),
                  value("max_attempts", candidateNames.size()),
                  value("name-matching-analysis", candidateNames.get(0).derivation().inputNames()),
+                 value("has_aliases", nameMatchingPerformance.hasAliases(candidateNames.get(0).derivation().inputNames())),
+                 value("special_characters", nameMatchingPerformance.hasSpecialCharacters(candidateNames.get(0).derivation().inputNames())),
                  value(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
