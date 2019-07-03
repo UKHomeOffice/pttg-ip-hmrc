@@ -27,6 +27,7 @@ import net.logstash.logback.marker.ObjectAppendingMarker;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.core.SessionMap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONObject;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
@@ -49,10 +50,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -67,8 +65,7 @@ import static org.apache.http.HttpStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_SUCCESS_RECEIVED;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_UNSUCCESSFUL;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
 
 @Slf4j
@@ -614,20 +611,17 @@ public class NameMatchingSteps {
     }
 
     private boolean matchAchieved(LoggingEvent loggingEvent) {
-        return loggingEvent.getArgumentArray().length == 4 &&
-                       loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_SUCCESS_RECEIVED, "any"));
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
     }
 
     private boolean matchNotAchieved(LoggingEvent loggingEvent) {
-        return loggingEvent.getArgumentArray().length == 4 &&
-                       loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_UNSUCCESSFUL, "any"));
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
     }
 
     private boolean metaDataWasLogged(LoggingEvent loggingEvent) {
-        ObjectAppendingMarker objectAppendingMarker = (ObjectAppendingMarker) loggingEvent.getArgumentArray()[2];
-        return objectAppendingMarker.getFieldName().equals("name-matching-analysis");
+        return Arrays.stream(loggingEvent.getArgumentArray())
+                     .anyMatch(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"));
     }
-
     private boolean metaDataHasExpectedNumberOfInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
 
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
@@ -647,8 +641,15 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataIsSolelyInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> nameMatchingAnalysisLogArg = Arrays.stream(loggingEvent.getArgumentArray())
+                                                                           .filter(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"))
+                                                                           .map(logArg -> (ObjectAppendingMarker) logArg)
+                                                                           .findFirst();
+        if (!nameMatchingAnalysisLogArg.isPresent()) {
+            return false;
+        }
 
-        InputNames inputNames = (InputNames) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[2], "object");
+        InputNames inputNames = (InputNames) ReflectionTestUtils.getField(nameMatchingAnalysisLogArg.get(), "object");
 
         if (inputNames == null) {
             return false;
@@ -720,7 +721,13 @@ public class NameMatchingSteps {
     }
 
     private CandidateDerivation getCandidateDerivation(LoggingEvent loggingEvent) {
-        return (CandidateDerivation) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[2], "object");
+        ObjectAppendingMarker nameMatchingAnalysisLogArg = Arrays.stream(loggingEvent.getArgumentArray())
+                                                                 .filter(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"))
+                                                                 .map(logArg -> (ObjectAppendingMarker) logArg)
+                                                                 .findFirst()
+                                                                 .orElseThrow(AssertionError::new);
+
+        return (CandidateDerivation) ReflectionTestUtils.getField(nameMatchingAnalysisLogArg, "object");
     }
 
     @And("^the meta-data contains the following name derivation information$")
@@ -808,13 +815,37 @@ public class NameMatchingSteps {
     }
 
     private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, LoggingEvent loggingEvent) {
-        String actual = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
+        Optional<ObjectAppendingMarker> combinationArgument = getCombinationLogArgument(loggingEvent);
+
+        if (!combinationArgument.isPresent()) {
+            log.error("Expected: {} but no combination found", expected);
+            return false;
+        }
+
+        String actual = (String) ReflectionTestUtils.getField(combinationArgument.get(), "object");
         log.error("Expected: {} Actual: {}", String.format("%d of %d", expected, expected), actual);
         return false;
     }
 
-    private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
-        String attemptsString = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
-        return attemptsString == null || attemptsString.equals(String.format("%d of %d", combination, combination));
+    private boolean metaDataRecordsMatchingAttempts(int combination, LoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> combinationArgument = getCombinationLogArgument(loggingEvent);
+
+        if (!combinationArgument.isPresent()) {
+            return false;
+        }
+
+        String attemptsString = (String) ReflectionTestUtils.getField(combinationArgument.get(), "object");
+        return attemptsString != null && attemptsString.equals(String.format("%d of %d", combination, combination));
+    }
+
+    private Optional<ObjectAppendingMarker> getCombinationLogArgument(LoggingEvent loggingEvent) {
+        return Arrays.stream(loggingEvent.getArgumentArray())
+                     .filter(logArg -> loggedFieldEquals(logArg, "combination"))
+                     .map(logArg -> (ObjectAppendingMarker) logArg)
+                     .findFirst();
+    }
+
+    private boolean loggedFieldEquals(Object logArg, String expectedLogField) {
+        return logArg instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArg).getFieldName().equals(expectedLogField);
     }
 }
