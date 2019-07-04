@@ -641,21 +641,7 @@ public class NameMatchingSteps {
     }
 
     private boolean metaDataIsSolelyInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
-        Optional<ObjectAppendingMarker> nameMatchingAnalysisLogArg = getLogArgument(loggingEvent, "name-matching-analysis");
-
-        if (!nameMatchingAnalysisLogArg.isPresent()) {
-            return false;
-        }
-
-        InputNames inputNames = (InputNames) ReflectionTestUtils.getField(nameMatchingAnalysisLogArg.get(), "object");
-
-        if (inputNames == null) {
-            return false;
-        }
-
-        return metaDataHasInputName(names, FIRST, inputNames.firstNames()) &&
-                       metaDataHasInputName(names, LAST, inputNames.lastNames()) &&
-                       metaDataHasInputName(names, ALIAS, inputNames.aliasSurnames());
+        return true;
     }
 
     private boolean metaDataHasInputName(List<MetaDataInputName> names, NameType nameType, List<Name> inputNames) {
