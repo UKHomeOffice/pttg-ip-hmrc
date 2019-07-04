@@ -151,9 +151,8 @@ public class HmrcHateoasClient {
 
                 log.info("Successfully matched individual {}",
                         individual.getNino(),
-                        value("combination", String.format("%d of %d", retries + 1, candidateNames.size())),
                         value("name-matching-analysis", candidateNames.get(retries).derivation()),
-                        value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED_A));
+                        value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED_B));
 
                 return matchedIndividual;
 
@@ -168,9 +167,8 @@ public class HmrcHateoasClient {
 
         log.info("Unsuccessfully matched individual {}",
                 individual.getNino(),
-                value("combination", String.format("Attempted all %d", candidateNames.size())),
                 value("name-matching-analysis", candidateNames.get(0).derivation().inputNames()),
-                value(EVENT, HMRC_MATCHING_UNSUCCESSFUL_A));
+                value(EVENT, HMRC_MATCHING_UNSUCCESSFUL_B));
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
