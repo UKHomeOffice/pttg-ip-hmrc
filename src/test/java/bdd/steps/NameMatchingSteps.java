@@ -611,11 +611,11 @@ public class NameMatchingSteps {
     }
 
     private boolean matchAchieved(LoggingEvent loggingEvent) {
-        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED_A));
     }
 
     private boolean matchNotAchieved(LoggingEvent loggingEvent) {
-        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL_A));
     }
 
     private boolean metaDataWasLogged(LoggingEvent loggingEvent) {
