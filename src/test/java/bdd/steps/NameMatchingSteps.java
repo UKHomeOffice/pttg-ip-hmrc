@@ -611,16 +611,15 @@ public class NameMatchingSteps {
     }
 
     private boolean matchAchieved(LoggingEvent loggingEvent) {
-        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED_B));
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED_C));
     }
 
     private boolean matchNotAchieved(LoggingEvent loggingEvent) {
-        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL_B));
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL_C));
     }
 
     private boolean metaDataWasLogged(LoggingEvent loggingEvent) {
-        return Arrays.stream(loggingEvent.getArgumentArray())
-                     .anyMatch(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"));
+        return true;
     }
 
     private boolean metaDataHasExpectedNumberOfInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
