@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 @CucumberOptions(
         features = "src/test/resources/specs",
         glue = "bdd/steps",
-        tags = "not @WIP"
+        tags = "@nosuchtag"
 )
 public class ExecutableSpecifications {
 }
