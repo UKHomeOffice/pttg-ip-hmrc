@@ -32,13 +32,13 @@ public class NameMatchingPerformance {
     }
 
     public void logNameMatchingPerformanceForMatch(CandidateDerivation candidateDerivation) {
-        log.debug("Name Matching Analysis",
+        log.debug("Name Matching Analysis - matched" ,
                   value("name-matching-analysis", candidateDerivation),
                   value(EVENT, HMRC_MATCHING_PERFORMANCE_ANALYSIS));
     }
 
     public void logNameMatchingPerformanceForNoMatch(InputNames inputNames) {
-        log.debug("Name Matching Analysis",
+        log.debug("Name Matching Analysis - not matched",
                   value("name-matching-analysis", inputNames),
                   value(EVENT, HMRC_MATCHING_PERFORMANCE_ANALYSIS));
     }
