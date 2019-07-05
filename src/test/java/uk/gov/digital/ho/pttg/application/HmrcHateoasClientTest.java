@@ -58,6 +58,7 @@ import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcHateoasClientTest {
@@ -141,9 +142,22 @@ public class HmrcHateoasClientTest {
 
         assertThat(loggingEvent.getArgumentArray())
                 .contains(new ObjectAppendingMarker("attempt", 1),
-                          new ObjectAppendingMarker("max_attempts", 2))
-                .anyMatch(this::isNameMatchingAnalysis);
+                          new ObjectAppendingMarker("max_attempts", 2));
+    }
 
+    @Test
+    public void getMatchResource_matchingSuccess_callNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
+
+        CandidateDerivation someDerivation = new CandidateDerivation(new InputNames("any", "any"), emptyList(), ALL_FIRST_NAMES, ALL_FIRST_NAMES);
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("any first name", "any surname", someDerivation)));
+
+        client.getMatchResource(individual, "");
+
+        then(mockNameMatchingPerformance)
+                .should()
+                .logNameMatchingPerformanceForMatch(someDerivation);
     }
 
     @Test
@@ -165,6 +179,29 @@ public class HmrcHateoasClientTest {
         assertThat(matchFailureEvents).hasSize(2);
         assertThat(matchFailureEvents).allMatch(loggingEvent -> loggingEvent.getFormattedMessage().contains("NR123456C"));
     }
+
+
+    @Test
+    public void getMatchResource_matchingFailure_callNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+
+        InputNames someInputNames = new InputNames("some first name", "some surname");
+        CandidateDerivation someDerivation = new CandidateDerivation(someInputNames, emptyList(), ALL_FIRST_NAMES, ALL_FIRST_NAMES);
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("any first name", "any surname", someDerivation)));
+
+        try {
+            client.getMatchResource(individual, "");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // Swallowed as not of interest for this test.
+        }
+
+        then(mockNameMatchingPerformance)
+                .should()
+                .logNameMatchingPerformanceForNoMatch(someInputNames);
+    }
+
 
     @Test
     public void shouldLogInfoForEveryMatchingAttempt() {

@@ -126,9 +126,13 @@ public class NameMatchingSteps {
         mockAppender = Mockito.mock(Appender.class);
         mockAppender.setName(LOG_TEST_APPENDER);
 
-        Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
-        logger.setLevel(Level.INFO);
-        logger.addAppender(mockAppender);
+        Logger hmrcHateoasClientLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        hmrcHateoasClientLogger.setLevel(Level.INFO);
+        hmrcHateoasClientLogger.addAppender(mockAppender);
+
+        Logger nameMatchingPerformanceLogger = (Logger) LoggerFactory.getLogger(NameMatchingPerformance.class);
+        nameMatchingPerformanceLogger.setLevel(Level.DEBUG);
+        nameMatchingPerformanceLogger.addAppender(mockAppender);
     }
 
     @After
@@ -576,8 +580,11 @@ public class NameMatchingSteps {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent);
+            return matchAchieved(loggingEvent);
+        }));
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+            return metaDataWasLogged(loggingEvent);
         }));
     }
 
@@ -589,9 +596,13 @@ public class NameMatchingSteps {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return matchNotAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           metaDataIsSolelyInputNames(names, loggingEvent);
+            return matchNotAchieved(loggingEvent);
+
+        }));
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+            return metaDataWasLogged(loggingEvent) &&
+                    metaDataIsSolelyInputNames(names, loggingEvent);
         }));
     }
 
@@ -603,10 +614,14 @@ public class NameMatchingSteps {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           metaDataHasExpectedNumberOfInputNames(names, loggingEvent) &&
-                           metaDataHasInputNames(names, loggingEvent);
+            return matchAchieved(loggingEvent);
+
+        }));
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+            return metaDataWasLogged(loggingEvent) &&
+                    metaDataHasExpectedNumberOfInputNames(names, loggingEvent) &&
+                    metaDataHasInputNames(names, loggingEvent);
         }));
     }
 
@@ -688,10 +703,14 @@ public class NameMatchingSteps {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           (metaDataHasExpectedNumberOfGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent)) &&
-                           (metaDataHasGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent));
+            return matchAchieved(loggingEvent);
+        }));
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return metaDataWasLogged(loggingEvent) &&
+                    (metaDataHasExpectedNumberOfGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent)) &&
+                    (metaDataHasGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent));
         }));
     }
 
@@ -733,9 +752,12 @@ public class NameMatchingSteps {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           metaDataHasExpectedNameDerivations(names, loggingEvent);
+            return matchAchieved(loggingEvent);
+        }));
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+            return metaDataWasLogged(loggingEvent) &&
+                    metaDataHasExpectedNameDerivations(names, loggingEvent);
         }));
     }
 
@@ -804,8 +826,11 @@ public class NameMatchingSteps {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           (metaDataRecordsMatchingAttempts(attempts.get(0), loggingEvent) || diagnoseWrongNumberOfMatchingAttempts(attempts.get(0), loggingEvent));
+                    (matchLogRecordsMatchingAttempts(attempts.get(0), loggingEvent) || diagnoseWrongNumberOfMatchingAttempts(attempts.get(0), loggingEvent));
+        }));
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+            return metaDataWasLogged(loggingEvent);
         }));
     }
 
@@ -822,7 +847,7 @@ public class NameMatchingSteps {
         return false;
     }
 
-    private boolean metaDataRecordsMatchingAttempts(Integer expectedMaxAttempts, LoggingEvent loggingEvent) {
+    private boolean matchLogRecordsMatchingAttempts(Integer expectedMaxAttempts, LoggingEvent loggingEvent) {
         Optional<ObjectAppendingMarker> maxAttemptsLogArgument = getLogArgument(loggingEvent, "max_attempts");
 
         if (!maxAttemptsLogArgument.isPresent()) {
