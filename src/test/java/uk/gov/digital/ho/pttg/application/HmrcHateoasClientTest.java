@@ -119,7 +119,7 @@ public class HmrcHateoasClientTest {
 //                .should(atLeastOnce())
 //                .doAppend(logArgumentCaptor.capture());
 //
-//        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_SUCCESS_RECEIVED_C);
+//        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_SUCCESS_RECEIVED);
 //
 //        assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
 //
@@ -526,7 +526,7 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog(HMRC_MATCHING_UNSUCCESSFUL_C).getFormattedMessage())
+        assertThat(findLog(HMRC_MATCHING_UNSUCCESSFUL).getFormattedMessage())
                 .contains("NR123456C");
     }
 

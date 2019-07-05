@@ -151,7 +151,7 @@ public class HmrcHateoasClient {
 
                 log.info("Successfully matched individual {}",
                         individual.getNino(),
-                        value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED_C));
+                        value(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
 
                 return matchedIndividual;
 
@@ -166,7 +166,7 @@ public class HmrcHateoasClient {
 
         log.info("Unsuccessfully matched individual {}",
                 individual.getNino(),
-                value(EVENT, HMRC_MATCHING_UNSUCCESSFUL_C));
+                value(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
     }
