@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
@@ -25,8 +26,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverRateLimitException;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
-import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
-import uk.gov.digital.ho.pttg.application.namematching.NameMatchingCandidatesService;
+import uk.gov.digital.ho.pttg.application.namematching.*;
+import uk.gov.digital.ho.pttg.application.namematching.NameMatchingPerformance.HasAliases;
+import uk.gov.digital.ho.pttg.application.namematching.NameMatchingPerformance.HasSpecialCharacters;
+import uk.gov.digital.ho.pttg.application.namematching.candidates.NameMatchingCandidateGenerator;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.InvalidCharacterNameNormalizer;
 import uk.gov.digital.ho.pttg.application.util.namenormalizer.NameNormalizer;
 import uk.gov.digital.ho.pttg.dto.*;
@@ -41,8 +44,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -53,6 +58,7 @@ import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
+import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcHateoasClientTest {
@@ -66,6 +72,7 @@ public class HmrcHateoasClientTest {
     @Mock private Appender<ILoggingEvent> mockAppender;
     @Mock private RequestHeaderData mockRequestHeaderData;
     @Mock private NameMatchingCandidatesService mockNameMatchingCandidatesService;
+    @Mock private NameMatchingPerformance mockNameMatchingPerformance;
 
     private final Individual individual = new Individual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30), "");
     private final HmrcIndividual individualForMatching = new HmrcIndividual("John", "Smith", "NR123456C", LocalDate.of(2018, 7, 30));
@@ -85,7 +92,12 @@ public class HmrcHateoasClientTest {
         List<CandidateName> defaultCandidateNames = Arrays.asList(new CandidateName("somefirstname", "somelastname"), new CandidateName("somelastname", "somefirstname"));
         when(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).thenReturn(defaultCandidateNames);
 
-        client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        client = new HmrcHateoasClient(mockRequestHeaderData,
+                                       mockNameNormalizer,
+                                       mockHmrcCallWrapper,
+                                       mockNameMatchingCandidatesService,
+                                       mockNameMatchingPerformance,
+                                       "http://something.com/anyurl");
     }
 
     @After
@@ -97,7 +109,12 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogInfoBeforeMatchingRequestSent() {
         given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, mockNameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://localhost");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData,
+                                                         mockNameNormalizer,
+                                                         mockHmrcCallWrapper,
+                                                         mockNameMatchingCandidatesService,
+                                                         mockNameMatchingPerformance,
+                                                         "http://localhost");
 
         client.getMatchResource(individual, "");
 
@@ -124,9 +141,23 @@ public class HmrcHateoasClientTest {
         assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
 
         assertThat(loggingEvent.getArgumentArray())
-                .contains(new ObjectAppendingMarker("combination", "1 of 2"))
-                .anyMatch(this::isNameMatchingAnalysis);
+                .contains(new ObjectAppendingMarker("attempt", 1),
+                          new ObjectAppendingMarker("max_attempts", 2));
+    }
 
+    @Test
+    public void getMatchResource_matchingSuccess_callNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
+
+        CandidateDerivation someDerivation = new CandidateDerivation(new InputNames("any", "any"), emptyList(), ALL_FIRST_NAMES, ALL_FIRST_NAMES);
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("any first name", "any surname", someDerivation)));
+
+        client.getMatchResource(individual, "");
+
+        then(mockNameMatchingPerformance)
+                .should()
+                .logNameMatchingPerformanceForMatch(someDerivation);
     }
 
     @Test
@@ -148,6 +179,29 @@ public class HmrcHateoasClientTest {
         assertThat(matchFailureEvents).hasSize(2);
         assertThat(matchFailureEvents).allMatch(loggingEvent -> loggingEvent.getFormattedMessage().contains("NR123456C"));
     }
+
+
+    @Test
+    public void getMatchResource_matchingFailure_callNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(URI.class), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+
+        InputNames someInputNames = new InputNames("some first name", "some surname");
+        CandidateDerivation someDerivation = new CandidateDerivation(someInputNames, emptyList(), ALL_FIRST_NAMES, ALL_FIRST_NAMES);
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("any first name", "any surname", someDerivation)));
+
+        try {
+            client.getMatchResource(individual, "");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // Swallowed as not of interest for this test.
+        }
+
+        then(mockNameMatchingPerformance)
+                .should()
+                .logNameMatchingPerformanceForNoMatch(someInputNames);
+    }
+
 
     @Test
     public void shouldLogInfoForEveryMatchingAttempt() {
@@ -430,7 +484,12 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldNotCallHmrcWithEmptyFirstName() {
         NameNormalizer nameNormalizer = new InvalidCharacterNameNormalizer();
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData,
+                                                         nameNormalizer,
+                                                         mockHmrcCallWrapper,
+                                                         mockNameMatchingCandidatesService,
+                                                         mockNameMatchingPerformance,
+                                                         "http://something.com/anyurl");
 
         CandidateName emptyNameCandidate = new CandidateName("", "Smith Jones");
         given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).willReturn(singletonList(emptyNameCandidate));
@@ -450,7 +509,12 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldNotCallHmrcWithEmptyLastName() {
         NameNormalizer nameNormalizer = new InvalidCharacterNameNormalizer();
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData,
+                                                         nameNormalizer,
+                                                         mockHmrcCallWrapper,
+                                                         mockNameMatchingCandidatesService,
+                                                         mockNameMatchingPerformance,
+                                                         "http://something.com/anyurl");
 
         CandidateName emptyNameCandidate = new CandidateName("Bob John", "");
         given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).willReturn(singletonList(emptyNameCandidate));
@@ -470,7 +534,12 @@ public class HmrcHateoasClientTest {
     @Test
     public void shouldLogSkippedCallToHmrcDueToEmptyName() {
         NameNormalizer nameNormalizer = new InvalidCharacterNameNormalizer();
-        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData, nameNormalizer, mockHmrcCallWrapper, mockNameMatchingCandidatesService, "http://something.com/anyurl");
+        HmrcHateoasClient client = new HmrcHateoasClient(mockRequestHeaderData,
+                                                         nameNormalizer,
+                                                         mockHmrcCallWrapper,
+                                                         mockNameMatchingCandidatesService,
+                                                         mockNameMatchingPerformance,
+                                                         "http://something.com/anyurl");
 
         CandidateName emptyNameCandidate = new CandidateName("Bob John", "");
         given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString())).willReturn(singletonList(emptyNameCandidate));
@@ -526,8 +595,90 @@ public class HmrcHateoasClientTest {
                 .should(atLeastOnce())
                 .doAppend(logArgumentCaptor.capture());
 
-        assertThat(findLog(HMRC_MATCHING_UNSUCCESSFUL).getFormattedMessage())
-                .contains("NR123456C");
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_UNSUCCESSFUL);
+
+        assertThat(loggingEvent.getFormattedMessage()).contains("NR123456C");
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("max_attempts", 2));
+    }
+
+    @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void getMatchResource_matched_callsNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
+
+        InputNames someInputNames = new InputNames("some name", "some name");
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators(), anyNameDerivation(), anyNameDerivation()))));
+
+        client.getMatchResource(individual, "any access token");
+
+        then(mockNameMatchingPerformance).should().hasAliases(someInputNames);
+        then(mockNameMatchingPerformance).should().hasSpecialCharacters(someInputNames);
+    }
+
+    @Test
+    public void getMatchResource_matched_logPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class))).willReturn(mockResponse);
+        given(mockNameMatchingPerformance.hasAliases(any()))
+                .willReturn(HasAliases.HAS_ALIASES);
+        given(mockNameMatchingPerformance.hasSpecialCharacters(any()))
+                .willReturn(HasSpecialCharacters.FIRST_ONLY);
+
+        client.getMatchResource(individual, "any access token");
+
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
+
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_SUCCESS_RECEIVED);
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("has_aliases", HasAliases.HAS_ALIASES),
+                          new ObjectAppendingMarker("special_characters", HasSpecialCharacters.FIRST_ONLY));
+    }
+
+    @Test
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    public void getMatchResource_noMatch_callsNameMatchingPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+
+        InputNames someInputNames = new InputNames("some name", "some name");
+        given(mockNameMatchingCandidatesService.generateCandidateNames(anyString(), anyString(), anyString()))
+                .willReturn(singletonList(new CandidateName("anyname", "anyname", new CandidateDerivation(someInputNames, anyGenerators(), anyNameDerivation(), anyNameDerivation()))));
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // swallowed as not of interest to test
+        }
+
+        then(mockNameMatchingPerformance).should().hasAliases(someInputNames);
+        then(mockNameMatchingPerformance).should().hasSpecialCharacters(someInputNames);
+    }
+    @Test
+    public void getMatchResource_noMatch_logPerformance() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new ApplicationExceptions.HmrcNotFoundException(""));
+        given(mockNameMatchingPerformance.hasAliases(any()))
+                .willReturn(HasAliases.HAS_ALIASES);
+        given(mockNameMatchingPerformance.hasSpecialCharacters(any()))
+                .willReturn(HasSpecialCharacters.FIRST_ONLY);
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException e) {
+            // swallowed as not of interest to test
+        }
+
+        then(mockAppender)
+                .should(atLeastOnce())
+                .doAppend(logArgumentCaptor.capture());
+
+        LoggingEvent loggingEvent = findLog(HMRC_MATCHING_UNSUCCESSFUL);
+        assertThat(loggingEvent.getArgumentArray())
+                .contains(new ObjectAppendingMarker("has_aliases", HasAliases.HAS_ALIASES),
+                          new ObjectAppendingMarker("special_characters", HasSpecialCharacters.FIRST_ONLY));
     }
 
     private LoggingEvent findLog(LogEvent logEvent) {
@@ -553,5 +704,13 @@ public class HmrcHateoasClientTest {
 
     private boolean isRequestDurationLog(Object logArgument) {
         return logArgument instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArgument).getFieldName().equals("request_duration_ms");
+    }
+
+    private List<NameMatchingCandidateGenerator.Generator> anyGenerators() {
+        return emptyList();
+    }
+
+    private NameDerivation anyNameDerivation() {
+        return new NameDerivation(new Name(Optional.empty(), NameType.FIRST, 0, "any name"));
     }
 }
