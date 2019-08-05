@@ -88,7 +88,7 @@ public class HmrcResourceTimeoutIntegrationTest_exhaustRetriesBeforeTimeout {
                 .andRespond(withSuccess());
 
         hmrcAccessCodeMockService
-                .expect(requestTo(containsString("/access")))
+                .expect(requestTo(containsString("/url-made-to-break-for-EE-21310")))
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildOauthResponse(mapper, ACCESS_ID), APPLICATION_JSON));
 
