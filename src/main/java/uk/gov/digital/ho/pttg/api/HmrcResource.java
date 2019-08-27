@@ -61,7 +61,9 @@ class HmrcResource {
 
     private Individual individual(String firstName, String lastName, String nino, LocalDate dob, String aliasSurnames) {
         String sanitisedNino = ninoUtils.sanitise(nino);
-        ninoUtils.validate(sanitisedNino);
+        if (!requestHeaderData.isASmokeTest()) {
+            ninoUtils.validate(sanitisedNino);
+        }
         return new Individual(firstName, lastName, sanitisedNino, dob, aliasSurnames);
     }
 }
