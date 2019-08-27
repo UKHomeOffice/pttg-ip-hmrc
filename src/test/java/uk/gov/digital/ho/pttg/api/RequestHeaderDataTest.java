@@ -31,8 +31,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static uk.gov.digital.ho.pttg.Failable.when_ExceptionThrownBy;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.EXPECTED_REMAINING_TIME_TO_COMPLETE;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.MAX_DURATION_MS_HEADER;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_SERVICE_GENERATED_CORRELATION_ID;
 
@@ -242,6 +241,24 @@ public class RequestHeaderDataTest {
                         "Insufficient time to complete the Response - -1 ms remaining and expected duration is 0",
                         2,
                         HMRC_INSUFFICIENT_TIME_TO_COMPLETE)));
+    }
+
+    @Test
+    public void isASmokeTest_smokeTestUser_returnTrue() {
+        given(mockHttpServletRequest.getHeader(USER_ID_HEADER)).willReturn("smoke-tests");
+
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.isASmokeTest()).isTrue();
+    }
+
+    @Test
+    public void isASmokeTest_notSmokeTestUser_returnFalse() {
+        given(mockHttpServletRequest.getHeader(USER_ID_HEADER)).willReturn("not a smoke test user");
+
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.isASmokeTest()).isFalse();
     }
 
     private void given_requestDataPrehandleCalled() {

@@ -9,15 +9,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
@@ -27,6 +29,8 @@ import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class HmrcResourceContractTest {
+
+    private static final String SMOKE_TEST_NINO = "QQ123456C";
 
     @MockBean
     private IncomeSummaryService incomeSummaryService;
@@ -167,4 +171,30 @@ public class HmrcResourceContractTest {
                 .andExpect(header().string(USER_ID_HEADER, "unknown"));
     }
 
+    @Test
+    public void getHmrcData_smokeTestNino_smokeTest_returnOk() throws Exception {
+        LocalDate anyDateOfBirth = LocalDate.now();
+        Individual anyIndividual = new Individual("any firstName", "any lastName", "any nino", anyDateOfBirth, "any alias surnames");
+        IncomeSummary anyIncomeSummary = new IncomeSummary(emptyList(), emptyList(), emptyList(), anyIndividual);
+
+        when(incomeSummaryService.getIncomeSummary(any(Individual.class), any(LocalDate.class), any(LocalDate.class))).thenReturn(anyIncomeSummary);
+
+        mockMvc.perform(post("/income")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(getRequestAndReplaceValue("nino", SMOKE_TEST_NINO))
+                                .header(USER_ID_HEADER, SMOKE_TESTS_USER_ID)
+                                .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getHmrcData_smokeTestNino_notASmokeTest_returnUnprocessableEntity() throws Exception {
+        mockMvc.perform(post("/income")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(getRequestAndReplaceValue("nino", SMOKE_TEST_NINO))
+                                .header(USER_ID_HEADER, "not a smoke-test user")
+                                .accept(MediaType.APPLICATION_JSON))
+               .andExpect(status().isUnprocessableEntity())
+               .andExpect(content().string(containsString("NINO")));
+    }
 }

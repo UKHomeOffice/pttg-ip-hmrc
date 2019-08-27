@@ -25,8 +25,9 @@ import static java.time.Month.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcResourceTest {
@@ -118,5 +119,23 @@ public class HmrcResourceTest {
                             ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[2]).getFieldName().equals("pool_size")
                     ;
         }));
+    }
+
+    @Test
+    public void getHmrcData_notASmokeTest_validateNino() {
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(false);
+
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, ALIAS_SURNAMES));
+
+        then(mockNinoUtils).should().validate(NINO);
+    }
+
+    @Test
+    public void getHmrcData_smokeTest_doNotValidateNino() {
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
+
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, ALIAS_SURNAMES));
+
+        then(mockNinoUtils).should(never()).validate(NINO);
     }
 }
