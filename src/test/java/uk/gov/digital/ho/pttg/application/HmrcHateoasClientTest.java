@@ -55,8 +55,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 import static uk.gov.digital.ho.pttg.application.namematching.NameDerivation.ALL_FIRST_NAMES;
 
@@ -656,6 +655,7 @@ public class HmrcHateoasClientTest {
         then(mockNameMatchingPerformance).should().hasAliases(someInputNames);
         then(mockNameMatchingPerformance).should().hasSpecialCharacters(someInputNames);
     }
+
     @Test
     public void getMatchResource_noMatch_logPerformance() {
         given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
@@ -680,6 +680,66 @@ public class HmrcHateoasClientTest {
                 .contains(new ObjectAppendingMarker("has_aliases", HasAliases.HAS_ALIASES),
                           new ObjectAppendingMarker("special_characters", HasSpecialCharacters.FIRST_ONLY));
     }
+
+    @Test
+    public void getMatchResource_badRequest_notASmokeTest_throwClientException() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(BAD_REQUEST));
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(false);
+
+        assertThatThrownBy(() -> client.getMatchResource(individual, "any access token"))
+                .isInstanceOf(HttpClientErrorException.class);
+    }
+
+    @Test
+    public void getMatchResource_badRequest_smokeTest_throwHmrcNotFound() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(BAD_REQUEST));
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
+
+        assertThatThrownBy(() -> client.getMatchResource(individual, "any access token"))
+                .isInstanceOf(ApplicationExceptions.HmrcNotFoundException.class);
+    }
+
+    @Test
+    public void getMatchResource_clientErrorNotBadRequest_notASmokeTest_throwClientException() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(UNPROCESSABLE_ENTITY));
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(false);
+
+        assertThatThrownBy(() -> client.getMatchResource(individual, "any access token"))
+                .isInstanceOf(HttpClientErrorException.class);
+    }
+
+    @Test
+    public void getMatchResource_clientErrorNotBadRequest_smokeTest_throwClientException() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(UNPROCESSABLE_ENTITY));
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
+
+        assertThatThrownBy(() -> client.getMatchResource(individual, "any access token"))
+                .isInstanceOf(HttpClientErrorException.class);
+    }
+
+
+    @Test
+    public void getMatchResource_badRequest_smokeTest_logSmokeTest() {
+        given(mockHmrcCallWrapper.exchange(any(), eq(POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(BAD_REQUEST));
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
+
+        try {
+            client.getMatchResource(individual, "any access token");
+        } catch (ApplicationExceptions.HmrcNotFoundException ignored) {
+            // Exception not of interest to this test.
+        }
+        then(mockAppender).should(atLeastOnce()).doAppend(logArgumentCaptor.capture());
+
+        LoggingEvent log = findLog(HMRC_SMOKE_TEST_HANDLED);
+        assertThat(log.getFormattedMessage()).containsIgnoringCase("bad request")
+                                             .containsIgnoringCase("not found");
+    }
+
 
     private LoggingEvent findLog(LogEvent logEvent) {
         List<LoggingEvent> loggingEvents = findLogs(logEvent);

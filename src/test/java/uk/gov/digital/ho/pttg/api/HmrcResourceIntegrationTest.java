@@ -599,7 +599,7 @@ public class HmrcResourceIntegrationTest {
     }
 
     @Test
-    public void getHmrcData_matchingBadRequest_smokeTest_returnOK() {
+    public void getHmrcData_matchingBadRequest_smokeTest_returnNotFound() {
         hmrcApiMockService.expect(requestTo(containsString("/individuals/matching/")))
                           .andExpect(method(POST))
                           .andRespond(withBadRequest());
@@ -608,7 +608,7 @@ public class HmrcResourceIntegrationTest {
 
         hmrcApiMockService.verify();
 
-        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(NOT_FOUND);
     }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {

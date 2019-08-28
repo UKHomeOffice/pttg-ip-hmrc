@@ -9,7 +9,9 @@ import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.namematching.CandidateName;
@@ -170,6 +172,12 @@ public class HmrcHateoasClient {
             } catch (InvalidIdentityException e) {
                 log.info("Skipped HMRC call due to Invalid Identity: {}", e.getMessage(), value(EVENT, HMRC_MATCHING_ATTEMPT_SKIPPED));
                 retries++;
+            } catch (HttpClientErrorException e) {
+                if (requestHeaderData.isASmokeTest() && e.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+                    log.info("Transforming bad request into not found for smoke tests", value(EVENT, HMRC_SMOKE_TEST_HANDLED));
+                    throw new HmrcNotFoundException("Smoke Tests");
+                }
+                throw e;
             }
         }
 
