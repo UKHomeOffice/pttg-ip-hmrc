@@ -173,11 +173,7 @@ public class HmrcHateoasClient {
                 log.info("Skipped HMRC call due to Invalid Identity: {}", e.getMessage(), value(EVENT, HMRC_MATCHING_ATTEMPT_SKIPPED));
                 retries++;
             } catch (HttpClientErrorException e) {
-                if (requestHeaderData.isASmokeTest() && e.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
-                    log.info("Transforming bad request into not found for smoke tests", value(EVENT, HMRC_SMOKE_TEST_HANDLED));
-                    throw new HmrcNotFoundException("Smoke Tests");
-                }
-                throw e;
+                throw handleIfSmokeTest(e);
             }
         }
 
@@ -190,6 +186,14 @@ public class HmrcHateoasClient {
         nameMatchingPerformance.logNameMatchingPerformanceForNoMatch(inputNames);
 
         throw new HmrcNotFoundException(String.format("Unable to match: %s", individual));
+    }
+
+    private RuntimeException handleIfSmokeTest(HttpClientErrorException e) {
+        if (requestHeaderData.isASmokeTest() && e.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+            log.info("Transforming bad request into not found for smoke tests", value(EVENT, HMRC_SMOKE_TEST_HANDLED));
+            return new HmrcNotFoundException("Smoke Tests");
+        }
+        return e;
     }
 
     Resource<String> performMatchedIndividualRequest(String matchUrl, String accessToken, CandidateName candidateNames, String nino, LocalDate dateOfBirth) {
