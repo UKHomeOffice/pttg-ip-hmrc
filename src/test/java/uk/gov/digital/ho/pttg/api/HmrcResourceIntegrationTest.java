@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
@@ -19,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.ServiceRunner;
@@ -596,6 +598,19 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody()).isEqualTo("Received a 403 Forbidden response from proxy");
     }
 
+    @Test
+    public void getHmrcData_matchingBadRequest_smokeTest_returnOK() {
+        hmrcApiMockService.expect(requestTo(containsString("/individuals/matching/")))
+                          .andExpect(method(POST))
+                          .andRespond(withBadRequest());
+
+        ResponseEntity<String> responseEntity = performSmokeTestHmrcRequest();
+
+        hmrcApiMockService.verify();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(OK);
+    }
+
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         hmrcApiMockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -700,6 +715,20 @@ public class HmrcResourceIntegrationTest {
 
         HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
 
+        return restTemplate.exchange("/income", POST, requestEntity, String.class);
+    }
+
+    private ResponseEntity<String> performSmokeTestHmrcRequest() {
+        IncomeDataRequest request = new IncomeDataRequest("Smoke", "Tests", "QQ123456C",
+                                                          LocalDate.of(1992, 3, 1),
+                                                          LocalDate.of(2017, 1, 1),
+                                                          LocalDate.of(2017, 6, 1),
+                                                          "");
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(RequestHeaderData.USER_ID_HEADER, RequestHeaderData.SMOKE_TESTS_USER_ID);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request, headers);
         return restTemplate.exchange("/income", POST, requestEntity, String.class);
     }
 }
