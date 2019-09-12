@@ -49,7 +49,7 @@ pipeline:
       - docker_password
     commands:
       - docker login -u="ukhomeofficedigital+pttg" -p=$${DOCKER_PASSWORD} quay.io
-      - docker tag pttg-ip-api quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_BRANCH}
+      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_BRANCH}
       - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_BRANCH}
     when:
       branch:
