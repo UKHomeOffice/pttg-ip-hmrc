@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
 
@@ -92,7 +93,7 @@ public class HmrcAccessCodeClientCacheTest {
         converter.setObjectMapper(objectMapper);
         converter.setSupportedMediaTypes(Arrays.asList(MediaTypes.HAL_JSON, APPLICATION_JSON));
 
-        RequestHeaderData requestData = new RequestHeaderData();
+        RequestHeaderData requestData = new RequestHeaderData(new ComponentTraceHeaderData());
         RestTemplate restTemplate = new RestTemplateBuilder().additionalMessageConverters(converter).build();
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "some-auth");
         ReflectionTestUtils.setField(requestData, "auditBasicAuth", "some-auth");

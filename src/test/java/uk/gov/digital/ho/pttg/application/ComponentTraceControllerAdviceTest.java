@@ -10,7 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -29,13 +29,13 @@ public class ComponentTraceControllerAdviceTest {
     @Mock
     private ServerHttpResponse mockResponse;
     @Mock
-    private RequestHeaderData mockRequestData;
+    private ComponentTraceHeaderData mockComponentTraceHeaderData;
 
     private ComponentTraceControllerAdvice controllerAdvice;
 
     @Before
     public void setUp() {
-        controllerAdvice = new ComponentTraceControllerAdvice(mockRequestData);
+        controllerAdvice = new ComponentTraceControllerAdvice(mockComponentTraceHeaderData);
     }
 
     @Test
@@ -59,6 +59,6 @@ public class ComponentTraceControllerAdviceTest {
 
         controllerAdvice.beforeBodyWrite("any body", ANY_RETURN_TYPE, ANY_MEDIA_TYPE, ANY_CONVERTER_TYPE, mockRequest, mockResponse);
 
-        then(mockRequestData).should().addComponentTraceHeader(someHeaders);
+        then(mockComponentTraceHeaderData).should().addComponentTraceHeader(someHeaders);
     }
 }

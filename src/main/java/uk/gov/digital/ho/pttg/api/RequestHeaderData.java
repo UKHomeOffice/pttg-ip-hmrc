@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -23,7 +22,6 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
-@SuppressWarnings("checkstyle:methodcount") // There's no clear way to remedy this.
 public class RequestHeaderData implements HandlerInterceptor {
 
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
@@ -37,12 +35,11 @@ public class RequestHeaderData implements HandlerInterceptor {
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
-    private static final String COMPONENT_TRACE_HEADER = "x-component-trace";
 
     static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
     public static final String SMOKE_TESTS_USER_ID = "smoke-tests";
-    private static final String COMPONENT_NAME = "pttg-ip-hmrc";
+    static final String COMPONENT_NAME = "pttg-ip-hmrc";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -51,13 +48,16 @@ public class RequestHeaderData implements HandlerInterceptor {
     @Value("${hmrc.api.version}") private String hmrcApiVersion;
     @Value("${service.max.duration:60000}") private int defaultMaxDuration;
     private Clock clock;
+    private ComponentTraceHeaderData componentTraceHeaderData;
 
-    public RequestHeaderData() {
-        this(Clock.systemUTC());
+
+    public RequestHeaderData(ComponentTraceHeaderData componentTraceHeaderData) {
+        this(Clock.systemUTC(), componentTraceHeaderData);
     }
 
-    public RequestHeaderData(Clock clock) {
+    public RequestHeaderData(Clock clock, ComponentTraceHeaderData componentTraceHeaderData) {
         this.clock = clock;
+        this.componentTraceHeaderData = componentTraceHeaderData;
     }
 
     @Override
@@ -153,10 +153,7 @@ public class RequestHeaderData implements HandlerInterceptor {
     }
 
     private void initialiseComponentTrace(HttpServletRequest request) {
-        String initialComponentTraceHeader = request.getHeader(COMPONENT_TRACE_HEADER);
-        String newComponentTraceHeader = initialComponentTraceHeader == null ? COMPONENT_NAME : initialComponentTraceHeader + "," + COMPONENT_NAME;
-        MDC.put(COMPONENT_TRACE_HEADER, newComponentTraceHeader);
-
+        componentTraceHeaderData.initialiseComponentTrace(request);
     }
 
     long calculateRequestDuration() {
@@ -234,13 +231,5 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     boolean isASmokeTest() {
         return userId().equals(SMOKE_TESTS_USER_ID);
-    }
-
-    public String componentTrace() {
-        return MDC.get(COMPONENT_TRACE_HEADER);
-    }
-
-    public void addComponentTraceHeader(HttpHeaders headers) {
-        headers.add(COMPONENT_TRACE_HEADER, componentTrace());
     }
 }

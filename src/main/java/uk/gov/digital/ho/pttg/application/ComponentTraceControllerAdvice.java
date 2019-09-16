@@ -7,13 +7,13 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import uk.gov.digital.ho.pttg.api.RequestHeaderData;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 
 @ControllerAdvice
 @AllArgsConstructor
 public class ComponentTraceControllerAdvice implements ResponseBodyAdvice {
 
-    private final RequestHeaderData requestHeaderData;
+    private final ComponentTraceHeaderData componentTraceHeaderData;
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
@@ -22,7 +22,7 @@ public class ComponentTraceControllerAdvice implements ResponseBodyAdvice {
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        requestHeaderData.addComponentTraceHeader(response.getHeaders());
+        componentTraceHeaderData.addComponentTraceHeader(response.getHeaders());
         return body;
     }
 }

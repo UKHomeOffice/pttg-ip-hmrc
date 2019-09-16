@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.when;
 import static uk.gov.digital.ho.pttg.Failable.when_ExceptionThrownBy;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_INSUFFICIENT_TIME_TO_COMPLETE;
@@ -44,6 +43,7 @@ public class RequestHeaderDataTest {
     @Mock private HttpServletRequest mockHttpServletRequest;
     @Mock private HttpServletResponse mockHttpServletResponse;
     @Mock private Object mockHandler;
+    @Mock private ComponentTraceHeaderData mockComponentTraceHeaderData;
     @Mock private Appender<ILoggingEvent> mockAppender;
 
     private RequestHeaderData requestData;
@@ -51,7 +51,7 @@ public class RequestHeaderDataTest {
     @Before
     public void setup() {
         Clock testClock =  Clock.fixed(Instant.ofEpochMilli(2222), ZoneId.of("Z"));
-        requestData = new RequestHeaderData(testClock);
+        requestData = new RequestHeaderData(testClock, mockComponentTraceHeaderData);
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
 
         mockAppender.setName(LOG_TEST_APPENDER);
@@ -71,7 +71,7 @@ public class RequestHeaderDataTest {
     public void shouldUseSystemClockByDefault() {
         Clock systemClock = Clock.systemUTC();
 
-        RequestHeaderData requestHeaderData = new RequestHeaderData();
+        RequestHeaderData requestHeaderData = new RequestHeaderData(mockComponentTraceHeaderData);
 
         Clock clock = (Clock) ReflectionTestUtils.getField(requestHeaderData, "clock");
 
@@ -263,30 +263,10 @@ public class RequestHeaderDataTest {
     }
 
     @Test
-    public void preHandle_noComponentTraceHeader_create() {
-        when(mockHttpServletRequest.getHeader("x-component-trace")).thenReturn(null);
+    public void preHandle_always_initialiseComponentTraceHeader() {
+        given_requestDataPrehandleCalled();
 
-        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
-
-        assertThat(requestData.componentTrace()).isEqualTo("pttg-ip-hmrc");
-    }
-
-    @Test
-    public void preHandle_componentTraceHeader_append() {
-        when(mockHttpServletRequest.getHeader("x-component-trace")).thenReturn("pttg-ip-api");
-
-        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
-
-        assertThat(requestData.componentTrace()).isEqualTo("pttg-ip-api,pttg-ip-hmrc");
-    }
-
-    @Test
-    public void preHandle_componentTraceHeaderMultipleComponents_append() {
-        when(mockHttpServletRequest.getHeader("x-component-trace")).thenReturn("pttg-ip-api,pttg-ip-audit");
-
-        requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
-
-        assertThat(requestData.componentTrace()).isEqualTo("pttg-ip-api,pttg-ip-audit,pttg-ip-hmrc");
+        then(mockComponentTraceHeaderData).should().initialiseComponentTrace(mockHttpServletRequest);
     }
 
     private void given_requestDataPrehandleCalled() {
