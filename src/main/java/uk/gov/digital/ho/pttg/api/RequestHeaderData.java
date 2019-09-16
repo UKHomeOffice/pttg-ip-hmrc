@@ -23,6 +23,7 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
+@SuppressWarnings("checkstyle:methodcount") // There's no clear way to remedy this.
 public class RequestHeaderData implements HandlerInterceptor {
 
     private static final String REQUEST_START_TIMESTAMP = "request-timestamp";
