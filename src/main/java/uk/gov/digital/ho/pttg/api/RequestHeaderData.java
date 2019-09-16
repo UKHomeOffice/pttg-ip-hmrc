@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -236,5 +237,9 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     public String componentTrace() {
         return MDC.get(COMPONENT_TRACE_HEADER);
+    }
+
+    public void addComponentTraceHeader(HttpHeaders headers) {
+        headers.add(COMPONENT_TRACE_HEADER, componentTrace());
     }
 }
