@@ -6,12 +6,11 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.COMPONENT_NAME;
-
 @Component
 public class ComponentTraceHeaderData {
 
     static final String COMPONENT_TRACE_HEADER = "x-component-trace";
+    private static final String COMPONENT_NAME = "pttg-ip-hmrc";
 
     public void initialiseComponentTrace(HttpServletRequest request) {
         String initialComponentTraceHeader = request.getHeader(COMPONENT_TRACE_HEADER);

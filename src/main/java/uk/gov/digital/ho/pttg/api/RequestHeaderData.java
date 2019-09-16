@@ -39,7 +39,6 @@ public class RequestHeaderData implements HandlerInterceptor {
     static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
     public static final String SMOKE_TESTS_USER_ID = "smoke-tests";
-    static final String COMPONENT_NAME = "pttg-ip-hmrc";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
