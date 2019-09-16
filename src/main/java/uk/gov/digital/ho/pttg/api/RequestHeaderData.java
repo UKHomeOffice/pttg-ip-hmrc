@@ -35,10 +35,12 @@ public class RequestHeaderData implements HandlerInterceptor {
     public static final String SESSION_ID_HEADER = "x-session-id";
     public static final String CORRELATION_ID_HEADER = "x-correlation-id";
     public static final String USER_ID_HEADER = "x-auth-userid";
+    private static final String COMPONENT_TRACE_HEADER = "x-component-trace";
 
     static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
     public static final String SMOKE_TESTS_USER_ID = "smoke-tests";
+    private static final String COMPONENT_NAME = "pttg-ip-hmrc";
 
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
@@ -65,6 +67,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseCorrelationId(request);
         initialiseUserName(request);
         initialiseMaxDuration(request);
+        initialiseComponentTrace(request);
 
         inititaliseRequestStart();
         initialiseThreadCount();
@@ -147,6 +150,13 @@ public class RequestHeaderData implements HandlerInterceptor {
         MDC.put(REQUEST_START_TIMESTAMP, Long.toString(timestamp()));
     }
 
+    private void initialiseComponentTrace(HttpServletRequest request) {
+        String initialComponentTraceHeader = request.getHeader(COMPONENT_TRACE_HEADER);
+        String newComponentTraceHeader = initialComponentTraceHeader == null ? COMPONENT_NAME : initialComponentTraceHeader + "," + COMPONENT_NAME;
+        MDC.put(COMPONENT_TRACE_HEADER, newComponentTraceHeader);
+
+    }
+
     long calculateRequestDuration() {
         return timestamp() - requestStartTimestamp();
     }
@@ -203,7 +213,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         return Integer.parseInt(MDC.get(MAX_DURATION));
     }
 
-    public long responseRequiredBy() {
+    long responseRequiredBy() {
         return requestStartTimestamp() + serviceMaxDuration();
     }
 
@@ -222,5 +232,9 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     boolean isASmokeTest() {
         return userId().equals(SMOKE_TESTS_USER_ID);
+    }
+
+    public String componentTrace() {
+        return MDC.get(COMPONENT_TRACE_HEADER);
     }
 }
