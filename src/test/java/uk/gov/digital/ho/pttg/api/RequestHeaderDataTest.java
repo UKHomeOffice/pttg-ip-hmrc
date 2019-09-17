@@ -43,7 +43,6 @@ public class RequestHeaderDataTest {
     @Mock private HttpServletRequest mockHttpServletRequest;
     @Mock private HttpServletResponse mockHttpServletResponse;
     @Mock private Object mockHandler;
-    @Mock private ComponentTraceHeaderData mockComponentTraceHeaderData;
     @Mock private Appender<ILoggingEvent> mockAppender;
 
     private RequestHeaderData requestData;
@@ -51,7 +50,7 @@ public class RequestHeaderDataTest {
     @Before
     public void setup() {
         Clock testClock =  Clock.fixed(Instant.ofEpochMilli(2222), ZoneId.of("Z"));
-        requestData = new RequestHeaderData(testClock, mockComponentTraceHeaderData);
+        requestData = new RequestHeaderData(testClock);
         ReflectionTestUtils.setField(requestData, "hmrcAccessBasicAuth", "user:password");
 
         mockAppender.setName(LOG_TEST_APPENDER);
@@ -71,7 +70,7 @@ public class RequestHeaderDataTest {
     public void shouldUseSystemClockByDefault() {
         Clock systemClock = Clock.systemUTC();
 
-        RequestHeaderData requestHeaderData = new RequestHeaderData(mockComponentTraceHeaderData);
+        RequestHeaderData requestHeaderData = new RequestHeaderData();
 
         Clock clock = (Clock) ReflectionTestUtils.getField(requestHeaderData, "clock");
 
@@ -260,13 +259,6 @@ public class RequestHeaderDataTest {
         given_requestDataPrehandleCalled();
 
         assertThat(requestData.isASmokeTest()).isFalse();
-    }
-
-    @Test
-    public void preHandle_always_initialiseComponentTraceHeader() {
-        given_requestDataPrehandleCalled();
-
-        then(mockComponentTraceHeaderData).should().initialiseComponentTrace(mockHttpServletRequest);
     }
 
     private void given_requestDataPrehandleCalled() {

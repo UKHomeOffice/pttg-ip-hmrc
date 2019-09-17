@@ -178,12 +178,18 @@ public class SpringConfiguration implements WebMvcConfigurer {
 
     @Bean
     public RequestHeaderData createRequestData() {
-        return new RequestHeaderData(new ComponentTraceHeaderData());
+        return new RequestHeaderData();
+    }
+
+    @Bean
+    public ComponentTraceHeaderData createComponentTraceHeaderData() {
+        return new ComponentTraceHeaderData();
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(createRequestData());
+        registry.addInterceptor(createComponentTraceHeaderData());
     }
 
     @Bean

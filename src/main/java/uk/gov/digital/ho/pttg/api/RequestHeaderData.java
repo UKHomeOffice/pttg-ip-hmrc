@@ -47,16 +47,13 @@ public class RequestHeaderData implements HandlerInterceptor {
     @Value("${hmrc.api.version}") private String hmrcApiVersion;
     @Value("${service.max.duration:60000}") private int defaultMaxDuration;
     private Clock clock;
-    private ComponentTraceHeaderData componentTraceHeaderData;
 
-
-    public RequestHeaderData(ComponentTraceHeaderData componentTraceHeaderData) {
-        this(Clock.systemUTC(), componentTraceHeaderData);
+    public RequestHeaderData() {
+        this(Clock.systemUTC());
     }
 
-    public RequestHeaderData(Clock clock, ComponentTraceHeaderData componentTraceHeaderData) {
+    public RequestHeaderData(Clock clock) {
         this.clock = clock;
-        this.componentTraceHeaderData = componentTraceHeaderData;
     }
 
     @Override
@@ -68,7 +65,6 @@ public class RequestHeaderData implements HandlerInterceptor {
         initialiseCorrelationId(request);
         initialiseUserName(request);
         initialiseMaxDuration(request);
-        initialiseComponentTrace(request);
 
         inititaliseRequestStart();
         initialiseThreadCount();
@@ -149,10 +145,6 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     private void inititaliseRequestStart() {
         MDC.put(REQUEST_START_TIMESTAMP, Long.toString(timestamp()));
-    }
-
-    private void initialiseComponentTrace(HttpServletRequest request) {
-        componentTraceHeaderData.initialiseComponentTrace(request);
     }
 
     long calculateRequestDuration() {

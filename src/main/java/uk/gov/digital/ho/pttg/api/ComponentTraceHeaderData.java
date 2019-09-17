@@ -2,20 +2,22 @@ package uk.gov.digital.ho.pttg.api;
 
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@Component
-public class ComponentTraceHeaderData {
+public class ComponentTraceHeaderData implements HandlerInterceptor {
 
     static final String COMPONENT_TRACE_HEADER = "x-component-trace";
     private static final String COMPONENT_NAME = "pttg-ip-hmrc";
 
-    public void initialiseComponentTrace(HttpServletRequest request) {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String initialComponentTraceHeader = request.getHeader(COMPONENT_TRACE_HEADER);
         String newComponentTraceHeader = initialComponentTraceHeader == null ? COMPONENT_NAME : initialComponentTraceHeader + "," + COMPONENT_NAME;
         MDC.put(COMPONENT_TRACE_HEADER, newComponentTraceHeader);
+        return true;
     }
 
     public String componentTrace() {

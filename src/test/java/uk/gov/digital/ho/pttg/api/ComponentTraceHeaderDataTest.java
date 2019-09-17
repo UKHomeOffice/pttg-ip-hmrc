@@ -32,28 +32,28 @@ public class ComponentTraceHeaderDataTest {
     }
 
     @Test
-    public void initialiseComponentTrace_noComponentTraceHeader_create() {
+    public void preHandle_noComponentTraceHeader_create() {
         when(mockHttpServletRequest.getHeader("x-component-trace")).thenReturn(null);
 
-        componentTraceHeaderData.initialiseComponentTrace(mockHttpServletRequest);
+        componentTraceHeaderData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
         assertThat(componentTraceHeaderData.componentTrace()).isEqualTo("pttg-ip-hmrc");
     }
 
     @Test
-    public void initialiseComponentTrace_componentTraceHeader_append() {
+    public void preHandle_componentTraceHeader_append() {
         when(mockHttpServletRequest.getHeader("x-component-trace")).thenReturn("pttg-ip-api");
 
-        componentTraceHeaderData.initialiseComponentTrace(mockHttpServletRequest);
+        componentTraceHeaderData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
         assertThat(componentTraceHeaderData.componentTrace()).isEqualTo("pttg-ip-api,pttg-ip-hmrc");
     }
 
     @Test
-    public void initialiseComponentTrace_componentTraceHeaderMultipleComponents_append() {
+    public void preHandle_componentTraceHeaderMultipleComponents_append() {
         when(mockHttpServletRequest.getHeader("x-component-trace")).thenReturn("pttg-ip-api,pttg-ip-audit");
 
-        componentTraceHeaderData.initialiseComponentTrace(mockHttpServletRequest);
+        componentTraceHeaderData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
 
         assertThat(componentTraceHeaderData.componentTrace()).isEqualTo("pttg-ip-api,pttg-ip-audit,pttg-ip-hmrc");
     }
