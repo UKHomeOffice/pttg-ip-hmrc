@@ -60,8 +60,8 @@ public class AuditClientTest {
     @Before
     public void setup() {
         final Clock clock = Clock.fixed(Instant.now(), ZoneId.of("Europe/London"));
-        client = new AuditClient(clock, mockRestTemplate, mockRequestHeaderData, mockComponentTraceHeaderData, "endpoint", mockMapper,
-                                 MAX_RETRY_ATTEMPTS, RETRY_DELAY);
+        client = new AuditClient(clock, mockRestTemplate, mockRequestHeaderData, mockComponentTraceHeaderData,
+                                 "endpoint", mockMapper, MAX_RETRY_ATTEMPTS, RETRY_DELAY);
 
         mockAppender.setName(LOG_TEST_APPENDER);
         Logger logger = (Logger) LoggerFactory.getLogger(AuditClient.class);

@@ -43,7 +43,8 @@ public class AuditClient {
     public AuditClient(Clock clock,
                        @Qualifier("auditRestTemplate") RestTemplate restTemplate,
                        RequestHeaderData requestHeaderData,
-                       ComponentTraceHeaderData componentTraceHeaderData, @Value("${pttg.audit.endpoint}") String auditEndpoint,
+                       ComponentTraceHeaderData componentTraceHeaderData,
+                       @Value("${pttg.audit.endpoint}") String auditEndpoint,
                        ObjectMapper mapper,
                        @Value("#{${audit.service.retry.attempts}}") int maxCallAttempts,
                        @Value("#{${audit.service.retry.delay}}") int retryDelay) {
