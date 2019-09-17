@@ -35,11 +35,12 @@ public class ComponentTraceHeaderData implements HandlerInterceptor {
     }
 
     public void updateComponentTrace(HttpStatusCodeException httpException) {
-        if (httpException.getResponseHeaders() == null) {
+        HttpHeaders headers = httpException.getResponseHeaders();
+        if (headers == null) {
             return;
         }
 
-        List<String> componentTraceHeaders = httpException.getResponseHeaders().get(COMPONENT_TRACE_HEADER);
+        List<String> componentTraceHeaders = headers.get(COMPONENT_TRACE_HEADER);
         setComponentTrace(componentTraceHeaders);
     }
 
