@@ -17,12 +17,12 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 
 import java.time.Clock;
@@ -33,6 +33,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -46,6 +47,7 @@ public class AuditClientTest {
     private static final String LOG_TEST_APPENDER = "tester";
 
     @Mock private RequestHeaderData mockRequestHeaderData;
+    @Mock private ComponentTraceHeaderData mockComponentTraceHeaderData;
     @Mock private RestTemplate mockRestTemplate;
     @Mock private AuditIndividualData mockAuditableData;
     @Mock private Appender<ILoggingEvent> mockAppender;
@@ -58,8 +60,8 @@ public class AuditClientTest {
     @Before
     public void setup() {
         final Clock clock = Clock.fixed(Instant.now(), ZoneId.of("Europe/London"));
-        client = new AuditClient(clock, mockRestTemplate, mockRequestHeaderData, "endpoint", mockMapper,
-                MAX_RETRY_ATTEMPTS, RETRY_DELAY);
+        client = new AuditClient(clock, mockRestTemplate, mockRequestHeaderData, mockComponentTraceHeaderData,
+                                 "endpoint", mockMapper, MAX_RETRY_ATTEMPTS, RETRY_DELAY);
 
         mockAppender.setName(LOG_TEST_APPENDER);
         Logger logger = (Logger) LoggerFactory.getLogger(AuditClient.class);
@@ -161,4 +163,36 @@ public class AuditClientTest {
         assertThat(headers.get(RequestHeaderData.USER_ID_HEADER).get(0)).isEqualTo("some user id");
     }
 
+    @Test
+    public void add_successResponse_updateComponentTrace() {
+        ResponseEntity<Void> someResponse = new ResponseEntity<>(HttpStatus.OK);
+        given(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
+                .willReturn(someResponse);
+
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+
+        then(mockComponentTraceHeaderData).should().updateComponentTrace(someResponse);
+    }
+
+    @Test
+    public void add_httpException_updateComponentTrace() {
+        HttpStatusCodeException someHttpException = new HttpClientErrorException(HttpStatus.BAD_REQUEST);
+        given(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
+                .willThrow(someHttpException);
+
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+
+        then(mockComponentTraceHeaderData).should().updateComponentTrace(someHttpException);
+    }
+
+    @Test
+    public void add_otherException_doNotUpdateComponentTrace() {
+        Exception anyException = new NullPointerException();
+        given(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
+                .willThrow(anyException);
+
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+
+        then(mockComponentTraceHeaderData).shouldHaveZeroInteractions();
+    }
 }
