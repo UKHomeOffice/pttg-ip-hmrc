@@ -7,9 +7,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 
@@ -31,6 +35,7 @@ public class AuditClient {
     private final RestTemplate restTemplate;
     private final String auditEndpoint;
     private final RequestHeaderData requestHeaderData;
+    private final ComponentTraceHeaderData componentTraceHeaderData;
     private final ObjectMapper mapper;
     private final RetryTemplate retryTemplate;
     private final int maxCallAttempts;
@@ -38,13 +43,14 @@ public class AuditClient {
     public AuditClient(Clock clock,
                        @Qualifier("auditRestTemplate") RestTemplate restTemplate,
                        RequestHeaderData requestHeaderData,
-                       @Value("${pttg.audit.endpoint}") String auditEndpoint,
+                       ComponentTraceHeaderData componentTraceHeaderData, @Value("${pttg.audit.endpoint}") String auditEndpoint,
                        ObjectMapper mapper,
                        @Value("#{${audit.service.retry.attempts}}") int maxCallAttempts,
                        @Value("#{${audit.service.retry.delay}}") int retryDelay) {
         this.clock = clock;
         this.restTemplate = restTemplate;
         this.requestHeaderData = requestHeaderData;
+        this.componentTraceHeaderData = componentTraceHeaderData;
         this.auditEndpoint = auditEndpoint;
         this.mapper = mapper;
         this.maxCallAttempts = maxCallAttempts;
@@ -73,10 +79,13 @@ public class AuditClient {
                 if (context.getRetryCount() > 0) {
                     log.info("Retrying audit attempt {} of {}", context.getRetryCount(), maxCallAttempts - 1, value(EVENT, auditableData.getEventType()));
                 }
-                return restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
+                ResponseEntity<Void> response = restTemplate.exchange(auditEndpoint, POST, toEntity(auditableData), Void.class);
+                componentTraceHeaderData.updateComponentTrace(response);
+                return response;
             });
         } catch (Exception e) {
             log.error("Failed to audit {} after retries", auditableData.getEventType(), value(EVENT, HMRC_AUDIT_FAILURE));
+            updateComponentTrace(e);
         }
     }
 
@@ -107,5 +116,11 @@ public class AuditClient {
         headers.add(RequestHeaderData.USER_ID_HEADER, requestHeaderData.userId());
 
         return headers;
+    }
+
+    private void updateComponentTrace(Exception e) {
+        if (e instanceof HttpStatusCodeException) {
+            componentTraceHeaderData.updateComponentTrace((HttpStatusCodeException) e);
+        }
     }
 }
