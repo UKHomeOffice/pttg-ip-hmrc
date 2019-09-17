@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
@@ -25,10 +26,12 @@ public class HmrcCallWrapper {
 
     private RestTemplate restTemplate;
     private TraversonFollower traversonFollower;
+    private ComponentTraceHeaderData componentTraceHeaderData;
 
-    public HmrcCallWrapper(@Qualifier("hmrcApiRestTemplate") RestTemplate restTemplate, TraversonFollower traversonFollower) {
+    public HmrcCallWrapper(@Qualifier("hmrcApiRestTemplate") RestTemplate restTemplate, TraversonFollower traversonFollower, ComponentTraceHeaderData componentTraceHeaderData) {
         this.restTemplate = restTemplate;
         this.traversonFollower = traversonFollower;
+        this.componentTraceHeaderData = componentTraceHeaderData;
     }
 
     @AbortIfBeyondMaxResponseDuration

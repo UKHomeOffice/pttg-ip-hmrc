@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcUnauthorisedException;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.ProxyForbiddenException;
@@ -31,6 +32,11 @@ import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverR
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcCallWrapperTest {
 
+    private static final HttpMethod ANY_HTTP_METHOD = POST;
+    private static final HttpEntity<String> ANY_ENTITY = new HttpEntity<>("some-body");
+    private static final ParameterizedTypeReference<Resource<String>> ANY_REFERENCE = new ParameterizedTypeReference<Resource<String>>() {};
+    private static final URI ANY_URI = URI.create("any-uri");
+
     @InjectMocks
     private HmrcCallWrapper hmrcCallWrapper;
 
@@ -38,6 +44,8 @@ public class HmrcCallWrapperTest {
     private RestTemplate mockRestTemplate;
     @Mock
     private TraversonFollower mockTraversonFollower;
+    @Mock
+    private ComponentTraceHeaderData mockComponentTraceHeaderData;
 
     @Test
     public void shouldThrowCustomExceptionForHttpForbidden() {
@@ -45,8 +53,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(FORBIDDEN));
 
         assertThatExceptionOfType(ProxyForbiddenException.class)
-                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE));
     }
 
     @Test
@@ -55,8 +62,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(UNAUTHORIZED));
 
         assertThatExceptionOfType(HmrcUnauthorisedException.class)
-                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE));
     }
 
     @Test
@@ -67,8 +73,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
         assertThatExceptionOfType(HmrcNotFoundException.class)
-                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE));
     }
 
     @Test
@@ -77,8 +82,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(HttpStatus.TOO_MANY_REQUESTS));
 
         assertThatExceptionOfType(HmrcOverRateLimitException.class)
-                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE));
     }
 
     @Test
@@ -87,8 +91,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new NullPointerException());
 
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> hmrcCallWrapper.exchange(new URI("some-uri"), POST, new HttpEntity("some-body"), new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE));
     }
 
     @Test
@@ -97,8 +100,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(FORBIDDEN));
 
         assertThatExceptionOfType(ProxyForbiddenException.class)
-                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", ANY_REFERENCE));
     }
 
     @Test
@@ -107,8 +109,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(UNAUTHORIZED));
 
         assertThatExceptionOfType(HmrcUnauthorisedException.class)
-                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", ANY_REFERENCE));
     }
 
     @Test
@@ -118,8 +119,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(FORBIDDEN, "", responseBody, UTF_8));
 
         assertThatExceptionOfType(HmrcNotFoundException.class)
-                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", ANY_REFERENCE));
     }
 
     @Test
@@ -128,8 +128,7 @@ public class HmrcCallWrapperTest {
                 .willThrow(new HttpClientErrorException(TOO_MANY_REQUESTS));
 
         assertThatExceptionOfType(HmrcOverRateLimitException.class)
-                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", ANY_REFERENCE));
     }
 
     @Test
@@ -138,8 +137,6 @@ public class HmrcCallWrapperTest {
                 .willThrow(new NullPointerException());
 
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", new ParameterizedTypeReference<Resource<String>>() {
-                }));
+                .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", ANY_REFERENCE));
     }
-
 }
