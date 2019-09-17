@@ -596,6 +596,12 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody()).isEqualTo("Received a 403 Forbidden response from proxy");
     }
 
+    @Test
+    public void getHmrcData_anyRequest_componentTraceHeader() {
+        ResponseEntity<String> responseEntity = performHmrcRequest();
+        assertThat(responseEntity.getHeaders().get("x-component-trace")).contains("pttg-ip-hmrc");
+    }
+
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         hmrcApiMockService
                 .expect(requestTo(containsString("/individuals/matching/")))
