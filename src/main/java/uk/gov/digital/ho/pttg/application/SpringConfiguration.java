@@ -24,6 +24,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryProperties;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
@@ -180,9 +181,15 @@ public class SpringConfiguration implements WebMvcConfigurer {
         return new RequestHeaderData();
     }
 
+    @Bean
+    public ComponentTraceHeaderData createComponentTraceHeaderData() {
+        return new ComponentTraceHeaderData();
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(createRequestData());
+        registry.addInterceptor(createComponentTraceHeaderData());
     }
 
     @Bean

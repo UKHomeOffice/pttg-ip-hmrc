@@ -203,7 +203,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         return Integer.parseInt(MDC.get(MAX_DURATION));
     }
 
-    public long responseRequiredBy() {
+    long responseRequiredBy() {
         return requestStartTimestamp() + serviceMaxDuration();
     }
 
