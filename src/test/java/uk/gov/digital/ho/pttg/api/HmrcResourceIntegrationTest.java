@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
@@ -32,6 +33,7 @@ import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -600,6 +602,20 @@ public class HmrcResourceIntegrationTest {
     public void getHmrcData_anyRequest_componentTraceHeader() {
         ResponseEntity<String> responseEntity = performHmrcRequest();
         assertThat(responseEntity.getHeaders().get("x-component-trace")).contains("pttg-ip-hmrc");
+    }
+
+    @Test
+    public void getHmrcData_auditServiceUpdatesTrace_returnedAsHeader() {
+        auditMockService.reset();
+
+        HttpHeaders auditHeadersWithTrace = new HttpHeaders();
+        auditHeadersWithTrace.put("x-component-trace", Arrays.asList("pttg-ip-hmrc", "pttg-ip-audit"));
+        auditMockService.expect(requestTo(containsString("/audit")))
+                        .andExpect(method(POST))
+                        .andRespond(withSuccess().headers(auditHeadersWithTrace));
+        ResponseEntity<String> responseEntity = performHmrcRequest();
+
+        assertThat(responseEntity.getHeaders().get("x-component-trace")).contains("pttg-ip-hmrc,pttg-ip-audit");
     }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {
