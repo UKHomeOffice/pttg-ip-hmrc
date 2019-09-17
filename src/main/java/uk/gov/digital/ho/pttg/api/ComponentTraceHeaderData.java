@@ -20,11 +20,11 @@ public class ComponentTraceHeaderData implements HandlerInterceptor {
         return true;
     }
 
-    public String componentTrace() {
-        return MDC.get(COMPONENT_TRACE_HEADER);
-    }
-
     public void addComponentTraceHeader(HttpHeaders headers) {
         headers.add(COMPONENT_TRACE_HEADER, componentTrace());
+    }
+
+    String componentTrace() {
+        return MDC.get(COMPONENT_TRACE_HEADER);
     }
 }
