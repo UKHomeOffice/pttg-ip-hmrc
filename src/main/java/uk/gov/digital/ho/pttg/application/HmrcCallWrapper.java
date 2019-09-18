@@ -16,6 +16,7 @@ import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.application.util.TraversonFollower;
 
 import java.net.URI;
+import java.util.function.Supplier;
 
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.*;
@@ -36,25 +37,19 @@ public class HmrcCallWrapper {
 
     @AbortIfBeyondMaxResponseDuration
     public <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
-        try {
-            ResponseEntity<Resource<T>> response = restTemplate.exchange(uri, httpMethod, httpEntity, reference);
-            addHmrcToComponentTrace();
-            return response;
-        } catch (HttpServerErrorException e) {
-            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
-            throw e;
-        } catch (HttpClientErrorException e) {
-            addHmrcToComponentTrace();
-            throw handleClientErrorExceptions(e);
-        }
+        return handleExceptions(() -> restTemplate.exchange(uri, httpMethod, httpEntity, reference));
     }
 
     @AbortIfBeyondMaxResponseDuration
     <T> Resource<T> followTraverson(String link, String accessToken, ParameterizedTypeReference<Resource<T>> reference) {
+        return handleExceptions(() -> traversonFollower.followTraverson(link, accessToken, restTemplate, reference));
+    }
+
+    private <T> T handleExceptions(Supplier<T> hmrcRequest) {
         try {
-            Resource<T> resource = traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
+            T result = hmrcRequest.get();
             addHmrcToComponentTrace();
-            return resource;
+            return result;
         } catch (HttpServerErrorException e) {
             log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
             throw e;
