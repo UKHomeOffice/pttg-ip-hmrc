@@ -40,6 +40,8 @@ public class HmrcCallWrapperTest {
     private static final HttpEntity<String> ANY_ENTITY = new HttpEntity<>("some-body");
     private static final ParameterizedTypeReference<Resource<String>> ANY_REFERENCE = new ParameterizedTypeReference<Resource<String>>() {};
     private static final URI ANY_URI = URI.create("any-uri");
+    private static final String ANY_LINK = "any-link";
+    private static final String ANY_ACCESS_TOKEN = "any token";
 
     @InjectMocks
     private HmrcCallWrapper hmrcCallWrapper;
@@ -176,6 +178,44 @@ public class HmrcCallWrapperTest {
         try {
             hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE);
         } catch (HttpClientErrorException e) {
+            // Exception not of interest to this test.
+        }
+
+        then(mockComponentTraceHeaderData).should().appendComponentToTrace("HMRC");
+    }
+
+    @Test
+    public void followTraverson_successResponse_addHmrcToComponentTrace() {
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willReturn(new Resource<>(""));
+
+        hmrcCallWrapper.followTraverson(ANY_LINK, ANY_ACCESS_TOKEN, ANY_REFERENCE);
+
+        then(mockComponentTraceHeaderData).should().appendComponentToTrace("HMRC");
+    }
+
+    @Test
+    public void followTraverson_serverError_doNotAddHmrcToComponentTrace() {
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
+
+        try {
+            hmrcCallWrapper.followTraverson(ANY_LINK, ANY_ACCESS_TOKEN, ANY_REFERENCE);
+        } catch (HttpServerErrorException ignored) {
+            // Exception not of interest to this test.
+        }
+
+        then(mockComponentTraceHeaderData).should(never()).appendComponentToTrace(any());
+    }
+
+    @Test
+    public void followTraverson_clientError_addHmrcToComponentTrace() {
+        given(mockTraversonFollower.followTraverson(anyString(), anyString(), any(RestTemplate.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(NOT_FOUND));
+
+        try {
+            hmrcCallWrapper.followTraverson(ANY_LINK, ANY_ACCESS_TOKEN, ANY_REFERENCE);
+        } catch (HttpClientErrorException ignored) {
             // Exception not of interest to this test.
         }
 

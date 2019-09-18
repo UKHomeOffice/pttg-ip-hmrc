@@ -52,11 +52,14 @@ public class HmrcCallWrapper {
     @AbortIfBeyondMaxResponseDuration
     <T> Resource<T> followTraverson(String link, String accessToken, ParameterizedTypeReference<Resource<T>> reference) {
         try {
-            return traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
+            Resource<T> resource = traversonFollower.followTraverson(link, accessToken, restTemplate, reference);
+            addHmrcToComponentTrace();
+            return resource;
         } catch (HttpServerErrorException e) {
             log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
             throw e;
         } catch (HttpClientErrorException ex) {
+            addHmrcToComponentTrace();
             throw handleClientErrorExceptions(ex);
         }
     }
