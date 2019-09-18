@@ -203,6 +203,15 @@ public class ComponentTraceHeaderDataTest {
         assertThat(componentTraceHeaderData.componentTrace()).isEqualTo(expectedTrace);
     }
 
+    @Test
+    public void appendComponentToTrace_someComponent_append() {
+        MDC.put(COMPONENT_TRACE_HEADER, "pttg-ip-api,pttg-ip-hmrc");
+
+        componentTraceHeaderData.appendComponentToTrace("HMRC");
+
+        assertThat(componentTraceHeaderData.componentTrace()).isEqualTo("pttg-ip-api,pttg-ip-hmrc,HMRC");
+    }
+
     private HttpHeaders componentTraceHeader(String components) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(COMPONENT_TRACE_HEADER, components);
