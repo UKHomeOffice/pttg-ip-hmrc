@@ -44,6 +44,11 @@ public class ComponentTraceHeaderData implements HandlerInterceptor {
         setComponentTrace(componentTraceHeaders);
     }
 
+    public void appendComponentToTrace(String component) {
+        String newTrace = String.format("%s,%s", componentTrace(), component);
+        MDC.put(COMPONENT_TRACE_HEADER, newTrace);
+    }
+
     public void addComponentTraceHeader(HttpHeaders headers) {
         headers.add(COMPONENT_TRACE_HEADER, componentTrace());
     }

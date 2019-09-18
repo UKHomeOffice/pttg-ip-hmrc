@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -601,7 +602,7 @@ public class HmrcResourceIntegrationTest {
     @Test
     public void getHmrcData_anyRequest_componentTraceHeader() {
         ResponseEntity<String> responseEntity = performHmrcRequest();
-        assertThat(responseEntity.getHeaders().get("x-component-trace")).contains("pttg-ip-hmrc");
+        assertThat(getTraceComponents(responseEntity)).contains("pttg-ip-hmrc");
     }
 
     @Test
@@ -615,7 +616,16 @@ public class HmrcResourceIntegrationTest {
                         .andRespond(withSuccess().headers(auditHeadersWithTrace));
         ResponseEntity<String> responseEntity = performHmrcRequest();
 
-        assertThat(responseEntity.getHeaders().get("x-component-trace")).contains("pttg-ip-hmrc,pttg-ip-audit");
+        assertThat(getTraceComponents(responseEntity)).contains("pttg-ip-hmrc", "pttg-ip-audit");
+    }
+
+    @Test
+    public void getHmrcData_hmrcSuccess_includeHmrcInComponentTrace() throws IOException {
+        buildAndExpectSuccessfulTraversal();
+
+        ResponseEntity<String> responseEntity = performHmrcRequest();
+
+        assertThat(getTraceComponents(responseEntity)).contains("HMRC");
     }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {
@@ -723,6 +733,18 @@ public class HmrcResourceIntegrationTest {
         HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
 
         return restTemplate.exchange("/income", POST, requestEntity, String.class);
+    }
+
+    private List<String> getTraceComponents(ResponseEntity<String> responseEntity) {
+        List<String> traceHeaders = responseEntity.getHeaders().get("x-component-trace");
+        assertThat(traceHeaders).withFailMessage("Got no x-component-trace headers")
+                                .isNotNull()
+                                .isNotEmpty();
+
+        assertThat(traceHeaders).withFailMessage("Got multiple x-component-trace-headers")
+                                .hasSize(1);
+
+        return Arrays.asList(traceHeaders.get(0).split(","));
     }
 }
 
