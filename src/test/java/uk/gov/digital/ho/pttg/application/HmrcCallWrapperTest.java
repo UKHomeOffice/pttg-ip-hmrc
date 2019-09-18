@@ -10,7 +10,9 @@ import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.digital.ho.pttg.api.ComponentTraceHeaderData;
 import uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcNotFoundException;
@@ -25,6 +27,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.*;
 import static uk.gov.digital.ho.pttg.application.ApplicationExceptions.HmrcOverRateLimitException;
@@ -138,5 +142,43 @@ public class HmrcCallWrapperTest {
 
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> hmrcCallWrapper.followTraverson("some-link", "some-access-token", ANY_REFERENCE));
+    }
+
+    @Test
+    public void exchange_successResponse_addHmrcToComponentTrace() {
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willReturn(new ResponseEntity<>(OK));
+
+        hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE);
+
+        then(mockComponentTraceHeaderData).should().appendComponentToTrace("HMRC");
+    }
+
+    @Test
+    public void exchange_serverError_doNotAddHmrcToComponentTrace() {
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
+
+        try {
+            hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE);
+        } catch (HttpServerErrorException ignored) {
+            // Exception not of interest to this test.
+        }
+
+        then(mockComponentTraceHeaderData).should(never()).appendComponentToTrace(any());
+    }
+
+    @Test
+    public void exchange_clientError_addHmrcToComponentTrace() {
+        given(mockRestTemplate.exchange(any(URI.class), any(HttpMethod.class), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .willThrow(new HttpClientErrorException(NOT_FOUND));
+
+        try {
+            hmrcCallWrapper.exchange(ANY_URI, ANY_HTTP_METHOD, ANY_ENTITY, ANY_REFERENCE);
+        } catch (HttpClientErrorException e) {
+            // Exception not of interest to this test.
+        }
+
+        then(mockComponentTraceHeaderData).should().appendComponentToTrace("HMRC");
     }
 }

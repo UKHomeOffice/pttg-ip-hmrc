@@ -37,11 +37,14 @@ public class HmrcCallWrapper {
     @AbortIfBeyondMaxResponseDuration
     public <T> ResponseEntity<Resource<T>> exchange(URI uri, HttpMethod httpMethod, HttpEntity httpEntity, ParameterizedTypeReference<Resource<T>> reference) {
         try {
-            return restTemplate.exchange(uri, httpMethod, httpEntity, reference);
+            ResponseEntity<Resource<T>> response = restTemplate.exchange(uri, httpMethod, httpEntity, reference);
+            addHmrcToComponentTrace();
+            return response;
         } catch (HttpServerErrorException e) {
             log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
             throw e;
         } catch (HttpClientErrorException e) {
+            addHmrcToComponentTrace();
             throw handleClientErrorExceptions(e);
         }
     }
@@ -86,4 +89,7 @@ public class HmrcCallWrapper {
         return exception.getResponseBodyAsString().contains("MATCHING_FAILED");
     }
 
+    private void addHmrcToComponentTrace() {
+        componentTraceHeaderData.appendComponentToTrace("HMRC");
+    }
 }
