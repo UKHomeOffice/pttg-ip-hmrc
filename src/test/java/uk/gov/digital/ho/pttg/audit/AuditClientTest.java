@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -151,6 +152,8 @@ public class AuditClientTest {
         when(mockRequestHeaderData.sessionId()).thenReturn("some session id");
         when(mockRequestHeaderData.correlationId()).thenReturn("some correlation id");
         when(mockRequestHeaderData.userId()).thenReturn("some user id");
+        String someComponentTrace = "pttg-ip-api,pttg-ip-hmrc";
+        when(mockComponentTraceHeaderData.componentTrace()).thenReturn(someComponentTrace);
         client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
 
         verify(mockRestTemplate).exchange(eq("endpoint"), eq(POST), captorHttpEntity.capture(), eq(Void.class));
@@ -161,6 +164,7 @@ public class AuditClientTest {
         assertThat(headers.get(RequestHeaderData.SESSION_ID_HEADER).get(0)).isEqualTo("some session id");
         assertThat(headers.get(RequestHeaderData.CORRELATION_ID_HEADER).get(0)).isEqualTo("some correlation id");
         assertThat(headers.get(RequestHeaderData.USER_ID_HEADER).get(0)).isEqualTo("some user id");
+        assertThat(headers.get(ComponentTraceHeaderData.COMPONENT_TRACE_HEADER).get(0)).isEqualTo(someComponentTrace);
     }
 
     @Test
@@ -193,6 +197,7 @@ public class AuditClientTest {
 
         client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
 
-        then(mockComponentTraceHeaderData).shouldHaveZeroInteractions();
+        then(mockComponentTraceHeaderData).should(never()).updateComponentTrace(any(ResponseEntity.class));
+        then(mockComponentTraceHeaderData).should(never()).updateComponentTrace(any(HttpStatusCodeException.class));
     }
 }
