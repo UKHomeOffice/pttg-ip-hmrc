@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class ComponentTraceHeaderData implements HandlerInterceptor {
 
-    static final String COMPONENT_TRACE_HEADER = "x-component-trace";
+    public static final String COMPONENT_TRACE_HEADER = "x-component-trace";
     private static final String COMPONENT_NAME = "pttg-ip-hmrc";
 
     @Override
@@ -53,7 +53,7 @@ public class ComponentTraceHeaderData implements HandlerInterceptor {
         headers.add(COMPONENT_TRACE_HEADER, componentTrace());
     }
 
-    String componentTrace() {
+    public String componentTrace() {
         return MDC.get(COMPONENT_TRACE_HEADER);
     }
 

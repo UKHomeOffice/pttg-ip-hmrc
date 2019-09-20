@@ -115,6 +115,7 @@ public class AuditClient {
         headers.add(RequestHeaderData.SESSION_ID_HEADER, requestHeaderData.sessionId());
         headers.add(RequestHeaderData.CORRELATION_ID_HEADER, requestHeaderData.correlationId());
         headers.add(RequestHeaderData.USER_ID_HEADER, requestHeaderData.userId());
+        headers.add(ComponentTraceHeaderData.COMPONENT_TRACE_HEADER, componentTraceHeaderData.componentTrace());
 
         return headers;
     }

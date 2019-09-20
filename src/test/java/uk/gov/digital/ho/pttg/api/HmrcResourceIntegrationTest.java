@@ -46,8 +46,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.MockRestServiceServer.MockRestServiceServerBuilder;
 import static org.springframework.test.web.client.MockRestServiceServer.bindTo;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 @RunWith(SpringRunner.class)
@@ -613,10 +612,12 @@ public class HmrcResourceIntegrationTest {
         auditHeadersWithTrace.put("x-component-trace", Arrays.asList("pttg-ip-hmrc", "pttg-ip-audit"));
         auditMockService.expect(requestTo(containsString("/audit")))
                         .andExpect(method(POST))
+                        .andExpect(header("x-component-trace", containsString("pttg-ip-hmrc")))
                         .andRespond(withSuccess().headers(auditHeadersWithTrace));
         ResponseEntity<String> responseEntity = performHmrcRequest();
 
         assertThat(getTraceComponents(responseEntity)).contains("pttg-ip-hmrc", "pttg-ip-audit");
+        auditMockService.verify();
     }
 
     @Test
@@ -626,6 +627,7 @@ public class HmrcResourceIntegrationTest {
         ResponseEntity<String> responseEntity = performHmrcRequest();
 
         assertThat(getTraceComponents(responseEntity)).contains("HMRC");
+        hmrcApiMockService.verify();
     }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {
