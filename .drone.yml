@@ -91,6 +91,17 @@ pipeline:
     when:
       event: tag
 
+  trigger-e2e-tests:
+    image: quay.io/ukhomeofficedigital/drone-trigger:latest
+    secrets:
+      - DRONE_TOKEN
+    drone_server: https://drone.acp.homeoffice.gov.uk
+    repo: UKHomeOffice/pttg-ip-e2e-tests
+    branch: master
+    when:
+      branch: [master]
+      event: push
+
   clone-kube-project:
     image: plugins/git
     commands:
