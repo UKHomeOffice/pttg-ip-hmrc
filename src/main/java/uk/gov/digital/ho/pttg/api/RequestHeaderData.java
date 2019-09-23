@@ -39,6 +39,8 @@ public class RequestHeaderData implements HandlerInterceptor {
 
     static final long EXPECTED_REMAINING_TIME_TO_COMPLETE = 0;
 
+    public static final String SMOKE_TESTS_USER_ID = "smoke-tests";
+
     @Value("${auditing.deployment.name}") private String deploymentName;
     @Value("${auditing.deployment.namespace}") private String deploymentNamespace;
     @Value("${hmrc.access.service.auth}") private String hmrcAccessBasicAuth;
@@ -207,6 +209,10 @@ public class RequestHeaderData implements HandlerInterceptor {
         return Integer.parseInt(MDC.get(MAX_DURATION));
     }
 
+    long responseRequiredBy() {
+        return requestStartTimestamp() + serviceMaxDuration();
+    }
+
     public Integer retryCount() {
         String retryCountString = MDC.get(RETRY_COUNT_HEADER);
         int retryCount = -1;
@@ -216,10 +222,6 @@ public class RequestHeaderData implements HandlerInterceptor {
             // noop
         }
         return retryCount;
-    }
-
-    public long responseRequiredBy() {
-        return requestStartTimestamp() + serviceMaxDuration();
     }
 
     public void abortIfTakingTooLong() {
@@ -233,5 +235,9 @@ public class RequestHeaderData implements HandlerInterceptor {
             log.info("Insufficient time to complete the Response - {} ms remaining and expected duration is {}", remainingTime, minTimeToRespond, value(EVENT, HMRC_INSUFFICIENT_TIME_TO_COMPLETE));
             throw new InsufficientTimeException("Insufficient time to complete the Response");
         }
+    }
+
+    boolean isASmokeTest() {
+        return userId().equals(SMOKE_TESTS_USER_ID);
     }
 }

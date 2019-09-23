@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
@@ -32,6 +33,8 @@ import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,8 +46,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.MockRestServiceServer.MockRestServiceServerBuilder;
 import static org.springframework.test.web.client.MockRestServiceServer.bindTo;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 @RunWith(SpringRunner.class)
@@ -596,6 +598,38 @@ public class HmrcResourceIntegrationTest {
         assertThat(responseEntity.getBody()).isEqualTo("Received a 403 Forbidden response from proxy");
     }
 
+    @Test
+    public void getHmrcData_anyRequest_componentTraceHeader() {
+        ResponseEntity<String> responseEntity = performHmrcRequest();
+        assertThat(getTraceComponents(responseEntity)).contains("pttg-ip-hmrc");
+    }
+
+    @Test
+    public void getHmrcData_auditServiceUpdatesTrace_returnedAsHeader() {
+        auditMockService.reset();
+
+        HttpHeaders auditHeadersWithTrace = new HttpHeaders();
+        auditHeadersWithTrace.put("x-component-trace", Arrays.asList("pttg-ip-hmrc", "pttg-ip-audit"));
+        auditMockService.expect(requestTo(containsString("/audit")))
+                        .andExpect(method(POST))
+                        .andExpect(header("x-component-trace", containsString("pttg-ip-hmrc")))
+                        .andRespond(withSuccess().headers(auditHeadersWithTrace));
+        ResponseEntity<String> responseEntity = performHmrcRequest();
+
+        assertThat(getTraceComponents(responseEntity)).contains("pttg-ip-hmrc", "pttg-ip-audit");
+        auditMockService.verify();
+    }
+
+    @Test
+    public void getHmrcData_hmrcSuccess_includeHmrcInComponentTrace() throws IOException {
+        buildAndExpectSuccessfulTraversal();
+
+        ResponseEntity<String> responseEntity = performHmrcRequest();
+
+        assertThat(getTraceComponents(responseEntity)).contains("HMRC");
+        hmrcApiMockService.verify();
+    }
+
     private void buildAndExpectSuccessfulTraversal() throws IOException {
         hmrcApiMockService
                 .expect(requestTo(containsString("/individuals/matching/")))
@@ -701,6 +735,18 @@ public class HmrcResourceIntegrationTest {
         HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
 
         return restTemplate.exchange("/income", POST, requestEntity, String.class);
+    }
+
+    private List<String> getTraceComponents(ResponseEntity<String> responseEntity) {
+        List<String> traceHeaders = responseEntity.getHeaders().get("x-component-trace");
+        assertThat(traceHeaders).withFailMessage("Got no x-component-trace headers")
+                                .isNotNull()
+                                .isNotEmpty();
+
+        assertThat(traceHeaders).withFailMessage("Got multiple x-component-trace-headers")
+                                .hasSize(1);
+
+        return Arrays.asList(traceHeaders.get(0).split(","));
     }
 }
 

@@ -3,7 +3,6 @@ package bdd.steps;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -27,6 +26,7 @@ import net.logstash.logback.marker.ObjectAppendingMarker;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.core.SessionMap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.json.JSONObject;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
@@ -49,10 +49,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -67,8 +64,7 @@ import static org.apache.http.HttpStatus.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_SUCCESS_RECEIVED;
-import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_MATCHING_UNSUCCESSFUL;
+import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 import static uk.gov.digital.ho.pttg.application.namematching.NameType.*;
 
 @Slf4j
@@ -129,9 +125,13 @@ public class NameMatchingSteps {
         mockAppender = Mockito.mock(Appender.class);
         mockAppender.setName(LOG_TEST_APPENDER);
 
-        Logger logger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
-        logger.setLevel(Level.INFO);
-        logger.addAppender(mockAppender);
+        Logger hmrcHateoasClientLogger = (Logger) LoggerFactory.getLogger(HmrcHateoasClient.class);
+        hmrcHateoasClientLogger.setLevel(Level.INFO);
+        hmrcHateoasClientLogger.addAppender(mockAppender);
+
+        Logger nameMatchingPerformanceLogger = (Logger) LoggerFactory.getLogger(NameMatchingPerformance.class);
+        nameMatchingPerformanceLogger.setLevel(Level.DEBUG);
+        nameMatchingPerformanceLogger.addAppender(mockAppender);
     }
 
     @After
@@ -576,12 +576,8 @@ public class NameMatchingSteps {
     @Then("^meta-data was logged following a successful match$")
     public void metaDataWasLoggedFollowingASuccessfulMatch() {
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent);
-        }));
+        verify(mockAppender).doAppend(argThat(this::matchAchieved));
+        verify(mockAppender).doAppend(argThat(this::metaDataWasLogged));
     }
 
     @Then("^the unsuccessful match meta-data contains the following input name information$")
@@ -589,13 +585,10 @@ public class NameMatchingSteps {
 
         List<MetaDataInputName> names = dataTable.asList(MetaDataInputName.class);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        verify(mockAppender).doAppend(argThat(this::matchNotAchieved));
 
-            return matchNotAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           metaDataIsSolelyInputNames(names, loggingEvent);
-        }));
+        verify(mockAppender).doAppend(argThat(loggingEvent -> metaDataWasLogged(loggingEvent) &&
+                metaDataIsSolelyInputNames(names, loggingEvent)));
     }
 
     @Then("^the meta-data contains the following input name information$")
@@ -603,32 +596,26 @@ public class NameMatchingSteps {
 
         List<MetaDataInputName> names = dataTable.asList(MetaDataInputName.class);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           metaDataHasExpectedNumberOfInputNames(names, loggingEvent) &&
-                           metaDataHasInputNames(names, loggingEvent);
-        }));
+        verify(mockAppender).doAppend(argThat(this::matchAchieved));
+        verify(mockAppender).doAppend(argThat(loggingEvent -> metaDataWasLogged(loggingEvent) &&
+                metaDataHasExpectedNumberOfInputNames(names, loggingEvent) &&
+                metaDataHasInputNames(names, loggingEvent)));
     }
 
-    private boolean matchAchieved(LoggingEvent loggingEvent) {
-        return loggingEvent.getArgumentArray().length == 4 &&
-                       loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_SUCCESS_RECEIVED, "any"));
+    private boolean matchAchieved(ILoggingEvent loggingEvent) {
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_SUCCESS_RECEIVED));
     }
 
-    private boolean matchNotAchieved(LoggingEvent loggingEvent) {
-        return loggingEvent.getArgumentArray().length == 4 &&
-                       loggingEvent.getArgumentArray()[3].equals(new ObjectAppendingMarker("event_id", HMRC_MATCHING_UNSUCCESSFUL, "any"));
+    private boolean matchNotAchieved(ILoggingEvent loggingEvent) {
+        return ArrayUtils.contains(loggingEvent.getArgumentArray(), new ObjectAppendingMarker(EVENT, HMRC_MATCHING_UNSUCCESSFUL));
     }
 
-    private boolean metaDataWasLogged(LoggingEvent loggingEvent) {
-        ObjectAppendingMarker objectAppendingMarker = (ObjectAppendingMarker) loggingEvent.getArgumentArray()[2];
-        return objectAppendingMarker.getFieldName().equals("name-matching-analysis");
+    private boolean metaDataWasLogged(ILoggingEvent loggingEvent) {
+        return Arrays.stream(loggingEvent.getArgumentArray())
+                     .anyMatch(logArg -> loggedFieldEquals(logArg, "name-matching-analysis"));
     }
 
-    private boolean metaDataHasExpectedNumberOfInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+    private boolean metaDataHasExpectedNumberOfInputNames(List<MetaDataInputName> names, ILoggingEvent loggingEvent) {
 
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
 
@@ -637,7 +624,7 @@ public class NameMatchingSteps {
                                        candidateDerivation.inputNames().aliasSurnames().size();
     }
 
-    private boolean metaDataHasInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+    private boolean metaDataHasInputNames(List<MetaDataInputName> names, ILoggingEvent loggingEvent) {
 
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
 
@@ -646,9 +633,14 @@ public class NameMatchingSteps {
                        metaDataHasInputName(names, ALIAS, candidateDerivation.inputNames().aliasSurnames());
     }
 
-    private boolean metaDataIsSolelyInputNames(List<MetaDataInputName> names, LoggingEvent loggingEvent) {
+    private boolean metaDataIsSolelyInputNames(List<MetaDataInputName> names, ILoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> nameMatchingAnalysisLogArg = getLogArgument(loggingEvent, "name-matching-analysis");
 
-        InputNames inputNames = (InputNames) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[2], "object");
+        if (!nameMatchingAnalysisLogArg.isPresent()) {
+            return false;
+        }
+
+        InputNames inputNames = (InputNames) ReflectionTestUtils.getField(nameMatchingAnalysisLogArg.get(), "object");
 
         if (inputNames == null) {
             return false;
@@ -685,14 +677,10 @@ public class NameMatchingSteps {
         List<String> rawGenerators = dataTable.asList(String.class);
         List<Generator> generators = asGenerators(rawGenerators);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           (metaDataHasExpectedNumberOfGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent)) &&
-                           (metaDataHasGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent));
-        }));
+        verify(mockAppender).doAppend(argThat(this::matchAchieved));
+        verify(mockAppender).doAppend(argThat(loggingEvent -> metaDataWasLogged(loggingEvent) &&
+                (metaDataHasExpectedNumberOfGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent)) &&
+                (metaDataHasGenerators(generators, loggingEvent) || diagnoseWrongGenerator(generators, loggingEvent))));
     }
 
     private List<Generator> asGenerators(List<String> rawGenerators) {
@@ -703,24 +691,26 @@ public class NameMatchingSteps {
                        .collect(toList());
     }
 
-    private boolean diagnoseWrongGenerator(List<Generator> expected, LoggingEvent loggingEvent) {
+    private boolean diagnoseWrongGenerator(List<Generator> expected, ILoggingEvent loggingEvent) {
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
         log.error("Expected: {} Actual: {}", expected, candidateDerivation.generators());
         return false;
     }
 
-    private boolean metaDataHasExpectedNumberOfGenerators(List<Generator> generators, LoggingEvent loggingEvent) {
+    private boolean metaDataHasExpectedNumberOfGenerators(List<Generator> generators, ILoggingEvent loggingEvent) {
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
         return generators.size() == candidateDerivation.generators().size();
     }
 
-    private boolean metaDataHasGenerators(List<Generator> generators, LoggingEvent loggingEvent) {
+    private boolean metaDataHasGenerators(List<Generator> generators, ILoggingEvent loggingEvent) {
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
         return generators.equals(candidateDerivation.generators());
     }
 
-    private CandidateDerivation getCandidateDerivation(LoggingEvent loggingEvent) {
-        return (CandidateDerivation) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[2], "object");
+    private CandidateDerivation getCandidateDerivation(ILoggingEvent loggingEvent) {
+        ObjectAppendingMarker nameMatchingAnalysisLogArg = getLogArgument(loggingEvent, "name-matching-analysis").orElseThrow(AssertionError::new);
+
+        return (CandidateDerivation) ReflectionTestUtils.getField(nameMatchingAnalysisLogArg, "object");
     }
 
     @And("^the meta-data contains the following name derivation information$")
@@ -728,16 +718,12 @@ public class NameMatchingSteps {
 
         List<MetaDataNameDerivation> names = dataTable.asList(MetaDataNameDerivation.class);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           metaDataHasExpectedNameDerivations(names, loggingEvent);
-        }));
+        verify(mockAppender).doAppend(argThat(this::matchAchieved));
+        verify(mockAppender).doAppend(argThat(loggingEvent -> metaDataWasLogged(loggingEvent) &&
+                metaDataHasExpectedNameDerivations(names, loggingEvent)));
     }
 
-    private boolean metaDataHasExpectedNameDerivations(List<MetaDataNameDerivation> names, LoggingEvent loggingEvent) {
+    private boolean metaDataHasExpectedNameDerivations(List<MetaDataNameDerivation> names, ILoggingEvent loggingEvent) {
 
         CandidateDerivation candidateDerivation = getCandidateDerivation(loggingEvent);
 
@@ -798,23 +784,45 @@ public class NameMatchingSteps {
 
         List<Integer> attempts = dataTable.asList(Integer.class);
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
+        verify(mockAppender).doAppend(argThat(loggingEvent -> matchAchieved(loggingEvent) &&
+                (matchLogRecordsMatchingAttempts(attempts.get(0), loggingEvent) || diagnoseWrongNumberOfMatchingAttempts(attempts.get(0), loggingEvent))));
 
-            return matchAchieved(loggingEvent) &&
-                           metaDataWasLogged(loggingEvent) &&
-                           (metaDataRecordsMatchingAttempts(attempts.get(0), loggingEvent) || diagnoseWrongNumberOfMatchingAttempts(attempts.get(0), loggingEvent));
-        }));
+        verify(mockAppender).doAppend(argThat(this::metaDataWasLogged));
     }
 
-    private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, LoggingEvent loggingEvent) {
-        String actual = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
-        log.error("Expected: {} Actual: {}", String.format("%d of %d", expected, expected), actual);
+    private boolean diagnoseWrongNumberOfMatchingAttempts(Integer expected, ILoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> maxAttemptsLogArgument = getLogArgument(loggingEvent, "max_attempts");
+
+        if (!maxAttemptsLogArgument.isPresent()) {
+            log.error("Expected: {} but max_attempts not found", expected);
+            return false;
+        }
+
+        Integer actual = (Integer) ReflectionTestUtils.getField(maxAttemptsLogArgument.get(), "object");
+        log.error("Expected max_attempts: {} Actual max_attempts: {}", expected, actual);
         return false;
     }
 
-    private boolean metaDataRecordsMatchingAttempts(Integer combination, LoggingEvent loggingEvent) {
-        String attemptsString = (String) ReflectionTestUtils.getField(loggingEvent.getArgumentArray()[1], "object");
-        return attemptsString == null || attemptsString.equals(String.format("%d of %d", combination, combination));
+    private boolean matchLogRecordsMatchingAttempts(Integer expectedMaxAttempts, ILoggingEvent loggingEvent) {
+        Optional<ObjectAppendingMarker> maxAttemptsLogArgument = getLogArgument(loggingEvent, "max_attempts");
+
+        if (!maxAttemptsLogArgument.isPresent()) {
+            return false;
+        }
+
+        Integer maxAttempts = (Integer) ReflectionTestUtils.getField(maxAttemptsLogArgument.get(), "object");
+        return maxAttempts != null && maxAttempts.equals(expectedMaxAttempts);
+
+    }
+
+    private Optional<ObjectAppendingMarker> getLogArgument(ILoggingEvent loggingEvent, String fieldName) {
+        return Arrays.stream(loggingEvent.getArgumentArray())
+                     .filter(logArg -> loggedFieldEquals(logArg, fieldName))
+                     .map(logArg -> (ObjectAppendingMarker) logArg)
+                     .findFirst();
+    }
+
+    private boolean loggedFieldEquals(Object logArg, String expectedLogField) {
+        return logArg instanceof ObjectAppendingMarker && ((ObjectAppendingMarker) logArg).getFieldName().equals(expectedLogField);
     }
 }

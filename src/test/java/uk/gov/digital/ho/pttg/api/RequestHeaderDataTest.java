@@ -244,6 +244,24 @@ public class RequestHeaderDataTest {
     }
 
     @Test
+    public void isASmokeTest_smokeTestUser_returnTrue() {
+        given(mockHttpServletRequest.getHeader(USER_ID_HEADER)).willReturn("smoke-tests");
+
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.isASmokeTest()).isTrue();
+    }
+
+    @Test
+    public void isASmokeTest_notSmokeTestUser_returnFalse() {
+        given(mockHttpServletRequest.getHeader(USER_ID_HEADER)).willReturn("not a smoke test user");
+
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.isASmokeTest()).isFalse();
+    }
+
+    @Test
     public void retryCount_notPassed_returnsNegative() {
         given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn(null);
         given_requestDataPrehandleCalled();
