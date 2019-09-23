@@ -92,7 +92,7 @@ pipeline:
       event: tag
 
   trigger-e2e-tests:
-    image: quay.io/ukhomeofficedigital/drone-trigger:latest
+    image: quay.io/ukhomeofficedigital/drone-trigger:v0.3.0
     secrets:
       - DRONE_TOKEN
     drone_server: https://drone.acp.homeoffice.gov.uk
