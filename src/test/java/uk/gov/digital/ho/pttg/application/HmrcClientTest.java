@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -145,7 +146,11 @@ public class HmrcClientTest {
         given_contextNeedsAllResources();
         given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
 
-        hmrcClient.populateIncomeSummary("any access token", anyIndividual, ANY_DATE, ANY_DATE, mockIncomeSummaryContext);
+        try {
+            hmrcClient.populateIncomeSummary("any access token", anyIndividual, ANY_DATE, ANY_DATE, mockIncomeSummaryContext);
+        } catch (ApplicationExceptions.HmrcNotFoundException ignored) {
+            // Exception not of interest to this test.
+        }
 
         then(mockHmrcHateoasClient).shouldHaveZeroInteractions();
         then_context_shouldNeverBeUpdated();
@@ -166,7 +171,11 @@ public class HmrcClientTest {
     public void populateIncomeSummary_isASmokeTest_logSkippedHmrCall() {
         given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
 
-        hmrcClient.populateIncomeSummary("any access token", anyIndividual, ANY_DATE, ANY_DATE, mockIncomeSummaryContext);
+        try {
+            hmrcClient.populateIncomeSummary("any access token", anyIndividual, ANY_DATE, ANY_DATE, mockIncomeSummaryContext);
+        } catch (ApplicationExceptions.HmrcNotFoundException ignored) {
+            // Exception not of interest to this test.
+        }
 
         ArgumentCaptor<LoggingEvent> logCaptor = ArgumentCaptor.forClass(LoggingEvent.class);
         then(mockLogAppender).should().doAppend(logCaptor.capture());
@@ -175,6 +184,15 @@ public class HmrcClientTest {
         assertThat(logEvent.getFormattedMessage()).containsIgnoringCase("Smoke Test")
                                                   .containsIgnoringCase("skipped");
         assertThat(logEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_CALL_SKIPPED_SMOKE_TEST));
+    }
+
+    @Test
+    public void populateIncomeSummary_isASmokeTest_throwNotMatchedException() {
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
+
+        assertThatThrownBy(() -> hmrcClient.populateIncomeSummary("any access token", anyIndividual, ANY_DATE, ANY_DATE, mockIncomeSummaryContext))
+                .isInstanceOf(ApplicationExceptions.HmrcNotFoundException.class)
+                .hasMessage("Smoke test");
     }
 
     private void given_contextNeedsAllResources() {

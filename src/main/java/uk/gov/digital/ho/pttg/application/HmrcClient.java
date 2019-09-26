@@ -66,7 +66,7 @@ public class HmrcClient {
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
         if (requestHeaderData.isASmokeTest()) {
             log.info("Skipped HMRC calls because request is a smoke test", value(EVENT, HMRC_CALL_SKIPPED_SMOKE_TEST));
-            return;
+            throw new ApplicationExceptions.HmrcNotFoundException("Smoke test");
         }
         storeMatchResource(suppliedIndividual, accessToken, context);
 
