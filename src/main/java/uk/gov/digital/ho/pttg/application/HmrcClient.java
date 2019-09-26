@@ -9,7 +9,10 @@ import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_CALL_SKIPPED_SMOKE_TEST;
 
 @Service
 @Slf4j
@@ -61,17 +64,19 @@ public class HmrcClient {
     }
 
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
-        if (!requestHeaderData.isASmokeTest()) {
-            storeMatchResource(suppliedIndividual, accessToken, context);
-
-            storeIndividualResource(accessToken, context);
-            storeIncomeResource(accessToken, context);
-            storeEmploymentResource(accessToken, context);
-            storeSelfAssessmentResource(accessToken, fromDate, toDate, context);
-            storePayeData(accessToken, fromDate, toDate, context);
-
-            storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
+        if (requestHeaderData.isASmokeTest()) {
+            log.info("Skipped HMRC calls because request is a smoke test", value(EVENT, HMRC_CALL_SKIPPED_SMOKE_TEST));
+            return;
         }
+        storeMatchResource(suppliedIndividual, accessToken, context);
+
+        storeIndividualResource(accessToken, context);
+        storeIncomeResource(accessToken, context);
+        storeEmploymentResource(accessToken, context);
+        storeSelfAssessmentResource(accessToken, fromDate, toDate, context);
+        storePayeData(accessToken, fromDate, toDate, context);
+
+        storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
     }
 
     private void storePayeData(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {

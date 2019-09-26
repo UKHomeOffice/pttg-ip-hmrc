@@ -1,23 +1,29 @@
 package uk.gov.digital.ho.pttg.application;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
+import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resource;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 import java.time.Month;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -25,6 +31,8 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_CALL_SKIPPED_SMOKE_TEST;
 
 public class HmrcClientTest {
 
@@ -36,6 +44,7 @@ public class HmrcClientTest {
     @Mock private HmrcHateoasClient mockHmrcHateoasClient;
     @Mock private IncomeSummaryContext mockIncomeSummaryContext;
     @Mock private RequestHeaderData mockRequestHeaderData;
+    @Mock private Appender<ILoggingEvent> mockLogAppender;
 
     private HmrcClient hmrcClient;
 
@@ -45,6 +54,10 @@ public class HmrcClientTest {
     @Before
     public void setUp() {
         hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, DEFAULT_PAYE_EPOCH, mockRequestHeaderData);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(HmrcClient.class);
+        logger.setLevel(Level.INFO);
+        logger.addAppender(mockLogAppender);
     }
 
     @Test
@@ -147,6 +160,21 @@ public class HmrcClientTest {
      */
     private void lenientStubs() {
         unnecessaryStubsRule.strictness(Strictness.LENIENT);
+    }
+
+    @Test
+    public void populateIncomeSummary_isASmokeTest_logSkippedHmrCall() {
+        given(mockRequestHeaderData.isASmokeTest()).willReturn(true);
+
+        hmrcClient.populateIncomeSummary("any access token", anyIndividual, ANY_DATE, ANY_DATE, mockIncomeSummaryContext);
+
+        ArgumentCaptor<LoggingEvent> logCaptor = ArgumentCaptor.forClass(LoggingEvent.class);
+        then(mockLogAppender).should().doAppend(logCaptor.capture());
+
+        LoggingEvent logEvent = logCaptor.getValue();
+        assertThat(logEvent.getFormattedMessage()).containsIgnoringCase("Smoke Test")
+                                                  .containsIgnoringCase("skipped");
+        assertThat(logEvent.getArgumentArray()).contains(new ObjectAppendingMarker(EVENT, HMRC_CALL_SKIPPED_SMOKE_TEST));
     }
 
     private void given_contextNeedsAllResources() {
