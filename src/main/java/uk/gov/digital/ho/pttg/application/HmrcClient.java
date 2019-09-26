@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.application;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
@@ -17,6 +18,7 @@ public class HmrcClient {
     private final HmrcHateoasClient hateoasClient;
     private final int maximumTaxYearHistory;
     private final LocalDate payeDataEpoch;
+    private final RequestHeaderData requestHeaderData;
 
     /*
         Hypermedia paths and links
@@ -31,10 +33,12 @@ public class HmrcClient {
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
                       @Value("${hmrc.self-assessment.tax-years.history.maximum}") int maximumSelfAssessmentTaxYearHistory,
-                      @Value("#{T(java.time.LocalDate).parse('${hmrc.paye.data.epoch}')}") LocalDate payeDataEpoch) {
+                      @Value("#{T(java.time.LocalDate).parse('${hmrc.paye.data.epoch}')}") LocalDate payeDataEpoch,
+                      RequestHeaderData requestHeaderData) {
         this.hateoasClient = hateoasClient;
         this.maximumTaxYearHistory = maximumSelfAssessmentTaxYearHistory;
         this.payeDataEpoch = payeDataEpoch;
+        this.requestHeaderData = requestHeaderData;
     }
 
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -57,15 +61,17 @@ public class HmrcClient {
     }
 
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
-        storeMatchResource(suppliedIndividual, accessToken, context);
+        if (!requestHeaderData.isASmokeTest()) {
+            storeMatchResource(suppliedIndividual, accessToken, context);
 
-        storeIndividualResource(accessToken, context);
-        storeIncomeResource(accessToken, context);
-        storeEmploymentResource(accessToken, context);
-        storeSelfAssessmentResource(accessToken, fromDate, toDate, context);
-        storePayeData(accessToken, fromDate, toDate, context);
+            storeIndividualResource(accessToken, context);
+            storeIncomeResource(accessToken, context);
+            storeEmploymentResource(accessToken, context);
+            storeSelfAssessmentResource(accessToken, fromDate, toDate, context);
+            storePayeData(accessToken, fromDate, toDate, context);
 
-        storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
+            storeSelfAssessmentSelfEmploymentIncome(accessToken, context);
+        }
     }
 
     private void storePayeData(String accessToken, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {

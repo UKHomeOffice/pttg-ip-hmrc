@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.hateoas.Link;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
@@ -31,6 +32,7 @@ public class HmrcClientPayeEpochTest {
     private IncomeSummaryContext mockIncomeSummaryContext;
     private Link anyLink;
     private Individual anyIndividual;
+    private RequestHeaderData mockRequestHeaderData;
 
     private HmrcClient hmrcClient;
 
@@ -39,6 +41,7 @@ public class HmrcClientPayeEpochTest {
         anyLink = mock(Link.class);
         mockHmrcHateoasClient = mock(HmrcHateoasClient.class);
         anyIndividual = mock(Individual.class);
+        mockRequestHeaderData = mock(RequestHeaderData.class);
 
         mockIncomeSummaryContext = mock(IncomeSummaryContext.class);
         given(mockIncomeSummaryContext.needsPayeIncome()).willReturn(true);
@@ -46,7 +49,7 @@ public class HmrcClientPayeEpochTest {
         given(mockIncomeSummaryContext.needsEmployments()).willReturn(true);
         given(mockIncomeSummaryContext.getEmploymentLink(anyString())).willReturn(anyLink);
 
-        hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, epoch);
+        hmrcClient = new HmrcClient(mockHmrcHateoasClient, 6, epoch, mockRequestHeaderData);
     }
 
     @Parameterized.Parameters(name = "When requesting a fromDate of {0}, with and epoch of {1} the date of {2} will actually be used")

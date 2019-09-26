@@ -220,7 +220,7 @@ public class RequestHeaderData implements HandlerInterceptor {
         }
     }
 
-    boolean isASmokeTest() {
+    public boolean isASmokeTest() {
         return userId().equals(SMOKE_TESTS_USER_ID);
     }
 }
