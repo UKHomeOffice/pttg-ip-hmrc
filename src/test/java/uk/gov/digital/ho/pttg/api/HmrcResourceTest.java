@@ -28,6 +28,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.RETRY_COUNT_HEADER;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_RETRY_EVENT;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcResourceTest {
@@ -137,5 +141,35 @@ public class HmrcResourceTest {
         hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, ALIAS_SURNAMES));
 
         then(mockNinoUtils).should(never()).validate(NINO);
+    }
+
+    @Test
+    public void shouldLogRetryCountIfPassed() {
+        int someRetryCount = 2;
+        when(mockRequestHeaderData.retryCount()).thenReturn(someRetryCount);
+
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, ALIAS_SURNAMES));
+
+        verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getLevel().equals(Level.INFO) &&
+                    loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker(EVENT, HMRC_RETRY_EVENT)) &&
+                    loggingEvent.getArgumentArray()[1].equals(new ObjectAppendingMarker(RETRY_COUNT_HEADER, someRetryCount));
+        }));
+    }
+
+    @Test
+    public void shouldNotLogRetryCountIfNotPassed() {
+        int someRetryCount = -1;
+        when(mockRequestHeaderData.retryCount()).thenReturn(someRetryCount);
+
+        hmrcResource.getHmrcData(new IncomeDataRequest(FIRST_NAME, LAST_NAME, NINO, DATE_OF_BIRTH, FROM_DATE, TO_DATE, ALIAS_SURNAMES));
+
+        verify(mockAppender, times(0)).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            return loggingEvent.getArgumentArray()[0].equals(new ObjectAppendingMarker(EVENT, HMRC_RETRY_EVENT));
+        }));
     }
 }

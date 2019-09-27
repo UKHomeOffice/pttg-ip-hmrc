@@ -261,6 +261,38 @@ public class RequestHeaderDataTest {
         assertThat(requestData.isASmokeTest()).isFalse();
     }
 
+    @Test
+    public void retryCount_notPassed_returnsNegative() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn(null);
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isLessThan(0);
+    }
+
+    @Test
+    public void retryCount_passedButEmpty_returnsNegative() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("");
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isLessThan(0);
+    }
+
+    @Test
+    public void retryCount_invalid_returnsNegative() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("NOT_A_NUMBER");
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isLessThan(0);
+    }
+
+    @Test
+    public void retryCount_validCount_returnsCount() {
+        given(mockHttpServletRequest.getHeader(RETRY_COUNT_HEADER)).willReturn("1");
+        given_requestDataPrehandleCalled();
+
+        assertThat(requestData.retryCount()).isEqualTo(1);
+    }
+
     private void given_requestDataPrehandleCalled() {
         requestData.preHandle(mockHttpServletRequest, mockHttpServletResponse, mockHandler);
     }
