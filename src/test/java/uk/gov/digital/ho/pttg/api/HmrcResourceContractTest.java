@@ -1,11 +1,13 @@
 package uk.gov.digital.ho.pttg.api;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.rule.OutputCapture;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.digital.ho.pttg.api.JsonRequestUtilities.*;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_RETRY_EVENT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -37,6 +41,9 @@ public class HmrcResourceContractTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Rule
+    public OutputCapture outputCapture = new OutputCapture();
 
     @Test
     public void validRequestShouldRespondOk() throws Exception {
@@ -197,4 +204,25 @@ public class HmrcResourceContractTest {
                .andExpect(status().isUnprocessableEntity())
                .andExpect(content().string(containsString("NINO")));
     }
+    @Test
+    public void retryCountShouldBeLogged() throws Exception {
+        mockMvc.perform(post("/income")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getDefaultRequest())
+            .header(RETRY_COUNT_HEADER, "2"));
+
+        String expectedLogOutput = String.format("\"%s\":\"%s\"", EVENT, HMRC_RETRY_EVENT);
+        outputCapture.expect(containsString(expectedLogOutput));
+    }
+
+    @Test
+    public void retryCountShouldNotBeLogged() throws Exception {
+        mockMvc.perform(post("/income")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(getDefaultRequest()));
+
+        String unexpectedLogOutput = String.format("\"%s\":\"%s\"", EVENT, HMRC_RETRY_EVENT);
+        outputCapture.expect(not(containsString(unexpectedLogOutput)));
+    }
+
 }

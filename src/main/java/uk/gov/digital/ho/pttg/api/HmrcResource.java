@@ -10,8 +10,7 @@ import java.time.LocalDate;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.POOL_SIZE;
-import static uk.gov.digital.ho.pttg.api.RequestHeaderData.REQUEST_DURATION_MS;
+import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
 @Slf4j
@@ -48,6 +47,8 @@ class HmrcResource {
 
         log.info("Hmrc service invoked for nino {} with date range {} to {}", individual.getNino(), fromDate, toDate, value(EVENT, HMRC_SERVICE_REQUEST_RECEIVED));
 
+        logRetryCount();
+
         IncomeSummary incomeSummary = incomeSummaryService.getIncomeSummary(individual, fromDate, toDate);
 
         log.info("Income summary successfully retrieved from HMRC",
@@ -65,5 +66,14 @@ class HmrcResource {
             ninoUtils.validate(sanitisedNino);
         }
         return new Individual(firstName, lastName, sanitisedNino, dob, aliasSurnames);
+    }
+
+    private void logRetryCount() {
+        int retryCount = requestHeaderData.retryCount();
+        if (retryCount >= 0) {
+            log.info("Retry count",
+                    value(EVENT, HMRC_RETRY_EVENT),
+                    value(RETRY_COUNT_HEADER, retryCount));
+        }
     }
 }
