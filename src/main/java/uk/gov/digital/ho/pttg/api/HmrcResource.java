@@ -29,18 +29,18 @@ class HmrcResource {
 
     @PostMapping(value="/income", produces = APPLICATION_JSON_VALUE)
     IncomeSummary getHmrcData(@RequestBody IncomeDataRequest incomeDataRequest) {
-
-        IncomeSummary incomeSummary = produceIncomeSummary(
-                individual(
-                        incomeDataRequest.firstName(),
-                        incomeDataRequest.lastName(),
-                        incomeDataRequest.nino(),
-                        incomeDataRequest.dateOfBirth(),
-                        incomeDataRequest.aliasSurnames()),
-                incomeDataRequest.fromDate(),
-                incomeDataRequest.toDate());
-
-        return incomeSummary;
+        throw new NullPointerException();
+//        IncomeSummary incomeSummary = produceIncomeSummary(
+//                individual(
+//                        incomeDataRequest.firstName(),
+//                        incomeDataRequest.lastName(),
+//                        incomeDataRequest.nino(),
+//                        incomeDataRequest.dateOfBirth(),
+//                        incomeDataRequest.aliasSurnames()),
+//                incomeDataRequest.fromDate(),
+//                incomeDataRequest.toDate());
+//
+//        return incomeSummary;
     }
 
     private IncomeSummary produceIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
