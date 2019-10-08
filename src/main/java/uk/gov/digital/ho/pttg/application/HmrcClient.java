@@ -3,12 +3,16 @@ package uk.gov.digital.ho.pttg.application;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 
 import java.time.LocalDate;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.HmrcClientFunctions.getTaxYear;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_CALL_SKIPPED_SMOKE_TEST;
 
 @Service
 @Slf4j
@@ -17,6 +21,7 @@ public class HmrcClient {
     private final HmrcHateoasClient hateoasClient;
     private final int maximumTaxYearHistory;
     private final LocalDate payeDataEpoch;
+    private final RequestHeaderData requestHeaderData;
 
     /*
         Hypermedia paths and links
@@ -31,10 +36,12 @@ public class HmrcClient {
 
     public HmrcClient(HmrcHateoasClient hateoasClient,
                       @Value("${hmrc.self-assessment.tax-years.history.maximum}") int maximumSelfAssessmentTaxYearHistory,
-                      @Value("#{T(java.time.LocalDate).parse('${hmrc.paye.data.epoch}')}") LocalDate payeDataEpoch) {
+                      @Value("#{T(java.time.LocalDate).parse('${hmrc.paye.data.epoch}')}") LocalDate payeDataEpoch,
+                      RequestHeaderData requestHeaderData) {
         this.hateoasClient = hateoasClient;
         this.maximumTaxYearHistory = maximumSelfAssessmentTaxYearHistory;
         this.payeDataEpoch = payeDataEpoch;
+        this.requestHeaderData = requestHeaderData;
     }
 
     public IncomeSummary populateIncomeSummary(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
@@ -57,6 +64,10 @@ public class HmrcClient {
     }
 
     private void getHmrcData(String accessToken, Individual suppliedIndividual, LocalDate fromDate, LocalDate toDate, IncomeSummaryContext context) {
+        if (requestHeaderData.isASmokeTest()) {
+            log.info("Skipped HMRC calls because request is a smoke test", value(EVENT, HMRC_CALL_SKIPPED_SMOKE_TEST));
+            throw new ApplicationExceptions.HmrcNotFoundException("Smoke test");
+        }
         storeMatchResource(suppliedIndividual, accessToken, context);
 
         storeIndividualResource(accessToken, context);

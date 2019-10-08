@@ -114,13 +114,7 @@ public class HmrcResourceIntegrationTest {
 
         buildAndExpectSuccessfulTraversal();
 
-        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
-                                                            LocalDate.of(1992, 3, 1),
-                                                            LocalDate.of(2017, 1, 1),
-                                                            LocalDate.of(2017, 6, 1),
-                                                "");
-
-        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(anyRequest());
 
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
@@ -180,13 +174,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildPayeIncomeResponse(), APPLICATION_JSON));
 
-        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
-                LocalDate.of(1992, 3, 1),
-                LocalDate.of(2017, 1, 1),
-                LocalDate.of(2017, 6, 1),
-                "");
-
-        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(anyRequest());
 
         // when
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
@@ -378,13 +366,7 @@ public class HmrcResourceIntegrationTest {
                 .andExpect(method(GET))
                 .andRespond(withSuccess(buildSaSelfEmploymentResponse(), APPLICATION_JSON));
 
-        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
-                LocalDate.of(1992, 3, 1),
-                LocalDate.of(2017, 1, 1),
-                LocalDate.of(2017, 6, 1),
-                "");
-
-        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(anyRequest());
 
         // when
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
@@ -456,13 +438,7 @@ public class HmrcResourceIntegrationTest {
 
         buildAndExpectSuccessfulTraversal();
 
-        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
-                LocalDate.of(1992, 3, 1),
-                LocalDate.of(2017, 1, 1),
-                LocalDate.of(2017, 6, 1),
-                "");
-
-        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(anyRequest());
 
         // when
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
@@ -561,13 +537,7 @@ public class HmrcResourceIntegrationTest {
 
         buildAndExpectSuccessfulTraversal();
 
-        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
-                LocalDate.of(1992, 3, 1),
-                LocalDate.of(2017, 1, 1),
-                LocalDate.of(2017, 6, 1),
-                "");
-
-        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(anyRequest());
 
         ResponseEntity<IncomeSummary> responseEntity = restTemplate.exchange("/income", POST, requestEntity, IncomeSummary.class);
 
@@ -628,6 +598,17 @@ public class HmrcResourceIntegrationTest {
 
         assertThat(getTraceComponents(responseEntity)).contains("HMRC");
         hmrcApiMockService.verify();
+    }
+
+    @Test
+    public void getHmrcData_smokeTest_returnNotFound() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("x-auth-userid", "smoke-tests");
+        HttpEntity<IncomeDataRequest> smokeTestRequest = new HttpEntity<>(anyRequest(), headers);
+
+        ResponseEntity<String> response = restTemplate.exchange("/income", POST, smokeTestRequest, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(NOT_FOUND);
+        assertThat(response.getBody()).contains("Smoke test");
     }
 
     private void buildAndExpectSuccessfulTraversal() throws IOException {
@@ -726,15 +707,17 @@ public class HmrcResourceIntegrationTest {
     }
 
     private ResponseEntity<String> performHmrcRequest() {
-        IncomeDataRequest request = new IncomeDataRequest("Laurie", "Halford", "GH576240A",
-                LocalDate.of(1992, 3, 1),
-                LocalDate.of(2017, 1, 1),
-                LocalDate.of(2017, 6, 1),
-                "");
-
-        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(request);
+        HttpEntity<IncomeDataRequest> requestEntity = new HttpEntity<>(anyRequest());
 
         return restTemplate.exchange("/income", POST, requestEntity, String.class);
+    }
+
+    private IncomeDataRequest anyRequest() {
+        return new IncomeDataRequest("Laurie", "Halford", "GH576240A",
+                                     LocalDate.of(1992, 3, 1),
+                                     LocalDate.of(2017, 1, 1),
+                                     LocalDate.of(2017, 6, 1),
+                                     "");
     }
 
     private List<String> getTraceComponents(ResponseEntity<String> responseEntity) {

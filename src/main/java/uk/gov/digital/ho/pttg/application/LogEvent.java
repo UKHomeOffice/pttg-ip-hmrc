@@ -34,7 +34,8 @@ public enum LogEvent {
     HMRC_INCOME_REQUEST_SENT,
     HMRC_INCOME_RESPONSE_RECEIVED,
     HMRC_INSUFFICIENT_TIME_TO_COMPLETE,
-    HMRC_RETRY_EVENT;
+    HMRC_RETRY_EVENT,
+    HMRC_CALL_SKIPPED_SMOKE_TEST;
 
 
     public static final String EVENT = "event_id";
