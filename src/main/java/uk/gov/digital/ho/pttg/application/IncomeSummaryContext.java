@@ -144,7 +144,7 @@ public class IncomeSummaryContext {
         for (Employment employment : employments) {
 
             if (employment.withoutEmployer()) {
-                log.warn("HMRC Employer data without an Employer", value(EVENT, HMRC_EMPLOYERLESS_EMPLOYMENT));
+                log.warn("HMRC Employment data without an Employer", value(EVENT, HMRC_EMPLOYERLESS_EMPLOYMENT));
                 continue;
             }
 

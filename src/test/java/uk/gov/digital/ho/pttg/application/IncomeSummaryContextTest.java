@@ -445,7 +445,7 @@ public class IncomeSummaryContextTest {
         Mockito.verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            boolean expectedMessage = loggingEvent.getFormattedMessage().equals("HMRC Employer data without an Employer");
+            boolean expectedMessage = loggingEvent.getFormattedMessage().equals("HMRC Employment data without an Employer");
 
             ObjectAppendingMarker marker = (ObjectAppendingMarker) loggingEvent.getArgumentArray()[0];
 
