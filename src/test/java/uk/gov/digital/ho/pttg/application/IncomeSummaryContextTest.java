@@ -22,7 +22,8 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_LIST;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.anyString;
@@ -426,7 +427,7 @@ public class IncomeSummaryContextTest {
     public void createEmployerPaymentRefMap_employerlessEmployment_ignoresTheEmployment() {
         incomeSummaryContext.employments(asList(new Employment(null, null, null, null)));
 
-        assertThatCode(() -> { incomeSummaryContext.createEmployerPaymentRefMap(); }).doesNotThrowAnyException();
+        assertThat(incomeSummaryContext.createEmployerPaymentRefMap()).isEmpty();
     }
 
     @Test
