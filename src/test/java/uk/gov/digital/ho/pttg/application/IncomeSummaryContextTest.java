@@ -423,7 +423,7 @@ public class IncomeSummaryContextTest {
     }
 
     @Test
-    public void createEmployerPaymentRefMap_employerlessEmployment_noNpe() {
+    public void createEmployerPaymentRefMap_employerlessEmployment_ignoresTheEmployment() {
         incomeSummaryContext.employments(asList(new Employment(null, null, null, null)));
 
         assertThatCode(() -> { incomeSummaryContext.createEmployerPaymentRefMap(); }).doesNotThrowAnyException();
