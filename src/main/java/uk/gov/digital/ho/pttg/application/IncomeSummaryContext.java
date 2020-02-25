@@ -3,6 +3,7 @@ package uk.gov.digital.ho.pttg.application;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -14,12 +15,16 @@ import uk.gov.digital.ho.pttg.dto.Income;
 
 import java.util.*;
 
+import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.PAYE;
 import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.SELF_ASSESSMENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_EMPLOYERLESS_EMPLOYMENT;
 
 @Getter
 @Setter
 @Accessors(fluent = true)
+@Slf4j
 public class IncomeSummaryContext {
 
     private static final String DEFAULT_PAYMENT_FREQUENCY = "ONE_OFF";
@@ -137,6 +142,11 @@ public class IncomeSummaryContext {
         Map<String, String> paymentFrequency = new HashMap<>();
 
         for (Employment employment : employments) {
+
+            if (employment.withoutEmployer()) {
+                log.warn("HMRC Employer data without an Employer", value(EVENT, HMRC_EMPLOYERLESS_EMPLOYMENT));
+                continue;
+            }
 
             String payeReference = employment.getEmployer().getPayeReference();
 

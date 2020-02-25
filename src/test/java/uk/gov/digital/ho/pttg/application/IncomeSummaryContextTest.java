@@ -1,7 +1,15 @@
 package uk.gov.digital.ho.pttg.application;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.core.Appender;
+import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
@@ -9,21 +17,24 @@ import uk.gov.digital.ho.pttg.dto.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_LIST;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
+import static org.springframework.test.util.ReflectionTestUtils.getField;
 import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.PAYE;
 import static uk.gov.digital.ho.pttg.application.IncomeDataTypes.SELF_ASSESSMENT;
+import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_EMPLOYERLESS_EMPLOYMENT;
 
 public class IncomeSummaryContextTest {
 
+    private static final String LOG_TEST_APPENDER = "LOG_TEST_APPENDER";
     private IncomeSummaryContext incomeSummaryContext;
     private Link mockLink;
 
@@ -156,7 +167,7 @@ public class IncomeSummaryContextTest {
 
     @Test
     public void incomeDataAvailable_whenPAYE_shouldReturnPAYE() {
-        incomeSummaryContext.payeIncome(Arrays.asList(new Income(null, null , null, null, null, null, null)));
+        incomeSummaryContext.payeIncome(asList(new Income(null, null , null, null, null, null, null)));
         incomeSummaryContext.selfAssessmentSelfEmploymentIncome(EMPTY_LIST);
         assertThat(incomeSummaryContext.availableIncomeData()).containsExactly(PAYE);
     }
@@ -164,14 +175,14 @@ public class IncomeSummaryContextTest {
     @Test
     public void incomeDataAvailable_whenSAE_shouldReturnSA() {
         incomeSummaryContext.payeIncome(EMPTY_LIST);
-        incomeSummaryContext.selfAssessmentSelfEmploymentIncome(Arrays.asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
+        incomeSummaryContext.selfAssessmentSelfEmploymentIncome(asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
         assertThat(incomeSummaryContext.availableIncomeData()).containsExactly(SELF_ASSESSMENT);
     }
 
     @Test
     public void incomeDataAvailable_whenBOTH_shouldReturnBOTH() {
-        incomeSummaryContext.payeIncome(Arrays.asList(new Income(null, null , null, null, null, null, null)));
-        incomeSummaryContext.selfAssessmentSelfEmploymentIncome(Arrays.asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
+        incomeSummaryContext.payeIncome(asList(new Income(null, null , null, null, null, null, null)));
+        incomeSummaryContext.selfAssessmentSelfEmploymentIncome(asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
         assertThat(incomeSummaryContext.availableIncomeData()).containsExactly(PAYE, SELF_ASSESSMENT);
     }
 
@@ -193,7 +204,7 @@ public class IncomeSummaryContextTest {
 
         String somePayeReference = "some ref";
 
-        List<Employment> employments = Arrays.asList(
+        List<Employment> employments = asList(
                 new Employment(
                         somePayFrequency,
                         anyStartDate.toString(),
@@ -224,7 +235,7 @@ public class IncomeSummaryContextTest {
         String anotherPayFrequency = "another pay frequency";
         String anotherPayeReference = "another pay reference";
 
-        List<Employment> employments = Arrays.asList(
+        List<Employment> employments = asList(
                 new Employment(
                         somePayFrequency,
                         anyStartDate.toString(),
@@ -263,7 +274,7 @@ public class IncomeSummaryContextTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        List<Employment> employments = Arrays.asList(
+        List<Employment> employments = asList(
                 new Employment(
                         somePayFrequency,
                         anyStartDate.toString(),
@@ -296,7 +307,7 @@ public class IncomeSummaryContextTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        List<Employment> employments = Arrays.asList(
+        List<Employment> employments = asList(
                 new Employment(
                         null,
                         anyStartDate.toString(),
@@ -306,7 +317,7 @@ public class IncomeSummaryContextTest {
                                 anyEmployer,
                                 anyEmployerAddress)));
 
-        List<Income> incomes = Arrays.asList(
+        List<Income> incomes = asList(
                 new Income(
                         somePayeReference,
                         anyTaxablePayment,
@@ -343,7 +354,7 @@ public class IncomeSummaryContextTest {
         String anyEmployer = "any employer";
         Address anyEmployerAddress = null;
 
-        List<Employment> employments = Arrays.asList(
+        List<Employment> employments = asList(
                 new Employment(
                         somePayFrequency,
                         anyStartDate.toString(),
@@ -353,7 +364,7 @@ public class IncomeSummaryContextTest {
                                 anyEmployer,
                                 anyEmployerAddress)));
 
-        List<Income> incomes = Arrays.asList(
+        List<Income> incomes = asList(
                 new Income(
                         somePayeReference,
                         anyTaxablePayment,
@@ -383,8 +394,8 @@ public class IncomeSummaryContextTest {
 
     @Test
     public void payeIncome_nonNullArg_setsProperty() {
-        incomeSummaryContext.payeIncome(Arrays.asList(new Income(null, null , null, null, null, null, null)));
-        assertThat(incomeSummaryContext.payeIncome()).isEqualTo(Arrays.asList(new Income(null, null , null, null, null, null, null)));
+        incomeSummaryContext.payeIncome(asList(new Income(null, null , null, null, null, null, null)));
+        assertThat(incomeSummaryContext.payeIncome()).isEqualTo(asList(new Income(null, null , null, null, null, null, null)));
     }
 
     @Test
@@ -395,8 +406,8 @@ public class IncomeSummaryContextTest {
 
     @Test
     public void employments_nonNullArg_setsProperty() {
-        incomeSummaryContext.employments(Arrays.asList(new Employment(null, null, null, null)));
-        assertThat(incomeSummaryContext.employments()).isEqualTo(Arrays.asList(new Employment(null, null, null, null)));
+        incomeSummaryContext.employments(asList(new Employment(null, null, null, null)));
+        assertThat(incomeSummaryContext.employments()).isEqualTo(asList(new Employment(null, null, null, null)));
     }
 
     @Test
@@ -407,7 +418,43 @@ public class IncomeSummaryContextTest {
 
     @Test
     public void selfAssessmentSelfEmploymentIncome_nonNullArg_setsProperty() {
-        incomeSummaryContext.selfAssessmentSelfEmploymentIncome(Arrays.asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
-        assertThat(incomeSummaryContext.selfAssessmentSelfEmploymentIncome()).isEqualTo(Arrays.asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
+        incomeSummaryContext.selfAssessmentSelfEmploymentIncome(asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
+        assertThat(incomeSummaryContext.selfAssessmentSelfEmploymentIncome()).isEqualTo(asList(new AnnualSelfAssessmentTaxReturn(null, null, null)));
+    }
+
+    @Test
+    public void createEmployerPaymentRefMap_employerlessEmployment_noNpe() {
+        incomeSummaryContext.employments(asList(new Employment(null, null, null, null)));
+
+        assertThatCode(() -> { incomeSummaryContext.createEmployerPaymentRefMap(); }).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void createEmployerPaymentRefMap_employerlessEmployment_logsEvent() {
+        Appender<ILoggingEvent> mockAppender = mock(Appender.class);
+        mockAppender.setName(LOG_TEST_APPENDER);
+
+        Logger logger = (Logger) LoggerFactory.getLogger(IncomeSummaryContext.class);
+        logger.setLevel(Level.WARN);
+        logger.addAppender(mockAppender);
+
+        incomeSummaryContext.employments(asList(new Employment(null, null, null, null)));
+
+        incomeSummaryContext.createEmployerPaymentRefMap();
+
+        Mockito.verify(mockAppender).doAppend(argThat(argument -> {
+            LoggingEvent loggingEvent = (LoggingEvent) argument;
+
+            boolean expectedMessage = loggingEvent.getFormattedMessage().equals("HMRC Employer data without an Employer");
+
+            ObjectAppendingMarker marker = (ObjectAppendingMarker) loggingEvent.getArgumentArray()[0];
+
+            boolean expectedEvent = marker.getFieldName().equals("event_id") &&
+                                    getField(marker, "object").equals(HMRC_EMPLOYERLESS_EMPLOYMENT);
+
+            return expectedMessage && expectedEvent;
+        }));
+
+        logger.detachAppender(LOG_TEST_APPENDER);
     }
 }
