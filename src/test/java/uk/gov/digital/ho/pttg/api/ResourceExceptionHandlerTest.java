@@ -103,7 +103,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(unauthorisedException);
 
-        assertErrorLog("HmrcUnauthorisedException: any message", HMRC_AUTHENTICATION_ERROR, 1);
+        assertLog(Level.ERROR,"HmrcUnauthorisedException: any message", HMRC_AUTHENTICATION_ERROR, 1);
     }
 
     @Test
@@ -127,7 +127,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHttpClientErrorException);
 
-        assertErrorLog("HttpClientErrorException: 418 any message", HMRC_SERVICE_RESPONSE_ERROR, 2);
+        assertLog(Level.ERROR,"HttpClientErrorException: 418 any message", HMRC_SERVICE_RESPONSE_ERROR, 2);
     }
 
     @Test
@@ -150,7 +150,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHttpServerErrorException);
 
-        assertErrorLog("HttpServerErrorException: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
+        assertLog(Level.ERROR,"HttpServerErrorException: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
@@ -171,7 +171,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        assertErrorLog("Fault Detected: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
+        assertLog(Level.ERROR,"Fault Detected: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
@@ -192,7 +192,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockException);
 
-        assertErrorLog("Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", HMRC_PROXY_ERROR, 0);
+        assertLog(Level.ERROR,"Received 403 Forbidden from a request to HMRC. This was from the proxy and not HMRC.", HMRC_PROXY_ERROR, 0);
     }
 
     @Test
@@ -213,7 +213,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockInsufficientTimeException);
 
-        assertErrorLog("The Service could not produce a response in time: any message", HMRC_INSUFFICIENT_TIME_TO_COMPLETE, 1);
+        assertLog(Level.ERROR,"The Service could not produce a response in time: any message", HMRC_INSUFFICIENT_TIME_TO_COMPLETE, 1);
     }
 
     @Test
@@ -234,7 +234,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockHmrcNotFoundException);
 
-        assertInfoLog("HmrcNotFoundException: any message", HMRC_SERVICE_RESPONSE_NOT_FOUND, 1);
+        assertLog(Level.INFO, "HmrcNotFoundException: any message", HMRC_SERVICE_RESPONSE_NOT_FOUND, 1);
     }
 
     @Test
@@ -255,7 +255,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(mockRestClientException);
 
-        assertErrorLog("RestClientException: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
+        assertLog(Level.ERROR,"RestClientException: any message", HMRC_SERVICE_RESPONSE_ERROR, 1);
     }
 
     @Test
@@ -499,7 +499,7 @@ public class ResourceExceptionHandlerTest {
 
         handler.handle(hmrcOverRateLimitException);
 
-        assertErrorLog("HMRC Rate Limit Exceeded: some message", HMRC_OVER_RATE_LIMIT, 1);
+        assertLog(Level.WARN, "HMRC Rate Limit Exceeded: some message", HMRC_OVER_RATE_LIMIT, 1);
     }
 
     @Test
@@ -515,22 +515,12 @@ public class ResourceExceptionHandlerTest {
         }));
     }
 
-    private void assertInfoLog(String expectedMessage, LogEvent expectedLogEvent, int expectedEventIndex) {
+    private void assertLog(Level level, String expectedMessage, LogEvent expectedLogEvent, int expectedEventIndex) {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
             return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
-                    loggingEvent.getLevel().equals(Level.INFO) &&
-                    loggingEvent.getArgumentArray()[expectedEventIndex].equals(new ObjectAppendingMarker("event_id", expectedLogEvent));
-        }));
-    }
-
-    private void assertErrorLog(String expectedMessage, LogEvent expectedLogEvent, int expectedEventIndex) {
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals(expectedMessage) &&
-                    loggingEvent.getLevel().equals(Level.ERROR) &&
+                    loggingEvent.getLevel().equals(level) &&
                     loggingEvent.getArgumentArray()[expectedEventIndex].equals(new ObjectAppendingMarker("event_id", expectedLogEvent));
         }));
     }
