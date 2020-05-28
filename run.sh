@@ -19,9 +19,10 @@ else
     rm "${file}"
   done
 
-  certfiles=$(awk '/-----BEGIN CERTIFICATE-----/{filename="acpca-b-"NR; print filename}; {print >filename}' /certs/ca-certificates.crt)
-
+  echo
   echo 'Now add the Commercial Root CA certs'
+
+  certfiles=$(awk '/-----BEGIN CERTIFICATE-----/{filename="acpca-b-"NR; print filename}; {print >filename}' /certs/ca-certificates.crt)
 
   cacount=0
 
@@ -32,6 +33,7 @@ else
     let "cacount++"
   done
 
+  echo
   echo "Trustore has been created with ${cacount} certificates, now start the app ... "
 
   java ${JAVA_OPTS} -Djavax.net.ssl.trustStore=/app/truststore.jks \
