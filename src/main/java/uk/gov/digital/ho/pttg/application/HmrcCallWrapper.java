@@ -51,11 +51,12 @@ public class HmrcCallWrapper {
             addHmrcToComponentTrace();
             return result;
         } catch (HttpServerErrorException e) {
-            log.info("Received {} - {}", e.getStatusCode(), e.getStatusText());
+            log.info("HttpServerErrorException: {} - {}", e.getStatusCode(), e.getStatusText());
             throw e;
-        } catch (HttpClientErrorException ex) {
+        } catch (HttpClientErrorException e) {
+            log.info("HttpClientErrorException: {} - {}", e.getStatusCode(), e.getStatusText());
             addHmrcToComponentTrace();
-            throw handleClientErrorExceptions(ex);
+            throw handleClientErrorExceptions(e);
         }
     }
 
