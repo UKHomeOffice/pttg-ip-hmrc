@@ -29,11 +29,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.ACCEPT;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static uk.gov.digital.ho.pttg.api.RequestHeaderData.*;
@@ -282,16 +280,12 @@ public class HmrcHateoasClient {
 
         HttpHeaders headers = generateHeaders();
 
-        headers.add(AUTHORIZATION, format("Bearer %s", accessToken));
-
         return new HttpEntity<>(individual, headers);
     }
 
     private HttpEntity createEntityWithHeadersWithoutBody(String accessToken) {
 
         HttpHeaders headers = generateHeaders();
-
-        headers.add(AUTHORIZATION, format("Bearer %s", accessToken));
 
         return new HttpEntity<>(null, headers);
     }
