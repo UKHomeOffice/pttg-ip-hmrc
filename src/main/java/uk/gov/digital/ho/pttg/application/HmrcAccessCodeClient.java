@@ -11,8 +11,6 @@ import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriBuilderFactory;
 import uk.gov.digital.ho.pttg.api.RequestHeaderData;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.dto.AccessCode;
@@ -20,7 +18,6 @@ import uk.gov.digital.ho.pttg.dto.AccessCode;
 import java.net.URI;
 import java.util.Optional;
 
-import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -63,24 +60,20 @@ public class HmrcAccessCodeClient {
     }
 
     public String getAccessCode() {
-
-        if (accessCodeIsStale()) {
-            loadLatestAccessCode();
-        }
-
-        return accessCode.get().getCode();
+        log.info("Simulate getting the code from hmrc-access-code", value(EVENT, HMRC_UPDATE_ACCESS_CODE));
+        return "{\n" +
+                       "  \"code\" : \"987987987\",\n" +
+                       "  \"expiry\" : \"+999999999-12-31T23:59:59.999999999\",\n" +
+                       "  \"refreshTime\" : \"+999999999-12-31T23:59:59.999999999\"\n" +
+                       "}";
     }
 
     public void loadLatestAccessCode() {
-        log.info("Refreshing the cached Access Code", value(EVENT, HMRC_UPDATE_ACCESS_CODE));
-        getAccessCodeWithRetries();
-        log.info("Cached Access Code refreshed", value(EVENT, HMRC_ACCESS_CODE_RECEIVED));
+        log.info("Ignore this", value(EVENT, HMRC_UPDATE_ACCESS_CODE));
     }
 
     public void reportBadAccessCode() {
-        UriBuilderFactory factory = new DefaultUriBuilderFactory();
-        final URI reportUri = factory.expand(baseAccessCodeUrl + REPORT_ACCESS_ENDPOINT_PATH, singletonMap("accessCode", accessCode.get().getCode()));
-        restTemplate.postForLocation(reportUri, getHttpEntity());
+        log.debug("Ignore this");
     }
 
     private boolean accessCodeIsStale() {

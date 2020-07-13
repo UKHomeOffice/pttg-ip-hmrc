@@ -54,11 +54,6 @@ class HMRCResourceHeadersIntSpec extends Specification {
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
 
-        stubFor(get(urlEqualTo("/access"))
-                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(buildOauthResponse())
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
-
         stubFor(post(urlEqualTo("/individuals/matching/"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(buildMatchResponse())
@@ -113,11 +108,6 @@ class HMRCResourceHeadersIntSpec extends Specification {
         verify(postRequestedFor(urlEqualTo("/audit"))
                 .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
         verify(postRequestedFor(urlEqualTo("/audit"))
-                .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
-
-        verify(getRequestedFor(urlEqualTo("/access"))
-                .withHeader(CORRELATION_ID_HEADER, equalTo(CORRELATION_ID)))
-        verify(getRequestedFor(urlEqualTo("/access"))
                 .withHeader(USER_ID_HEADER, equalTo(USER_ID)))
 
         verify(postRequestedFor(urlEqualTo("/individuals/matching/"))

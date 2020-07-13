@@ -10,6 +10,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.HttpHostConnectException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +42,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.digital.ho.pttg.application.LogEvent.*;
 
+@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public class HmrcAccessCodeClientTest {
 
