@@ -66,7 +66,7 @@ public class ProxyCustomizerTest {
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
 
-            return loggingEvent.getFormattedMessage().equals("Using proxy a.proxy.server:1234 for test.hmrc.gov.uk") &&
+            return loggingEvent.getFormattedMessage().equals("Using proxy [a.proxy.server]:[1234] for [test.hmrc.gov.uk]") &&
                     ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[3]).getFieldName().equals("event_id");
         }));
     }
