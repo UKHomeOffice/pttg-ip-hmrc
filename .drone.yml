@@ -148,7 +148,7 @@ steps:
 
 - name: deploy-to-dev-from-build-number
   pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd:v1.16.0
+  image: quay.io/ukhomeofficedigital/kd:v1.17.0
   commands:
   - cd kube-pttg-ip-hmrc
   - ./deploy.sh
@@ -168,7 +168,7 @@ steps:
 
 - name: deployment-to-not-prod
   pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd:v1.16.0
+  image: quay.io/ukhomeofficedigital/kd:v1.17.0
   commands:
   - cd kube-pttg-ip-hmrc
   - ./deploy.sh
@@ -189,7 +189,7 @@ steps:
 
 - name: deploy-to-prod
   pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/kd:v1.16.0
+  image: quay.io/ukhomeofficedigital/kd:v1.17.0
   commands:
   - cd kube-pttg-ip-hmrc
   - ./deploy.sh
