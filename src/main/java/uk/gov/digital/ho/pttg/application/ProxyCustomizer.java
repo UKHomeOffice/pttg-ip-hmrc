@@ -17,26 +17,31 @@ import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_PROXY_ENABLED;
 @Slf4j
 public class ProxyCustomizer implements RestTemplateCustomizer {
 
-    private final String hostToProxy;
-    private final String proxyHost;
-    private final int proxyPort;
+  private final String hostToProxy;
+  private final String proxyHost;
+  private final int proxyPort;
 
-    public ProxyCustomizer(String baseURL, String proxyHost, int proxyPort) {
-        this.hostToProxy = URI.create(baseURL).getHost();
-        this.proxyHost = proxyHost;
-        this.proxyPort = proxyPort;
-    }
+  public ProxyCustomizer(String baseURL, String proxyHost, int proxyPort) {
+    this.hostToProxy = URI.create(baseURL).getHost();
+    this.proxyHost = proxyHost;
+    this.proxyPort = proxyPort;
+  }
 
-    @Override
-    public void customize(RestTemplate restTemplate)  {
+  @Override
+  public void customize(RestTemplate restTemplate) {
 
-        log.info("Using proxy {}:{} for {}", proxyHost, proxyPort, hostToProxy, value(EVENT, HMRC_PROXY_ENABLED));
+    log.info(
+        "Using proxy [{}]:[{}] for [{}]",
+        proxyHost,
+        proxyPort,
+        hostToProxy,
+        value(EVENT, HMRC_PROXY_ENABLED));
 
-        HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
-        HttpClient httpClient = HttpClientBuilder.create().setRoutePlanner(new HMRCProxyRoutePlanner(proxy, hostToProxy)).build();
-        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
-
-    }
-
-
+    HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
+    HttpClient httpClient =
+        HttpClientBuilder.create()
+            .setRoutePlanner(new HMRCProxyRoutePlanner(proxy, hostToProxy))
+            .build();
+    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+  }
 }

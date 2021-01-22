@@ -1,158 +1,211 @@
-pipeline:
+---
+kind: pipeline
+type: kubernetes
+name: default
 
-  build-project:
-    image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
-    commands:
-      - ./gradlew build
-    when:
-      event: [push, pull_request, tag]
+platform:
+  os: linux
+  arch: amd64
 
-  update-semver:
-    image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0
-    secrets:
-      - github_ssh_key
-    commands:
-      - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
-      - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks -s -i
-      - git describe --abbrev=0 --tags > ./tagSemver
-    when:
-      branch: [master]
-      event: [push]
+steps:
 
-  docker-build:
-    image: docker:17.09.1
-    environment:
-      - DOCKER_HOST=tcp://172.17.0.1:2375
-    commands:
-      - docker build -t pttg-ip-hmrc .
-    when:
-      event: [push, tag]
+- name: build-project
+  pull: if-not-exists
+  image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
+  commands:
+  - ./gradlew build
+  when:
+    event:
+    - push
+    - pull_request
+    - tag
 
-  install-docker-image-with-githash-tag:
-    image: docker:17.09.1
-    environment:
-      - DOCKER_HOST=tcp://172.17.0.1:2375
-    secrets:
-      - docker_password
-    commands:
-      - docker login -u="ukhomeofficedigital+pttg" -p=$${DOCKER_PASSWORD} quay.io
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
-    when:
-      event: push
+- name: update-semver
+  pull: if-not-exists
+  image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0
+  commands:
+  - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
+  - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks -s -i
+  - git describe --abbrev=0 --tags > ./tagSemver
+  environment:
+    GITHUB_SSH_KEY:
+      from_secret: github_ssh_key
+  when:
+    branch:
+    - master
+    event:
+    - push
 
-  install-docker-image-from-feature-branch-build:
-    image: docker:17.09.1
-    environment:
-      - DOCKER_HOST=tcp://172.17.0.1:2375
-    secrets:
-      - docker_password
-    commands:
-      - docker login -u="ukhomeofficedigital+pttg" -p=$${DOCKER_PASSWORD} quay.io
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_BRANCH}
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_BRANCH}
-    when:
-      branch:
-        exclude: master
-      event: push
+- name: build-docker-image
+  pull: if-not-exists
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  commands:
+    # wait for docker service to be up before running docker build
+    - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
+    - docker build -t pttg-ip-hmrc .
+  when:
+    event:
+      - push
+      - tag
 
-  install-docker-image-from-master-branch-build:
-    image: docker:17.09.1
-    environment:
-      - DOCKER_HOST=tcp://172.17.0.1:2375
-    secrets:
-      - docker_password
-    commands:
-      - docker login -u="ukhomeofficedigital+pttg" -p=$${DOCKER_PASSWORD} quay.io
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
-    when:
-      branch: master
-      event: push
+- name: install-docker-image-with-githash-tag
+  image: plugins/docker
+  settings:
+    registry: quay.io
+    repo: quay.io/ukhomeofficedigital/pttg-ip-hmrc
+    tags: ${DRONE_COMMIT_SHA}
+  environment:
+    DOCKER_USERNAME: ukhomeofficedigital+pttg
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  when:
+    event:
+      - push
 
-  tag-docker-image-with-git-tag:
-    image: docker:17.09.1
-    environment:
-      - DOCKER_HOST=tcp://172.17.0.1:2375
-    secrets:
-      - docker_password
-    commands:
-      - docker login -u="ukhomeofficedigital+pttg" -p=$${DOCKER_PASSWORD} quay.io
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
-      - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
-      - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
-    when:
-      event: tag
+- name: install-docker-image-from-feature-branch-build
+  image: plugins/docker
+  settings:
+    registry: quay.io
+    repo: quay.io/ukhomeofficedigital/pttg-ip-hmrc
+    tags: ${DRONE_BRANCH}
+  environment:
+    DOCKER_USERNAME: ukhomeofficedigital+pttg
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  when:
+    branch:
+      exclude:
+        - master
+    event:
+      - push
 
-  trigger-e2e-tests:
-    image: quay.io/ukhomeofficedigital/drone-trigger:v0.3.0
-    secrets:
-      - DRONE_TOKEN
+- name: install-docker-image-from-master-branch-build
+  pull: if-not-exists
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  commands:
+  - docker login -u=$${DOCKER_USERNAME} -p=$${DOCKER_PASSWORD} quay.io
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
+  environment:
+    DOCKER_USERNAME: ukhomeofficedigital+pttg
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  when:
+    branch:
+      - master
+    event:
+      - push
+
+- name: tag-docker-image-with-git-tag
+  pull: if-not-exists
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  commands:
+  - docker login -u=$${DOCKER_USERNAME} -p=$${DOCKER_PASSWORD} quay.io
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
+  environment:
+    DOCKER_USERNAME: ukhomeofficedigital+pttg
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  when:
+    event:
+      - tag
+
+- name: trigger-e2e-tests
+  pull: if-not-exists
+  image: quay.io/ukhomeofficedigital/drone-trigger:v0.3.0
+  settings:
+    branch: master
     drone_server: https://drone.acp.homeoffice.gov.uk
     repo: UKHomeOffice/pttg-ip-e2e-tests
-    branch: master
-    when:
-      branch: [master]
-      event: push
+  environment:
+    DRONE_TOKEN:
+      from_secret: DRONE_TOKEN
+  when:
+    branch:
+    - master
+    event:
+    - push
 
-  clone-kube-project:
-    image: plugins/git
-    commands:
-      - git clone https://github.com/UKHomeOffice/kube-pttg-ip-hmrc.git
-    when:
-      event: [push, tag, deployment]
+- name: clone-kube-project
+  pull: if-not-exists
+  image: plugins/git
+  commands:
+  - git clone https://github.com/UKHomeOffice/kube-pttg-ip-hmrc.git
+  when:
+    event:
+    - push
+    - tag
+    - promote
 
-  deploy-to-dev-from-build-number:
-    image: quay.io/ukhomeofficedigital/kd:v1.14.0
-    environment:
-      - KUBE_NAMESPACE=pttg-ip-dev
-      - ENVIRONMENT=dev
-      - VERSION=build-${DRONE_BUILD_NUMBER}
-      - KUBE_SERVER=https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
-    secrets:
-      - pttg_ip_dev
-    commands:
-      - cd kube-pttg-ip-hmrc
-      - ./deploy.sh
-    when:
-      branch: master
-      event: [push, tag]
+- name: deploy-to-dev-from-build-number
+  pull: if-not-exists
+  image: quay.io/ukhomeofficedigital/kd:v1.17.0
+  commands:
+  - cd kube-pttg-ip-hmrc
+  - ./deploy.sh
+  environment:
+    ENVIRONMENT: dev
+    KUBE_NAMESPACE: pttg-ip-dev
+    KUBE_SERVER: https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
+    PTTG_IP_DEV:
+      from_secret: pttg_ip_dev
+    VERSION: build-${DRONE_BUILD_NUMBER}
+  when:
+    branch:
+    - master
+    event:
+    - push
+    - tag
 
-  deployment-to-not-prod:
-    image: quay.io/ukhomeofficedigital/kd:v1.14.0
-    environment:
-      - KUBE_NAMESPACE=pttg-ip-${DRONE_DEPLOY_TO}
-      - ENVIRONMENT=${DRONE_DEPLOY_TO}
-      - VERSION=${IMAGE_VERSION}
-      - KUBE_SERVER=https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
-    secrets:
-      - pttg_ip_dev
-    commands:
-      - cd kube-pttg-ip-hmrc
-      - ./deploy.sh
-    when:
-      event: deployment
-      environment: [dev, test, feat1, feat2, feat3, preprod]
+- name: deployment-to-not-prod
+  pull: if-not-exists
+  image: quay.io/ukhomeofficedigital/kd:v1.17.0
+  commands:
+  - cd kube-pttg-ip-hmrc
+  - ./deploy.sh
+  environment:
+    ENVIRONMENT: ${DRONE_DEPLOY_TO}
+    KUBE_NAMESPACE: pttg-ip-${DRONE_DEPLOY_TO}
+    KUBE_SERVER: https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
+    PTTG_IP_DEV:
+      from_secret: pttg_ip_dev
+    VERSION: ${IMAGE_VERSION}
+  when:
+    event:
+    - promote
+    target:
+    - dev
+    - test
+    - preprod
 
-  deploy-to-prod:
-    image: quay.io/ukhomeofficedigital/kd:v1.14.0
-    environment:
-      - KUBE_NAMESPACE=pttg-ip-${DRONE_DEPLOY_TO}
-      - ENVIRONMENT=${DRONE_DEPLOY_TO}
-      - VERSION=${IMAGE_VERSION}
-      - KUBE_SERVER=https://kube-api-prod.prod.acp.homeoffice.gov.uk
-    secrets:
-      - pttg_ip_pr
-    commands:
-      - cd kube-pttg-ip-hmrc
-      - ./deploy.sh
-    when:
-      event: deployment
-      environment: pr
+- name: deploy-to-prod
+  pull: if-not-exists
+  image: quay.io/ukhomeofficedigital/kd:v1.17.0
+  commands:
+  - cd kube-pttg-ip-hmrc
+  - ./deploy.sh
+  environment:
+    ENVIRONMENT: ${DRONE_DEPLOY_TO}
+    KUBE_NAMESPACE: pttg-ip-${DRONE_DEPLOY_TO}
+    KUBE_SERVER: https://kube-api-prod.prod.acp.homeoffice.gov.uk
+    PTTG_IP_PR:
+      from_secret: pttg_ip_pr
+    VERSION: ${IMAGE_VERSION}
+  when:
+    event:
+    - promote
+    target:
+    - pr
+
+services:
+  - name: docker-in-docker
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
