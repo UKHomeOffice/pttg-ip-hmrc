@@ -18,7 +18,6 @@ steps:
     event:
     - push
     - pull_request
-    - tag
 
 - name: update-semver
   pull: if-not-exists
@@ -85,8 +84,6 @@ steps:
   - docker login -u=$${DOCKER_USERNAME} -p=$${DOCKER_PASSWORD} quay.io
   - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
   - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
-  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
-  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
   - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
   - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
   - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
@@ -125,7 +122,6 @@ steps:
   when:
     event:
     - push
-    - tag
     - promote
 
 - name: deploy-to-dev-from-build-number
@@ -146,7 +142,6 @@ steps:
     - master
     event:
     - push
-    - tag
 
 - name: deployment-to-not-prod
   pull: if-not-exists
