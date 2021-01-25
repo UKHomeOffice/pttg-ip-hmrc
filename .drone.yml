@@ -31,9 +31,10 @@ steps:
     GITHUB_SSH_KEY:
       from_secret: github_ssh_key
   when:
+    branch:
+      - master
     event:
-    - tag
-
+      - push
 
 - name: build-docker-image
   pull: if-not-exists
@@ -45,7 +46,6 @@ steps:
   when:
     event:
       - push
-      - tag
 
 - name: install-docker-image-with-githash-tag
   image: plugins/docker
@@ -96,8 +96,10 @@ steps:
     DOCKER_PASSWORD:
       from_secret: docker_password
   when:
+    branch:
+      - master
     event:
-      - tag
+      - push
 
 #- name: trigger-e2e-tests
 #  pull: if-not-exists
