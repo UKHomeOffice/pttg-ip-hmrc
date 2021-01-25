@@ -35,7 +35,6 @@ steps:
     - master
     event:
     - push
-    - tag
 
 - name: build-docker-image
   pull: if-not-exists
@@ -87,6 +86,8 @@ steps:
   - docker login -u=$${DOCKER_USERNAME} -p=$${DOCKER_PASSWORD} quay.io
   - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
   - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:latest
+  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
+  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
   - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
   - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:build-$${DRONE_BUILD_NUMBER}
   - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
@@ -100,25 +101,6 @@ steps:
       - master
     event:
       - push
-
-- name: tag-docker-image-with-git-tag
-  pull: if-not-exists
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-  commands:
-  - docker login -u=$${DOCKER_USERNAME} -p=$${DOCKER_PASSWORD} quay.io
-  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
-  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$${DRONE_TAG}
-  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
-  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:${DRONE_COMMIT_SHA:0:8}
-  - docker tag pttg-ip-hmrc quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
-  - docker push quay.io/ukhomeofficedigital/pttg-ip-hmrc:$(cat ./tagSemver)
-  environment:
-    DOCKER_USERNAME: ukhomeofficedigital+pttg
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-  when:
-    event:
-      - tag
 
 #- name: trigger-e2e-tests
 #  pull: if-not-exists
