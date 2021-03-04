@@ -12,7 +12,6 @@ import uk.gov.digital.ho.pttg.application.IncomeSummaryContext;
 import uk.gov.digital.ho.pttg.application.domain.IncomeSummary;
 import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
-import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -21,7 +20,6 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
 import static uk.gov.digital.ho.pttg.application.LogEvent.HMRC_API_CALL_ATTEMPT;
 import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
-import static uk.gov.digital.ho.pttg.audit.AuditIndividualData.GET_HMRC_DATA_METHOD;
 
 @Slf4j
 @Service
@@ -104,8 +102,6 @@ public class IncomeSummaryService {
 
     private void auditRequestToHmrc(Individual individual) {
         UUID eventId = UUID.randomUUID();
-        AuditIndividualData auditIndividualData = new AuditIndividualData(GET_HMRC_DATA_METHOD, individual);
-
-        auditClient.add(HMRC_INCOME_REQUEST, eventId, auditIndividualData);
+        auditClient.add(HMRC_INCOME_REQUEST, eventId, null);
     }
 }

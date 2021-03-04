@@ -103,7 +103,7 @@ public class IncomeSummaryServiceTest {
         then(mockHmrcClient).should().populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
         then(mockHmrcClient).shouldHaveNoMoreInteractions();
 
-        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class), any(AuditIndividualData.class));
+        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class), any());
         then(mockAuditClient).shouldHaveNoMoreInteractions();
     }
 
@@ -119,7 +119,7 @@ public class IncomeSummaryServiceTest {
     }
 
     @Test
-    public void shouldAudit() {
+    public void shouldNotAuditPII() {
 
         LocalDate dateOfBirth = LocalDate.of(1990, DECEMBER, 25);
         String firstName = "FirstName";
@@ -138,12 +138,7 @@ public class IncomeSummaryServiceTest {
 
         AuditIndividualData auditData = auditDataCaptor.getValue();
 
-        assertThat(auditData).isNotNull();
-        assertThat(auditData.getMethod()).isEqualTo("get-hmrc-data");
-        assertThat(auditData.getForename()).isEqualTo(firstName);
-        assertThat(auditData.getSurname()).isEqualTo(lastName);
-        assertThat(auditData.getNino()).isEqualTo(nino);
-        assertThat(auditData.getDateOfBirth()).isEqualTo(dateOfBirth);
+        assertThat(auditData).isNull();
     }
 
     @Test
@@ -160,7 +155,7 @@ public class IncomeSummaryServiceTest {
         then(mockAccessCodeClient).should(times(2)).getAccessCode();
         then(mockAccessCodeClient).should().loadLatestAccessCode();
         then(mockHmrcClient).should(times(2)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
-        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
+        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class), any());
     }
 
     @Test
