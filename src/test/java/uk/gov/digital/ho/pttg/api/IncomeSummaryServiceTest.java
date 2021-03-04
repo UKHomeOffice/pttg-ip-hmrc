@@ -103,7 +103,7 @@ public class IncomeSummaryServiceTest {
         then(mockHmrcClient).should().populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
         then(mockHmrcClient).shouldHaveNoMoreInteractions();
 
-        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class), any());
+        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class), isNull());
         then(mockAuditClient).shouldHaveNoMoreInteractions();
     }
 
@@ -155,7 +155,7 @@ public class IncomeSummaryServiceTest {
         then(mockAccessCodeClient).should(times(2)).getAccessCode();
         then(mockAccessCodeClient).should().loadLatestAccessCode();
         then(mockHmrcClient).should(times(2)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
-        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class), any());
+        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class), isNull());
     }
 
     @Test
