@@ -103,7 +103,7 @@ public class IncomeSummaryServiceTest {
         then(mockHmrcClient).should().populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
         then(mockHmrcClient).shouldHaveNoMoreInteractions();
 
-        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class), isNull());
+        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class));
         then(mockAuditClient).shouldHaveNoMoreInteractions();
     }
 
@@ -116,29 +116,6 @@ public class IncomeSummaryServiceTest {
         incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, null);
 
         then(mockHmrcClient).should().populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), isNull(), any(IncomeSummaryContext.class));
-    }
-
-    @Test
-    public void shouldNotAuditPII() {
-
-        LocalDate dateOfBirth = LocalDate.of(1990, DECEMBER, 25);
-        String firstName = "FirstName";
-        String lastName = "LastName";
-        String nino = "Nino";
-        Individual individual = new Individual(firstName, lastName, nino, dateOfBirth, "");
-
-        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(SOME_FROM_DATE), isNull(), any(IncomeSummaryContext.class)))
-                .willReturn(mockIncomeSummary);
-
-        incomeSummaryService.getIncomeSummary(individual, SOME_FROM_DATE, null);
-
-        then(mockAuditClient).should().add(eq(HMRC_INCOME_REQUEST), eventIdCaptor.capture(), auditDataCaptor.capture());
-
-        assertThat(eventIdCaptor.getValue()).isNotNull();
-
-        AuditIndividualData auditData = auditDataCaptor.getValue();
-
-        assertThat(auditData).isNull();
     }
 
     @Test
@@ -155,7 +132,7 @@ public class IncomeSummaryServiceTest {
         then(mockAccessCodeClient).should(times(2)).getAccessCode();
         then(mockAccessCodeClient).should().loadLatestAccessCode();
         then(mockHmrcClient).should(times(2)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
-        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class), isNull());
+        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class));
     }
 
     @Test

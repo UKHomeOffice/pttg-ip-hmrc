@@ -81,7 +81,7 @@ public class AuditClientTest {
         when(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         verify(mockRestTemplate, times(3)).exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class));
     }
@@ -91,7 +91,7 @@ public class AuditClientTest {
         when(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         verify(mockAppender).doAppend(argThat(argument -> {
             LoggingEvent loggingEvent = (LoggingEvent) argument;
@@ -103,33 +103,11 @@ public class AuditClientTest {
     }
 
     @Test
-    public void addShouldLogErrorOnJsonProcessingException() {
-
-        try {
-            given(mockMapper.writeValueAsString(any(AuditIndividualData.class))).willThrow(JsonProcessingException.class);
-        } catch (JsonProcessingException e) {
-            // Ignore expected exception
-        }
-
-        // when
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
-
-        // then
-        verify(mockAppender).doAppend(argThat(argument -> {
-            LoggingEvent loggingEvent = (LoggingEvent) argument;
-
-            return loggingEvent.getFormattedMessage().equals("Failed to create json representation of audit data") &&
-                    loggingEvent.getLevel() == Level.ERROR &&
-                    ((ObjectAppendingMarker) loggingEvent.getArgumentArray()[0]).getFieldName().equals("event_id");
-        }));
-    }
-
-    @Test
     public void logInfoOnRetry() {
         when(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), mockAuditableData);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         verifyLogMessage("Retrying audit attempt 1 of 2");
         verifyLogMessage("Retrying audit attempt 2 of 2");
@@ -154,7 +132,7 @@ public class AuditClientTest {
         when(mockRequestHeaderData.userId()).thenReturn("some user id");
         String someComponentTrace = "pttg-ip-api,pttg-ip-hmrc";
         when(mockComponentTraceHeaderData.componentTrace()).thenReturn(someComponentTrace);
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         verify(mockRestTemplate).exchange(eq("endpoint"), eq(POST), captorHttpEntity.capture(), eq(Void.class));
 
@@ -173,7 +151,7 @@ public class AuditClientTest {
         given(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .willReturn(someResponse);
 
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         then(mockComponentTraceHeaderData).should().updateComponentTrace(someResponse);
     }
@@ -184,7 +162,7 @@ public class AuditClientTest {
         given(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .willThrow(someHttpException);
 
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         then(mockComponentTraceHeaderData).should().updateComponentTrace(someHttpException);
     }
@@ -195,7 +173,7 @@ public class AuditClientTest {
         given(mockRestTemplate.exchange(eq("endpoint"), eq(HttpMethod.POST), any(HttpEntity.class), eq(Void.class)))
                 .willThrow(anyException);
 
-        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID(), null);
+        client.add(HMRC_INCOME_REQUEST, UUID.randomUUID());
 
         then(mockComponentTraceHeaderData).should(never()).updateComponentTrace(any(ResponseEntity.class));
         then(mockComponentTraceHeaderData).should(never()).updateComponentTrace(any(HttpStatusCodeException.class));

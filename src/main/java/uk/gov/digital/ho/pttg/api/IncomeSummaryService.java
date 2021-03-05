@@ -15,6 +15,7 @@ import uk.gov.digital.ho.pttg.audit.AuditClient;
 
 import java.time.LocalDate;
 import java.util.UUID;
+import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static uk.gov.digital.ho.pttg.application.LogEvent.EVENT;
@@ -102,6 +103,6 @@ public class IncomeSummaryService {
 
     private void auditRequestToHmrc(Individual individual) {
         UUID eventId = UUID.randomUUID();
-        auditClient.add(HMRC_INCOME_REQUEST, eventId, null);
+    auditClient.add(HMRC_INCOME_REQUEST, eventId);
     }
 }
