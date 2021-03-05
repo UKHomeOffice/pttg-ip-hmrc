@@ -28,7 +28,6 @@ import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
-import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -41,7 +40,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
-import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IncomeSummaryServiceTest {
@@ -64,7 +62,6 @@ public class IncomeSummaryServiceTest {
     @Mock private RequestHeaderData mockRequestHeaderData;
 
     @Captor private ArgumentCaptor<UUID> eventIdCaptor;
-    @Captor private ArgumentCaptor<AuditIndividualData> auditDataCaptor;
 
     private IncomeSummaryService incomeSummaryService;
 

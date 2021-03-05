@@ -50,7 +50,6 @@ public class AuditClientTest {
     @Mock private RequestHeaderData mockRequestHeaderData;
     @Mock private ComponentTraceHeaderData mockComponentTraceHeaderData;
     @Mock private RestTemplate mockRestTemplate;
-    @Mock private AuditIndividualData mockAuditableData;
     @Mock private Appender<ILoggingEvent> mockAppender;
     @Mock private ObjectMapper mockMapper;
 
