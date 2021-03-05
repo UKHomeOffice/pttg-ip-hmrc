@@ -28,7 +28,6 @@ import uk.gov.digital.ho.pttg.application.domain.Individual;
 import uk.gov.digital.ho.pttg.application.retry.RetryTemplateBuilder;
 import uk.gov.digital.ho.pttg.audit.AuditClient;
 import uk.gov.digital.ho.pttg.audit.AuditEventType;
-import uk.gov.digital.ho.pttg.audit.AuditIndividualData;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -64,7 +63,6 @@ public class IncomeSummaryServiceTest {
     @Mock private RequestHeaderData mockRequestHeaderData;
 
     @Captor private ArgumentCaptor<UUID> eventIdCaptor;
-    @Captor private ArgumentCaptor<AuditIndividualData> auditDataCaptor;
 
     private IncomeSummaryService incomeSummaryService;
 
@@ -103,7 +101,7 @@ public class IncomeSummaryServiceTest {
         then(mockHmrcClient).should().populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
         then(mockHmrcClient).shouldHaveNoMoreInteractions();
 
-        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class), any(AuditIndividualData.class));
+        then(mockAuditClient).should().add(any(AuditEventType.class), any(UUID.class));
         then(mockAuditClient).shouldHaveNoMoreInteractions();
     }
 
@@ -116,34 +114,6 @@ public class IncomeSummaryServiceTest {
         incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, null);
 
         then(mockHmrcClient).should().populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), isNull(), any(IncomeSummaryContext.class));
-    }
-
-    @Test
-    public void shouldAudit() {
-
-        LocalDate dateOfBirth = LocalDate.of(1990, DECEMBER, 25);
-        String firstName = "FirstName";
-        String lastName = "LastName";
-        String nino = "Nino";
-        Individual individual = new Individual(firstName, lastName, nino, dateOfBirth, "");
-
-        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(SOME_FROM_DATE), isNull(), any(IncomeSummaryContext.class)))
-                .willReturn(mockIncomeSummary);
-
-        incomeSummaryService.getIncomeSummary(individual, SOME_FROM_DATE, null);
-
-        then(mockAuditClient).should().add(eq(HMRC_INCOME_REQUEST), eventIdCaptor.capture(), auditDataCaptor.capture());
-
-        assertThat(eventIdCaptor.getValue()).isNotNull();
-
-        AuditIndividualData auditData = auditDataCaptor.getValue();
-
-        assertThat(auditData).isNotNull();
-        assertThat(auditData.getMethod()).isEqualTo("get-hmrc-data");
-        assertThat(auditData.getForename()).isEqualTo(firstName);
-        assertThat(auditData.getSurname()).isEqualTo(lastName);
-        assertThat(auditData.getNino()).isEqualTo(nino);
-        assertThat(auditData.getDateOfBirth()).isEqualTo(dateOfBirth);
     }
 
     @Test
@@ -160,7 +130,7 @@ public class IncomeSummaryServiceTest {
         then(mockAccessCodeClient).should(times(2)).getAccessCode();
         then(mockAccessCodeClient).should().loadLatestAccessCode();
         then(mockHmrcClient).should(times(2)).populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(SOME_INDIVIDUAL), eq(SOME_FROM_DATE), eq(SOME_TO_DATE), any(IncomeSummaryContext.class));
-        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class), isA(AuditIndividualData.class));
+        then(mockAuditClient).should(times(2)).add(isA(AuditEventType.class), isA(UUID.class));
     }
 
     @Test
@@ -205,6 +175,25 @@ public class IncomeSummaryServiceTest {
 
         assertThatThrownBy(() -> incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE))
                 .isInstanceOf(HttpServerErrorException.class);
+    }
+
+    @Test
+    public void shouldAudit() {
+
+        LocalDate dateOfBirth = LocalDate.of(1990, DECEMBER, 25);
+        String firstName = "FirstName";
+        String lastName = "LastName";
+        String nino = "Nino";
+        Individual individual = new Individual(firstName, lastName, nino, dateOfBirth, "");
+
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(SOME_FROM_DATE), isNull(), any(IncomeSummaryContext.class)))
+                .willReturn(mockIncomeSummary);
+
+        incomeSummaryService.getIncomeSummary(individual, SOME_FROM_DATE, null);
+
+        then(mockAuditClient).should().add(eq(HMRC_INCOME_REQUEST), eventIdCaptor.capture());
+
+        assertThat(eventIdCaptor.getValue()).isNotNull();
     }
 
     @Test

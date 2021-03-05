@@ -61,12 +61,12 @@ public class AuditClient {
                 .build();
     }
 
-    public void add(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) {
+    public void add(AuditEventType eventType, UUID eventId) {
 
         log.debug("POST data for {} to audit service", eventId);
 
         try {
-            AuditableData auditableData = generateAuditableData(eventType, eventId, auditData);
+            AuditableData auditableData = generateAuditableData(eventType, eventId);
             dispatchAuditableData(auditableData);
             log.debug("data POSTed to audit service");
         } catch (JsonProcessingException e) {
@@ -90,16 +90,17 @@ public class AuditClient {
         }
     }
 
-    private AuditableData generateAuditableData(AuditEventType eventType, UUID eventId, AuditIndividualData auditData) throws JsonProcessingException {
-        return new AuditableData(eventId.toString(),
-                LocalDateTime.now(clock),
-                requestHeaderData.sessionId(),
-                requestHeaderData.correlationId(),
-                requestHeaderData.userId(),
-                requestHeaderData.deploymentName(),
-                requestHeaderData.deploymentNamespace(),
-                eventType,
-                mapper.writeValueAsString(auditData));
+    private AuditableData generateAuditableData(AuditEventType eventType, UUID eventId) throws JsonProcessingException {
+    return new AuditableData(
+        eventId.toString(),
+        LocalDateTime.now(clock),
+        requestHeaderData.sessionId(),
+        requestHeaderData.correlationId(),
+        requestHeaderData.userId(),
+        requestHeaderData.deploymentName(),
+        requestHeaderData.deploymentNamespace(),
+        eventType,
+        "{}");
     }
 
     private HttpEntity<AuditableData> toEntity(AuditableData auditableData) {
