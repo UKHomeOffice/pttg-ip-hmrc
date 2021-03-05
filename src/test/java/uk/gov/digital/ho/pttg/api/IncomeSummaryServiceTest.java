@@ -40,6 +40,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.*;
+import static uk.gov.digital.ho.pttg.audit.AuditEventType.HMRC_INCOME_REQUEST;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IncomeSummaryServiceTest {
@@ -174,6 +175,25 @@ public class IncomeSummaryServiceTest {
 
         assertThatThrownBy(() -> incomeSummaryService.getIncomeSummary(SOME_INDIVIDUAL, SOME_FROM_DATE, SOME_TO_DATE))
                 .isInstanceOf(HttpServerErrorException.class);
+    }
+
+    @Test
+    public void shouldAudit() {
+
+        LocalDate dateOfBirth = LocalDate.of(1990, DECEMBER, 25);
+        String firstName = "FirstName";
+        String lastName = "LastName";
+        String nino = "Nino";
+        Individual individual = new Individual(firstName, lastName, nino, dateOfBirth, "");
+
+        given(mockHmrcClient.populateIncomeSummary(eq(SOME_ACCESS_CODE), eq(individual), eq(SOME_FROM_DATE), isNull(), any(IncomeSummaryContext.class)))
+                .willReturn(mockIncomeSummary);
+
+        incomeSummaryService.getIncomeSummary(individual, SOME_FROM_DATE, null);
+
+        then(mockAuditClient).should().add(eq(HMRC_INCOME_REQUEST), eventIdCaptor.capture());
+
+        assertThat(eventIdCaptor.getValue()).isNotNull();
     }
 
     @Test

@@ -74,7 +74,7 @@ public class IncomeSummaryService {
 
     private IncomeSummary requestIncomeSummary(Individual individual, LocalDate fromDate, LocalDate toDate) {
 
-        auditRequestToHmrc(individual);
+        auditRequestToHmrc();
 
         String accessCode = requestAccessCode();
 
@@ -100,8 +100,8 @@ public class IncomeSummaryService {
         return accessCodeClient.getAccessCode();
     }
 
-    private void auditRequestToHmrc(Individual individual) {
+    private void auditRequestToHmrc() {
         UUID eventId = UUID.randomUUID();
-    auditClient.add(HMRC_INCOME_REQUEST, eventId);
+        auditClient.add(HMRC_INCOME_REQUEST, eventId);
     }
 }
