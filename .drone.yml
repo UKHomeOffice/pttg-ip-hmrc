@@ -136,7 +136,7 @@ steps:
     KUBE_SERVER: https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
     PTTG_IP_DEV:
       from_secret: pttg_ip_dev
-    VERSION: build-${DRONE_BUILD_NUMBER}
+    IMAGE_VERSION: build-${DRONE_BUILD_NUMBER}
   when:
     branch:
     - master
