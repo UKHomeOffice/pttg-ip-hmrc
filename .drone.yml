@@ -11,7 +11,7 @@ steps:
 
 - name: build-project
   pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/openjdk8:v1.1.0
+  image: quay.io/ukhomeofficedigital/openjdk11:v11.0.5_10
   commands:
   - ./gradlew build
   when:
@@ -21,7 +21,7 @@ steps:
 
 - name: update-semver
   pull: if-not-exists
-  image: quay.io/ukhomeofficedigital/docker-openjdk8-git:v1.5.0
+  image: quay.io/ukhomeofficedigital/openjdk11:v11.0.5_10
   commands:
   - sh /root/git-utilities/set-up-github-user.sh "$${GITHUB_SSH_KEY}"
   - ./gradlew release -Prelease.useAutomaticVersion=true -x runBuildTasks -s -i

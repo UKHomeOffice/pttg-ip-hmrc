@@ -1,5 +1,4 @@
-FROM quay.io/ukhomeofficedigital/openjdk8:v1.8.0.131
-
+FROM quay.io/ukhomeofficedigital/openjdk11:v11.0.5_10
 
 ENV USER user-pttg-ip-hmrc
 ENV USER_ID 1000
