@@ -1,4 +1,4 @@
-FROM quay.io/ukhomeofficedigital/openjdk8:v1.8.0.131
+FROM quay.io/ukhomeofficedigital/pttg-docker-openjdk8:latest
 
 
 ENV USER user-pttg-ip-hmrc
